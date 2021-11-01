@@ -1,0 +1,11 @@
+version: '3'
+services:
+  postgresdb:
+    image: postgres:latest
+    restart: unless-stopped
+    container_name: postgres-container
+    ports:
+      - "0.0.0.0:5432:5432"
+    environment:
+      POSTGRES_DB: aspice
+      POSTGRES_PASSWORD: admin

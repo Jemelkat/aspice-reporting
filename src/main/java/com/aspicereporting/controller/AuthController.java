@@ -6,6 +6,7 @@ import com.aspicereporting.controller.response.JwtResponse;
 import com.aspicereporting.controller.response.MessageResponse;
 import com.aspicereporting.entity.Role;
 import com.aspicereporting.entity.User;
+import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.repository.RoleRepository;
 import com.aspicereporting.repository.UserRepository;
 import com.aspicereporting.security.jwt.JwtUtils;
@@ -26,7 +27,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 
-@CrossOrigin(origins = "*", maxAge = 3600)
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -71,13 +72,13 @@ public class AuthController {
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             return ResponseEntity
                     .badRequest()
-                    .body(new MessageResponse("Username is already taken!"));
+                    .body(new MessageResponse("Username is already taken."));
         }
 
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
             return ResponseEntity
                     .badRequest()
-                    .body(new MessageResponse("Email is already in use!"));
+                    .body(new MessageResponse("Email is already taken."));
         }
 
         // Create new user's account
@@ -87,7 +88,7 @@ public class AuthController {
 
         Set<Role> roles = new HashSet<>();
         Role userRole = roleRepository.findByName(Role.ERole.ROLE_USER)
-                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                .orElseThrow(() -> new EntityNotFoundException("User role not found."));
         roles.add(userRole);
 
         user.setRoles(roles);

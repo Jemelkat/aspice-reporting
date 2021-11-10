@@ -6,19 +6,19 @@ import lombok.*;
 import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name="users", uniqueConstraints = {@UniqueConstraint(columnNames = "username"), @UniqueConstraint(columnNames = "email")})
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
-    private Long userId;
+    private Long id;
 
     @Size(max = 20)
     @NotNull
@@ -38,6 +38,14 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
+
+    @ManyToOne (fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_id")
+    @JsonIgnore
+    private UserGroup userGroup;
+
+    @OneToMany (mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Source> sources;
 
     public User(String username, String email, String password) {
         this.username = username;

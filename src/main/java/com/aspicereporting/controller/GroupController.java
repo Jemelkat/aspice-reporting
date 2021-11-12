@@ -6,9 +6,11 @@ import com.aspicereporting.repository.UserGroupRepository;
 import com.aspicereporting.service.UserGroupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -35,5 +37,12 @@ public class GroupController {
         userGroupService.deleteUserGroup(userGroupId);
         return ResponseEntity.ok(new MessageResponse("User group id " + userGroupId + " deleted successfully."));
     }
+
+    @GetMapping(value = "/getAll")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public List<UserGroup> getAllGroups() {
+        return userGroupService.getAllUserGroupsList();
+    }
+
 
 }

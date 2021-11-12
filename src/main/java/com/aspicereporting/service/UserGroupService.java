@@ -1,11 +1,13 @@
 package com.aspicereporting.service;
 
+import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.repository.UserGroupRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -29,5 +31,9 @@ public class UserGroupService {
                     throw new EntityNotFoundException("User group id " + userGroupId + " not found.");
                 }
         );
+    }
+
+    public List<UserGroup> getAllUserGroupsList() {
+        return userGroupRepository.findAll();
     }
 }

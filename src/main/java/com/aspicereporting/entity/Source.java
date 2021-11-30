@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.Date;
+import java.util.List;
 
 @Entity
 @Setter
@@ -21,6 +23,17 @@ public class Source {
 
     @Column(name = "source_name")
     private String sourceName;
+
+    @Column(name = "source_created")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date sourceCreated;
+
+    @Column(name = "source_last_updated")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date sourceLastUpdated;
+
+    @OneToMany (mappedBy = "source", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SourceColumn> sourceColumns;
 
     @ManyToOne (fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)

@@ -10,3 +10,27 @@ INSERT INTO user_roles(user_id, role_id)
 VALUES (1,1);
 INSERT INTO user_roles(user_id, role_id)
 VALUES (1,2);
+
+
+
+INSERT INTO user_group(group_id, group_name)
+VALUES(1, 'Test group 1');
+INSERT INTO user_group(group_id, group_name)
+VALUES(2, 'Test group 2');
+INSERT INTO user_group(group_id, group_name)
+VALUES(3, 'Test group 3');
+INSERT INTO user_group(group_id, group_name)
+VALUES(4, 'Test group 4');
+INSERT INTO user_group(group_id, group_name)
+VALUES(5, 'Test group 5');
+
+INSERT INTO source(source_id, source_name, user_id)
+VALUES (1, 'Test soubor 1', 1);
+INSERT INTO source(source_id, source_name, user_id)
+VALUES (2, 'Test soubor 2', 1);
+INSERT INTO source(source_id, source_name, user_id)
+VALUES (3, 'Test soubor 3', 1);
+INSERT INTO source(source_id, source_name, user_id)
+VALUES (4, 'Test soubor 4', 1);
+INSERT INTO source(source_id, source_name, user_id)
+VALUES (5, 'Test soubor 5', 1);

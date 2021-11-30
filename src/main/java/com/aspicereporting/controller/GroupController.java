@@ -43,6 +43,4 @@ public class GroupController {
     public List<UserGroup> getAllGroups() {
         return userGroupService.getAllUserGroupsList();
     }
-
-
 }

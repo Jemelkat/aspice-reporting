@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -35,14 +36,39 @@ public class UserService {
                 user = foundUser.get();
             }
             else {
-                throw new EntityNotFoundException("Cound not find user with id " + userId);
+                throw new EntityNotFoundException("Could not find user with id " + userId);
             }
         }
 
         userGroup.addUser(user);
         userRepository.save(user);
     }
-    
+
+    public void saveOrUpdate(User user) {
+        userRepository.save(user);
+    }
+
+    public void update(User user) {
+        //If ID is not defined we cannot update the user
+        if(user.getId() == null) {
+            throw new EntityNotFoundException("Cannot update user without ID.");
+        }
+
+        //Get user from DB for updates
+        User currentUser = null;
+        try {
+            currentUser = userRepository.findById(user.getId()).get();
+        }catch (NoSuchElementException e) {
+            throw new EntityNotFoundException("Could not find user with id " + user.getId(), e);
+        }
+
+        //Set new unsername and email
+        currentUser.setUsername(user.getUsername());
+        currentUser.setEmail(user.getEmail());
+
+        userRepository.save(currentUser);
+    }
+
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }

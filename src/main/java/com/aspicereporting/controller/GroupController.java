@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
 
-@CrossOrigin(origins = "*")
+@CrossOrigin
 @RestController
 @RequestMapping("/group")
 public class GroupController {
@@ -36,11 +36,5 @@ public class GroupController {
     public ResponseEntity<?> deleteUserGroup(@RequestParam("userGroupId") Long userGroupId) {
         userGroupService.deleteUserGroup(userGroupId);
         return ResponseEntity.ok(new MessageResponse("User group id " + userGroupId + " deleted successfully."));
-    }
-
-    @GetMapping(value = "/getAll")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public List<UserGroup> getAllGroups() {
-        return userGroupService.getAllUserGroupsList();
     }
 }

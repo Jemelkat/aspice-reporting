@@ -24,8 +24,8 @@ VALUES(4, 'Test group 4');
 INSERT INTO user_group(group_id, group_name)
 VALUES(5, 'Test group 5');
 
-INSERT INTO source(source_id, source_name, user_id)
-VALUES (1, 'Test soubor 1', 1);
+INSERT INTO source(source_id, source_name, user_id, source_created, source_last_updated)
+VALUES (1, 'Test soubor 1', 1, current_timestamp, current_timestamp);
 INSERT INTO source(source_id, source_name, user_id)
 VALUES (2, 'Test soubor 2', 1);
 INSERT INTO source(source_id, source_name, user_id)

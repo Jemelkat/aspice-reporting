@@ -48,6 +48,9 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Source> sources;
 
+    @OneToMany(mappedBy="reportUser")
+    private Set<Report> reports = new HashSet<>();
+
     public User(String username, String email, String password) {
         this.username = username;
         this.email = email;

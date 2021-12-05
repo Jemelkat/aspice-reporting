@@ -44,7 +44,7 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void saveOrUpdate(User user) {
+    public void createOrUpdate(User user) {
         userRepository.save(user);
     }
 
@@ -71,5 +71,16 @@ public class UserService {
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
+    }
+
+    public void delete(Long userId) {
+        userRepository.findById(userId).ifPresentOrElse(
+                (obj) -> {
+                    userRepository.delete(obj);
+                },
+                () -> {
+                    throw new EntityNotFoundException("User id " + userId + " not found.");
+                }
+        );
     }
 }

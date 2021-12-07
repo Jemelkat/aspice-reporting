@@ -5,6 +5,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UserGroupRepository extends CrudRepository<UserGroup, Long> {
@@ -12,4 +13,7 @@ public interface UserGroupRepository extends CrudRepository<UserGroup, Long> {
 
     @Override
     List<UserGroup> findAll();
+
+    @Override
+    Optional<UserGroup> findById(Long id);
 }

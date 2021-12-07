@@ -26,6 +26,7 @@ public class UserController {
     Mapper mapper;
 
     @PostMapping(value = "/addToGroup")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> addUserGroup(@RequestParam("groupId") Long groupId, @RequestParam(value = "userId", required = false) Long userId, Authentication authentication) {
         User loggedUser = mapper.map(authentication.getPrincipal(), User.class);
         userService.addGroupToUser(groupId, userId, loggedUser);
@@ -33,6 +34,7 @@ public class UserController {
     }
 
     @PostMapping(value ="/edit")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> editUser(@RequestBody User user, Authentication authentication) {
         User loggedUser = mapper.map(authentication.getPrincipal(), User.class);
 

@@ -1,10 +1,12 @@
 package com.aspicereporting.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -26,10 +28,12 @@ public class Source {
 
     @Column(name = "source_created")
     @Temporal(TemporalType.TIMESTAMP)
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Date sourceCreated;
 
     @Column(name = "source_last_updated")
     @Temporal(TemporalType.TIMESTAMP)
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Date sourceLastUpdated;
 
     @OneToMany (mappedBy = "source", cascade = CascadeType.ALL, orphanRemoval = true)

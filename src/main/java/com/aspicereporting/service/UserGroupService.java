@@ -23,6 +23,11 @@ public class UserGroupService {
     UserRepository userRepository;
 
     public void addOrUpdateUserGroup(UserGroup userGroup) {
+
+    public void updateUserGroup(UserGroup userGroup) {
+        if(userGroup.getId() == null) {
+            throw new EntityNotFoundException("Cannot update user group "+ userGroup.getGroupName() + " no id provided.");
+        }
         userGroupRepository.save(userGroup);
     }
 
@@ -48,14 +53,14 @@ public class UserGroupService {
         return userGroupRepository.findAll();
     }
 
-    public void create(UserGroup group) {
+    public void createUserGroup(UserGroup group) {
         //Get group user ids
         List<Long> userIds = new ArrayList<>();
-        if(!group.getUsers().isEmpty()) {
+        if (!group.getUsers().isEmpty()) {
             userIds = group.getUsers()
-                        .stream()
-                        .map(User::getId)
-                        .collect(Collectors.toList());
+                    .stream()
+                    .map(User::getId)
+                    .collect(Collectors.toList());
         }
 
         //Get user entities
@@ -63,7 +68,7 @@ public class UserGroupService {
         //Add user entities to group
         group.setUsers(users);
         //Reconstruct
-        for(User u : users) {
+        for (User u : users) {
             u.setUserGroup(group);
         }
 

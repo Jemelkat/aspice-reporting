@@ -21,14 +21,14 @@ public class GroupController {
     @PostMapping(value = "/add")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> addUserGroup(@Valid UserGroup userGroup) {
-        userGroupService.addOrUpdateUserGroup(userGroup);
+        userGroupService.updateUserGroup(userGroup);
         return ResponseEntity.ok(new MessageResponse("User group " + userGroup.getGroupName() + " added successfully."));
     }
 
     @PostMapping(value = "/update")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> updateUserGroup(@Valid UserGroup userGroup) {
-        userGroupService.addOrUpdateUserGroup(userGroup);
+        userGroupService.updateUserGroup(userGroup);
         return ResponseEntity.ok(new MessageResponse("User group " + userGroup.getGroupName() + " updated successfully."));
     }
 

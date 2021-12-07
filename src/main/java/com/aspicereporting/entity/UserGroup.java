@@ -23,6 +23,11 @@ public class UserGroup {
     @OneToMany (mappedBy = "userGroup")
     private List<User> users;
 
+    public UserGroup(Long id, String groupName) {
+        this.id = id;
+        this.groupName = groupName;
+    }
+
     public void addUser(User user) {
         user.setUserGroup(this);
         this.users.add(user);

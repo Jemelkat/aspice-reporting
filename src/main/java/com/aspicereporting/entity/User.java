@@ -45,16 +45,33 @@ public class User {
     @JsonIgnore
     private UserGroup userGroup;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @JsonIgnore
     private List<Source> sources;
 
-    @OneToMany(mappedBy="reportUser")
+    @OneToMany(mappedBy="reportUser", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @JsonIgnore
     private Set<Report> reports = new HashSet<>();
 
     public User(String username, String email, String password) {
         this.username = username;
         this.email = email;
         this.password = password;
+    }
+
+    public User(Long id, String username, String email, String password) {
+        this.id = id;
+        this.username = username;
+        this.email = email;
+        this.password = password;
+    }
+
+    public User(Long id, String username, String email, String password, UserGroup userGroup) {
+        this.id = id;
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.userGroup = userGroup;
     }
 
     public boolean isAdmin() {

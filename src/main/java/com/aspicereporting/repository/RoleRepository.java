@@ -9,5 +9,4 @@ import java.util.Optional;
 @Repository
 public interface RoleRepository extends CrudRepository<Role, Long> {
     Optional<Role> findByName(Role.ERole name);
-
 }

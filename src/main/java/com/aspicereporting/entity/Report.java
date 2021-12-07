@@ -28,6 +28,6 @@ public class Report {
     @JsonIgnore
     private User reportUser;
 
-    @OneToMany(mappedBy = "report", cascade = {CascadeType.ALL},orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "report", cascade = CascadeType.ALL,orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ReportItem> reportItems = new ArrayList<>();
 }

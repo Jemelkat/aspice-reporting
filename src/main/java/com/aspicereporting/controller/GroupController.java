@@ -43,7 +43,7 @@ public class GroupController {
     @PostMapping(value = "/create")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> createUserGroup(@RequestBody UserGroup group) {
-        userGroupService.create(group);
+        userGroupService.createUserGroup(group);
         return ResponseEntity.ok(new MessageResponse("User group id " + group.getId() + " edited successfully."));
     }
 }

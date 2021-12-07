@@ -1,5 +1,6 @@
 package com.aspicereporting.service;
 
+import com.aspicereporting.converter.GroupConverter;
 import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.exception.EntityNotFoundException;
@@ -22,7 +23,8 @@ public class UserGroupService {
     @Autowired
     UserRepository userRepository;
 
-    public void addOrUpdateUserGroup(UserGroup userGroup) {
+    @Autowired
+    GroupConverter groupConverter;
 
     public void updateUserGroup(UserGroup userGroup) {
         if(userGroup.getId() == null) {
@@ -32,21 +34,17 @@ public class UserGroupService {
     }
 
     public void deleteUserGroup(Long userGroupId) {
-        Optional<UserGroup> userGroup = userGroupRepository.findById(userGroupId);
+        UserGroup userGroup = groupConverter.convert(userGroupId);
 
-        //Delete only if group exists
-        userGroup.ifPresentOrElse(
-                (obj) -> {
-                    //Handle many to many relation
-                    for(User u : obj.getUsers()) {
-                        u.setUserGroup(null);
-                    }
-                    userGroupRepository.delete(obj);
-                },
-                () -> {
-                    throw new EntityNotFoundException("User group id " + userGroupId + " not found.");
-                }
-        );
+        if (userGroup != null) {
+            //Handle many to many relation
+            for (User u : userGroup.getUsers()) {
+                u.setUserGroup(null);
+            }
+            userGroupRepository.delete(userGroup);
+        } else {
+            throw new EntityNotFoundException("User group id " + userGroupId + " not found.");
+        }
     }
 
     public List<UserGroup> getAllUserGroupsList() {

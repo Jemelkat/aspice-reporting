@@ -15,7 +15,7 @@ public class TemplateItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "template_item_id")
     private Long itemId;
-    @Column(length = 50, name = "template_item_type", insertable = false, updatable = false)
+    @Column(length = 50, name = "template_item_type")
     @Enumerated(EnumType.STRING)
     private ReportItem.EItemType type;
     @Column(name = "template_item_x")
@@ -31,4 +31,12 @@ public class TemplateItem {
     @JoinColumn(name = "template_id", referencedColumnName = "template_id")
     @JsonIgnore
     private Template template;
+
+    public void update(TemplateItem newTemplateItem) {
+        this.x = newTemplateItem.getX();
+        this.y = newTemplateItem.getY();
+        this.height = newTemplateItem.getHeight();
+        this.width = newTemplateItem.getWidth();
+        this.type = newTemplateItem.getType();
+    }
 }

@@ -36,10 +36,11 @@ public class Template {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date templateLastUpdated;
 
-    @OneToMany(mappedBy = "template", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "template",cascade = {CascadeType.ALL},orphanRemoval=true)
     private List<TemplateItem> templateItems = new ArrayList<>();
 
-    @OneToMany(mappedBy = "template", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "reportTemplate", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Report> reports = new ArrayList<>();
 
     @ManyToOne

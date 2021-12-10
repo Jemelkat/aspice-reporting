@@ -2,14 +2,18 @@ package com.aspicereporting.service;
 
 import com.aspicereporting.entity.Template;
 import com.aspicereporting.entity.User;
+import com.aspicereporting.entity.items.ReportItem;
 import com.aspicereporting.entity.items.TemplateItem;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.repository.TemplateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class TemplateService {
@@ -26,7 +30,7 @@ public class TemplateService {
     }
 
     public void saveOrEditTemplate(Template template, User user) {
-        Template newTemplate = null;
+        Template newTemplate;
         Date changeDate = new Date();
         //Edit existing template
         if(template.getTemplateId() != null) {
@@ -37,6 +41,11 @@ public class TemplateService {
             }
 
             newTemplate.setTemplateName(template.getTemplateName());
+            newTemplate.setTemplateLastUpdated(changeDate);
+
+            //Cant change the collection add new one instead
+            newTemplate.getTemplateItems().clear();
+            newTemplate.getTemplateItems().addAll(template.getTemplateItems());
         }
         //Create new template
         else {

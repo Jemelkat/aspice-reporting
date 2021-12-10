@@ -36,12 +36,12 @@ public class Report {
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Date reportLastUpdated;
 
-    @OneToMany(mappedBy = "report", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "report", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ReportItem> reportItems = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name="template_id")
-    private Template template;
+    private Template reportTemplate;
 
     @ManyToOne
     @JoinColumn(name="user_id", nullable=false)

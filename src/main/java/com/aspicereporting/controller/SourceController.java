@@ -28,6 +28,8 @@ public class SourceController {
     @PostMapping("/upload")
     public ResponseEntity<?> uploadSource(@RequestParam("file") MultipartFile file, Authentication authentication) {
         User user = mapper.map(authentication.getPrincipal(), User.class);
+
+        //Store multipart file as source
         sourceService.storeFileAsSource(file, user);
 
         String fileName = file.getOriginalFilename();
@@ -35,8 +37,9 @@ public class SourceController {
     }
 
     @GetMapping("/getAll")
-    public List<Source> getAllSourcesByUser(Authentication authentication) {
+    public List<Source> getAllSources(Authentication authentication) {
         User user = mapper.map(authentication.getPrincipal(), User.class);
+        //Get all sources for logged user
         return sourceService.getSourcesByUser(user);
     }
 

@@ -53,6 +53,10 @@ public class User {
     @JsonIgnore
     private Set<Report> reports = new HashSet<>();
 
+    @OneToMany(mappedBy="templateUser", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @JsonIgnore
+    private Set<Template> templates = new HashSet<>();
+
     public User(String username, String email, String password) {
         this.username = username;
         this.email = email;

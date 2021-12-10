@@ -22,13 +22,25 @@ public class UserGroupService {
     @Autowired
     UserRepository userRepository;
 
-    public void addOrUpdateUserGroup(UserGroup userGroup) {}
-
     public void updateUserGroup(UserGroup userGroup) {
-        if(userGroup.getId() == null) {
-            throw new EntityNotFoundException("Cannot update user group "+ userGroup.getGroupName() + " no id provided.");
+        if (userGroup.getId() == null) {
+            throw new EntityNotFoundException("Cannot update user group " + userGroup.getGroupName() + " no id provided.");
         }
-        userGroupRepository.save(userGroup);
+        //Get current group by id
+        UserGroup oldUserGroup = userGroupRepository.findById(userGroup.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Could not find user group with id " +userGroup.getId()  ));
+
+        //Get users from ids in updated group
+        List<User> newUsersList = userRepository.findByIdIn(userGroup.getUsers()
+                .stream()
+                .map(User::getId)
+                .collect(Collectors.toList()));
+
+        //Set new values
+        oldUserGroup.setGroupName(userGroup.getGroupName());
+        oldUserGroup.setUsers(newUsersList);
+
+        userGroupRepository.save(oldUserGroup);
     }
 
     public void deleteUserGroup(Long userGroupId) {
@@ -38,7 +50,7 @@ public class UserGroupService {
         userGroup.ifPresentOrElse(
                 (obj) -> {
                     //Handle many to many relation
-                    for(User u : obj.getUsers()) {
+                    for (User u : obj.getUsers()) {
                         u.setUserGroup(null);
                     }
                     userGroupRepository.delete(obj);
@@ -49,7 +61,7 @@ public class UserGroupService {
         );
     }
 
-    public List<UserGroup> getAllUserGroupsList() {
+    public List<UserGroup> getAllUserGroups() {
         return userGroupRepository.findAll();
     }
 

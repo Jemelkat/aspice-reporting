@@ -34,12 +34,18 @@ public class SourceService {
         source.setUser(user);
         source.setSourceCreated(new Date());
         source.setSourceLastUpdated(new Date());
+
         //Parse csv to objects
         source.setSourceColumns(parseFileToColumnsList(file, source));
+
         sourceRepository.save(source);
     }
 
-    public List<SourceColumn> parseFileToColumnsList(MultipartFile file, Source source) {
+    public List<Source> getSourcesByUser(User user) {
+        return sourceRepository.findAllByUser(user);
+    }
+
+    private List<SourceColumn> parseFileToColumnsList(MultipartFile file, Source source) {
         List<SourceColumn> sourceColumns = new ArrayList<>();
         Character delimiter = null;
         try {
@@ -72,9 +78,5 @@ public class SourceService {
             throw new CsvSourceFileException("There was error processing CSV file.", e);
         }
         return sourceColumns;
-    }
-
-    public List<Source> getSourcesByUser(User user) {
-        return sourceRepository.findAllByUser(user);
     }
 }

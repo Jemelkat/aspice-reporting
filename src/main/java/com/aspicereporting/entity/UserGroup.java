@@ -17,7 +17,7 @@ public class UserGroup {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "group_id")
     private Long id;
-    @Column(name = "group_name")
+    @Column(name = "group_name", unique = true)
     @NotNull
     private String groupName;
     @OneToMany (mappedBy = "userGroup")

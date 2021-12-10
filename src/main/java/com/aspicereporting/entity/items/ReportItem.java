@@ -1,5 +1,8 @@
-package com.aspicereporting.entity;
+package com.aspicereporting.entity.items;
 
+import com.aspicereporting.entity.Report;
+import com.aspicereporting.entity.Template;
+import com.aspicereporting.entity.TextItem;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -7,8 +10,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
 
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,

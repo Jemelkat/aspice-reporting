@@ -13,16 +13,14 @@ VALUES (1,2);
 
 
 
-INSERT INTO user_group(group_id, group_name)
-VALUES(1, 'Test group 1');
-INSERT INTO user_group(group_id, group_name)
-VALUES(2, 'Test group 2');
-INSERT INTO user_group(group_id, group_name)
-VALUES(3, 'Test group 3');
-INSERT INTO user_group(group_id, group_name)
-VALUES(4, 'Test group 4');
-INSERT INTO user_group(group_id, group_name)
-VALUES(5, 'Test group 5');
+INSERT INTO user_group( group_name)
+VALUES('Test group 1');
+INSERT INTO user_group( group_name)
+VALUES('Test group 2');
+INSERT INTO user_group( group_name)
+VALUES('Test group 3');
+INSERT INTO user_group( group_name)
+VALUES('Test group 4');
 
 INSERT INTO source( source_name, user_id, source_created, source_last_updated)
 VALUES ('Test soubor 1', 1, current_timestamp, current_timestamp);
@@ -34,3 +32,24 @@ INSERT INTO source(source_name, user_id)
 VALUES ('Test soubor 4', 1);
 INSERT INTO source(source_name, user_id)
 VALUES ('Test soubor 5', 1);
+
+
+INSERT INTO template( template_name, template_created, template_last_updated, user_id)
+VALUES ('Template 1', current_timestamp, current_timestamp, 1);
+INSERT INTO template( template_name, template_created, template_last_updated, user_id)
+VALUES ('Template 2', current_timestamp, current_timestamp, 1);
+INSERT INTO template( template_name, template_created, template_last_updated, user_id)
+VALUES ('Template 3', current_timestamp, current_timestamp, 1);
+INSERT INTO template( template_name, template_created, template_last_updated, user_id)
+VALUES ('Template 4', current_timestamp, current_timestamp, 1);
+INSERT INTO template( template_name, template_created, template_last_updated, user_id)
+VALUES ('Template 5', current_timestamp, current_timestamp, 1);
+
+INSERT INTO report( report_name, report_created, report_last_updated, user_id)
+VALUES ('Report 1', current_timestamp, current_timestamp, 1);
+INSERT INTO report( report_name, report_created, report_last_updated, user_id)
+VALUES ('Report 2', current_timestamp, current_timestamp, 1);
+INSERT INTO report( report_name, report_created, report_last_updated, user_id)
+VALUES ('Report 3', current_timestamp, current_timestamp, 1);
+INSERT INTO report( report_name, report_created, report_last_updated, user_id)
+VALUES ('Report 4', current_timestamp, current_timestamp, 1);

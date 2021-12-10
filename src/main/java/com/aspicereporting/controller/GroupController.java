@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin
 @RestController
 @RequestMapping("/group")
 public class GroupController {
@@ -18,9 +18,9 @@ public class GroupController {
     @Autowired
     UserGroupService userGroupService;
 
-    @PostMapping(value = "/add")
+    @PostMapping(value = "/edit")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<?> addUserGroup(@Valid UserGroup userGroup) {
+    public ResponseEntity<?> editUserGroup(@Valid UserGroup userGroup) {
         userGroupService.updateUserGroup(userGroup);
         return ResponseEntity.ok(new MessageResponse("User group " + userGroup.getGroupName() + " added successfully."));
     }
@@ -42,8 +42,8 @@ public class GroupController {
 
     @PostMapping(value = "/create")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<?> createUserGroup(@RequestBody UserGroup group) {
+    public ResponseEntity<?> createUserGroup(@RequestBody @Valid UserGroup group) {
         userGroupService.createUserGroup(group);
-        return ResponseEntity.ok(new MessageResponse("User group id " + group.getId() + " edited successfully."));
+        return ResponseEntity.ok(new MessageResponse("User group id " + group.getId() + " created successfully."));
     }
 }

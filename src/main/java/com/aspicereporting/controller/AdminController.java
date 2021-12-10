@@ -33,6 +33,6 @@ public class AdminController {
     @GetMapping(value = "/getAllGroups")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public List<UserGroup> getAllGroups() {
-        return userGroupService.getAllUserGroupsList();
+        return userGroupService.getAllUserGroups();
     }
 }

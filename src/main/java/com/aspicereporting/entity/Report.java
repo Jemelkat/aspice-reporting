@@ -1,5 +1,7 @@
 package com.aspicereporting.entity;
 
+import com.aspicereporting.entity.items.ReportItem;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
@@ -7,6 +9,7 @@ import lombok.Setter;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Getter
@@ -23,11 +26,25 @@ public class Report {
     @NotNull
     private String reportName;
 
+    @Column(name = "report_created")
+    @Temporal(TemporalType.TIMESTAMP)
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    private Date reportCreated;
+
+    @Column(name = "report_last_updated")
+    @Temporal(TemporalType.TIMESTAMP)
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    private Date reportLastUpdated;
+
+    @OneToMany(mappedBy = "report", fetch = FetchType.LAZY)
+    private List<ReportItem> reportItems = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name="template_id")
+    private Template template;
+
     @ManyToOne
     @JoinColumn(name="user_id", nullable=false)
     @JsonIgnore
     private User reportUser;
-
-    @OneToMany(mappedBy = "report", cascade = CascadeType.ALL,orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<ReportItem> reportItems = new ArrayList<>();
 }

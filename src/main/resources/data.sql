@@ -3,15 +3,30 @@ VALUES (1, 'ROLE_USER');
 INSERT INTO role(role_id, name)
 VALUES (2, 'ROLE_ADMIN');
 
-INSERT INTO users(user_id,email,password,username)
-VALUES (1,'admin@admin.cz','$2a$10$ppr454lZnf6t1cMbU6YGgulOrzZogcIEqH90nflkHQldFabIvnRuW','admin');
+INSERT INTO users(email,password,username)
+VALUES ('admin@admin.cz','$2a$10$ppr454lZnf6t1cMbU6YGgulOrzZogcIEqH90nflkHQldFabIvnRuW','admin');
+INSERT INTO users(email,password,username)
+VALUES ('admin1@admin.cz','$2a$10$ppr454lZnf6t1cMbU6YGgulOrzZogcIEqH90nflkHQldFabIvnRuW','dummy_user1');
+INSERT INTO users(email,password,username)
+VALUES ('admin2@admin.cz','$2a$10$ppr454lZnf6t1cMbU6YGgulOrzZogcIEqH90nflkHQldFabIvnRuW','dummy_user2');
+INSERT INTO users(email,password,username)
+VALUES ('admin3@admin.cz','$2a$10$ppr454lZnf6t1cMbU6YGgulOrzZogcIEqH90nflkHQldFabIvnRuW','dummy_user3');
+INSERT INTO users(email,password,username)
+VALUES ('admin4@admin.cz','$2a$10$ppr454lZnf6t1cMbU6YGgulOrzZogcIEqH90nflkHQldFabIvnRuW','dummy_user4');
+INSERT INTO users(email,password,username)
+VALUES ('admin5@admin.cz','$2a$10$ppr454lZnf6t1cMbU6YGgulOrzZogcIEqH90nflkHQldFabIvnRuW','dummy_user5');
+INSERT INTO users(email,password,username)
+VALUES ('admin6@admin.cz','$2a$10$ppr454lZnf6t1cMbU6YGgulOrzZogcIEqH90nflkHQldFabIvnRuW','dummy_user6');
+INSERT INTO users(email,password,username)
+VALUES ('admin7@admin.cz','$2a$10$ppr454lZnf6t1cMbU6YGgulOrzZogcIEqH90nflkHQldFabIvnRuW','dummy_user7');
+INSERT INTO users(email,password,username)
+VALUES ('admin8@admin.cz','$2a$10$ppr454lZnf6t1cMbU6YGgulOrzZogcIEqH90nflkHQldFabIvnRuW','dummy_user8');
+
 
 INSERT INTO user_roles(user_id, role_id)
 VALUES (1,1);
 INSERT INTO user_roles(user_id, role_id)
 VALUES (1,2);
-
-
 
 INSERT INTO user_group( group_name)
 VALUES('Test group 1');

@@ -36,7 +36,7 @@ public class Report {
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Date reportLastUpdated;
 
-    @OneToMany(mappedBy = "report", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "report", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<ReportItem> reportItems = new ArrayList<>();
 
     @ManyToOne

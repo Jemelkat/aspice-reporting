@@ -39,6 +39,7 @@ public class ReportService {
 
             newReport.setReportName(report.getReportName());
             newReport.setReportLastUpdated(changeDate);
+            newReport.setReportTemplate(report.getReportTemplate());
 
             //Cant change the collection add new one instead
             newReport.getReportItems().clear();

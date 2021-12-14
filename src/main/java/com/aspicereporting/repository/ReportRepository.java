@@ -9,4 +9,5 @@ import java.util.List;
 public interface ReportRepository extends CrudRepository<Report, Long> {
 
     List<Report> findAllByReportUser(User user);
+    Report findByReportIdAndReportUser(Long id, User user);
 }

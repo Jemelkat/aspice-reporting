@@ -45,8 +45,8 @@ VALUES ('Template 4', current_timestamp, current_timestamp, 1);
 INSERT INTO template( template_name, template_created, template_last_updated, user_id)
 VALUES ('Template 5', current_timestamp, current_timestamp, 1);
 
-INSERT INTO report( report_name, report_created, report_last_updated, user_id)
-VALUES ('Report 1', current_timestamp, current_timestamp, 1);
+INSERT INTO report( report_name, report_created, report_last_updated, user_id, template_id)
+VALUES ('Report 1', current_timestamp, current_timestamp, 1, 1);
 INSERT INTO report( report_name, report_created, report_last_updated, user_id)
 VALUES ('Report 2', current_timestamp, current_timestamp, 1);
 INSERT INTO report( report_name, report_created, report_last_updated, user_id)

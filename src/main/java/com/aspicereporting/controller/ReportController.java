@@ -2,6 +2,7 @@ package com.aspicereporting.controller;
 
 import com.aspicereporting.controller.response.MessageResponse;
 import com.aspicereporting.entity.Report;
+import com.aspicereporting.entity.Template;
 import com.aspicereporting.entity.items.ReportItem;
 import com.aspicereporting.entity.User;
 import com.aspicereporting.repository.ReportRepository;
@@ -27,24 +28,24 @@ public class ReportController {
     @Autowired
     Mapper mapper;
 
-    @PostMapping(value = "/create")
-    public ResponseEntity<?> createReport(@RequestBody Report report, Authentication authentication) {
-        User loggedUser = mapper.map(authentication.getPrincipal(), User.class);
-        report.setReportUser(loggedUser);
-
-        //Reconstruct
-        for(ReportItem r: report.getReportItems()) {
-            r.setReport(report);
-        }
-        reportRepository.save(report);
-
-        return ResponseEntity.ok(new MessageResponse("Report " + report.getReportId() + " created successfully."));
-    }
-
     @GetMapping(value = "/getAll")
     public List<Report> getAllReports(Authentication authentication) {
         User loggedUser = mapper.map(authentication.getPrincipal(), User.class);
         //Get all reports for logged user
         return reportService.getAllReportsByUser(loggedUser);
+    }
+
+    @PostMapping("/save")
+    public ResponseEntity<?> createOrEditReport(@RequestBody Report report, Authentication authentication) {
+        User loggedUser = mapper.map(authentication.getPrincipal(), User.class);
+        //Edit old or create new template
+        reportService.saveOrEditReport(report, loggedUser);
+        return ResponseEntity.ok(new MessageResponse(report.getReportName() + "saved."));
+    }
+
+    @GetMapping("/get")
+    public Report getReportById(@RequestParam Long reportId, Authentication authentication){
+        User loggerUser = mapper.map(authentication.getPrincipal(), User.class);
+        return reportService.getReportById(reportId, loggerUser);
     }
 }

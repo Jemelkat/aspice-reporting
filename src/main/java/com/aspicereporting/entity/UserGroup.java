@@ -26,12 +26,17 @@ public class UserGroup {
     @Column(name = "group_name", unique = true)
     @NotNull
     private String groupName;
+
     @OneToMany (mappedBy = "userGroup", fetch = FetchType.LAZY)
     private List<User> users = new ArrayList<>();
 
     @OneToMany (mappedBy = "templateGroup", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Template> templates  = new ArrayList<>();
+
+    @OneToMany (mappedBy = "reportGroup", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Report> reports  = new ArrayList<>();
 
     public UserGroup(Long id, String groupName) {
         this.id = id;

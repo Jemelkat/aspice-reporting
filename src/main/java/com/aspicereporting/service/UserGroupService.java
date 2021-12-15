@@ -8,6 +8,7 @@ import com.aspicereporting.repository.UserGroupRepository;
 import com.aspicereporting.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,17 +50,17 @@ public class UserGroupService {
 
         //Delete only if group exists
         userGroup.ifPresentOrElse(
-                (obj) -> {
-                    //Handle many to many relation
-                    for (User u : obj.getUsers()) {
+                (group) -> {
+                    //Handle one to many relations
+                    for (User u : group.getUsers()) {
                         u.setUserGroup(null);
                     }
-                    for (Template t : obj.getTemplates()) {
-                        t.removeGroup();
+                    for (Template t : group.getTemplates()) {
+                        t.setTemplateGroup(null);
                     }
-                    obj.getTemplates().clear();
 
-                    userGroupRepository.delete(obj);
+                    //Delete group
+                    userGroupRepository.delete(group);
                 },
                 () -> {
                     throw new EntityNotFoundException("User group id " + userGroupId + " not found.");
@@ -71,6 +72,7 @@ public class UserGroupService {
         return userGroupRepository.findAll();
     }
 
+    @Transactional
     public void createUserGroup(UserGroup group) {
         //Get group user ids
         List<Long> userIds = new ArrayList<>();

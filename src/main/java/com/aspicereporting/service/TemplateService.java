@@ -1,5 +1,6 @@
 package com.aspicereporting.service;
 
+import com.aspicereporting.entity.Report;
 import com.aspicereporting.entity.Template;
 import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.UserGroup;
@@ -10,6 +11,7 @@ import com.aspicereporting.repository.TemplateRepository;
 import com.aspicereporting.repository.UserGroupRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -34,6 +36,7 @@ public class TemplateService {
         return templateRepository.findByTemplateUserAndTemplateId(user, id);
     }
 
+    @Transactional
     public void saveOrEditTemplate(Template template, User user) {
         Template newTemplate;
         Date changeDate = new Date();
@@ -78,6 +81,21 @@ public class TemplateService {
         }
 
         template.setTemplateGroup(userGroup);
+        template.setTemplateLastUpdated(new Date());
         templateRepository.save(template);
+    }
+
+    public void deleteTemplate(Long templateId, User user) {
+        Template template = templateRepository.findByTemplateUserAndTemplateId(user, templateId);
+        if(template==null) {
+            throw new EntityNotFoundException("Could not find template with id =" + templateId );
+        }
+
+        //Remove foreign key in reports
+        for(Report r : template.getReports()) {
+            r.setReportTemplate(null);
+        }
+
+        templateRepository.delete(template);
     }
 }

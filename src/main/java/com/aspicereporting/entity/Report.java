@@ -2,6 +2,7 @@ package com.aspicereporting.entity;
 
 import com.aspicereporting.entity.items.ReportItem;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
@@ -42,6 +43,11 @@ public class Report {
     @ManyToOne
     @JoinColumn(name="template_id")
     private Template reportTemplate;
+
+    @ManyToOne
+    @JoinColumn(name = "group_id")
+    @JsonIdentityReference(alwaysAsId = true)
+    private UserGroup reportGroup;
 
     @ManyToOne
     @JoinColumn(name="user_id", nullable=false)

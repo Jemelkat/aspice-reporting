@@ -16,7 +16,7 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"template_name","user_id"})})
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"template_name", "user_id"})})
 public class Template {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,11 +37,11 @@ public class Template {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date templateLastUpdated;
 
-    @OneToMany(mappedBy = "template",cascade = {CascadeType.ALL},orphanRemoval=true)
+    @OneToMany(mappedBy = "template", cascade = {CascadeType.ALL}, orphanRemoval = true)
     private List<TemplateItem> templateItems = new ArrayList<>();
 
     @ManyToOne
-    @JoinColumn(name ="group_id")
+    @JoinColumn(name = "group_id")
     @JsonIdentityReference(alwaysAsId = true)
     private UserGroup templateGroup;
 
@@ -54,7 +54,8 @@ public class Template {
     @JsonIgnore
     private User templateUser;
 
-    public void removeGroup() {
-        this.templateGroup = null;
+    public void removeReport(Report report) {
+        this.reports.remove(report);
+        report.setReportTemplate(null);
     }
 }

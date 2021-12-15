@@ -54,4 +54,11 @@ public class TemplateController {
         return ResponseEntity.ok(new MessageResponse("Template id= " + templateId + " shared with your group."));
     }
 
+    @DeleteMapping("/delete")
+    public ResponseEntity<?> deleteTemplate(@RequestParam Long templateId, Authentication authentication){
+        User loggerUser = mapper.map(authentication.getPrincipal(), User.class);
+        templateService.deleteTemplate(templateId, loggerUser);
+        return ResponseEntity.ok(new MessageResponse("Template id= " + templateId + " deleted."));
+    }
+
 }

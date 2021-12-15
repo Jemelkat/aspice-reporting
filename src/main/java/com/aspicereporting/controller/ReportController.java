@@ -2,8 +2,6 @@ package com.aspicereporting.controller;
 
 import com.aspicereporting.controller.response.MessageResponse;
 import com.aspicereporting.entity.Report;
-import com.aspicereporting.entity.Template;
-import com.aspicereporting.entity.items.ReportItem;
 import com.aspicereporting.entity.User;
 import com.aspicereporting.repository.ReportRepository;
 import com.aspicereporting.service.ReportService;
@@ -47,5 +45,19 @@ public class ReportController {
     public Report getReportById(@RequestParam Long reportId, Authentication authentication){
         User loggerUser = mapper.map(authentication.getPrincipal(), User.class);
         return reportService.getReportById(reportId, loggerUser);
+    }
+
+    @PostMapping("/share")
+    public ResponseEntity<?> shareReportWithGroup(@RequestParam Long reportId, Authentication authentication) {
+        User loggerUser = mapper.map(authentication.getPrincipal(), User.class);
+        reportService.shareReport(reportId, loggerUser);
+        return ResponseEntity.ok(new MessageResponse("Report id= " + reportId + " shared with your group."));
+    }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<?> deleteReport(@RequestParam Long reportId, Authentication authentication){
+        User loggerUser = mapper.map(authentication.getPrincipal(), User.class);
+        reportService.deleteReport(reportId, loggerUser);
+        return ResponseEntity.ok(new MessageResponse("Report id= " + reportId + " deleted."));
     }
 }

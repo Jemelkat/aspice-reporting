@@ -2,6 +2,7 @@ package com.aspicereporting.entity;
 
 import com.aspicereporting.entity.items.TemplateItem;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,6 +40,11 @@ public class Template {
     @OneToMany(mappedBy = "template",cascade = {CascadeType.ALL},orphanRemoval=true)
     private List<TemplateItem> templateItems = new ArrayList<>();
 
+    @ManyToOne
+    @JoinColumn(name ="group_id")
+    @JsonIdentityReference(alwaysAsId = true)
+    private UserGroup templateGroup;
+
     @OneToMany(mappedBy = "reportTemplate", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Report> reports = new ArrayList<>();
@@ -47,4 +53,8 @@ public class Template {
     @JoinColumn(name = "user_id")
     @JsonIgnore
     private User templateUser;
+
+    public void removeGroup() {
+        this.templateGroup = null;
+    }
 }

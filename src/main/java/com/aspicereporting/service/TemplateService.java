@@ -2,10 +2,12 @@ package com.aspicereporting.service;
 
 import com.aspicereporting.entity.Template;
 import com.aspicereporting.entity.User;
+import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.entity.items.ReportItem;
 import com.aspicereporting.entity.items.TemplateItem;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.repository.TemplateRepository;
+import com.aspicereporting.repository.UserGroupRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +22,9 @@ public class TemplateService {
 
     @Autowired
     TemplateRepository templateRepository;
+
+    @Autowired
+    UserGroupRepository userGroupRepository;
 
     public List<Template> getAllTemplatesByUser(User user) {
         return templateRepository.findAllByTemplateUser(user);
@@ -59,5 +64,20 @@ public class TemplateService {
             item.setTemplate(newTemplate);
         }
         templateRepository.save(newTemplate);
+    }
+
+    public void shareTemplate(Long templateId, User user) {
+        UserGroup userGroup = userGroupRepository.findByUsersContains(user);
+        if(userGroup==null) {
+            throw new EntityNotFoundException("You are not in any group.");
+        }
+
+        Template template = templateRepository.findByTemplateUserAndTemplateId(user,templateId);
+        if(template==null) {
+            throw new EntityNotFoundException("Could not find template with id=" + templateId);
+        }
+
+        template.setTemplateGroup(userGroup);
+        templateRepository.save(template);
     }
 }

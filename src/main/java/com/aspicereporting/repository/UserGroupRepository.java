@@ -1,5 +1,6 @@
 package com.aspicereporting.repository;
 
+import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.UserGroup;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
@@ -17,4 +18,6 @@ public interface UserGroupRepository extends JpaRepository<UserGroup, Long> {
 
     @Override
     Optional<UserGroup> findById(Long id);
+
+    UserGroup findByUsersContains(User user);
 }

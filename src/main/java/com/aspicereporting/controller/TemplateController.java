@@ -7,6 +7,7 @@ import com.aspicereporting.service.TemplateService;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -41,9 +42,16 @@ public class TemplateController {
     }
 
     @GetMapping("/get")
-    public Template getTemplateById(@RequestParam Long templateId, Authentication authentication){
+    public Template getTemplateById(@RequestParam Long templateId, Authentication authentication) {
         User loggerUser = mapper.map(authentication.getPrincipal(), User.class);
         return templateService.getTemplateById(templateId, loggerUser);
+    }
+
+    @PostMapping("/share")
+    public ResponseEntity<?> shareTemplateWithGroup(@RequestParam Long templateId, Authentication authentication) {
+        User loggerUser = mapper.map(authentication.getPrincipal(), User.class);
+        templateService.shareTemplate(templateId, loggerUser);
+        return ResponseEntity.ok(new MessageResponse("Template id= " + templateId + " shared with your group."));
     }
 
 }

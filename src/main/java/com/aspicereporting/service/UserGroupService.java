@@ -1,5 +1,6 @@
 package com.aspicereporting.service;
 
+import com.aspicereporting.entity.Template;
 import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.exception.EntityNotFoundException;
@@ -53,6 +54,11 @@ public class UserGroupService {
                     for (User u : obj.getUsers()) {
                         u.setUserGroup(null);
                     }
+                    for (Template t : obj.getTemplates()) {
+                        t.removeGroup();
+                    }
+                    obj.getTemplates().clear();
+
                     userGroupRepository.delete(obj);
                 },
                 () -> {

@@ -49,8 +49,8 @@ INSERT INTO source(source_name, user_id)
 VALUES ('Test soubor 5', 1);
 
 
-INSERT INTO template( template_name, template_created, template_last_updated, user_id)
-VALUES ('Template 1', current_timestamp, current_timestamp, 1);
+INSERT INTO template( template_name, template_created, template_last_updated, user_id, group_id)
+VALUES ('Template 1', current_timestamp, current_timestamp, 1, 1);
 INSERT INTO template( template_name, template_created, template_last_updated, user_id)
 VALUES ('Template 2', current_timestamp, current_timestamp, 1);
 INSERT INTO template( template_name, template_created, template_last_updated, user_id)

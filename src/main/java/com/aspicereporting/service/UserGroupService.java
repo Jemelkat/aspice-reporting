@@ -32,6 +32,10 @@ public class UserGroupService {
         UserGroup oldUserGroup = userGroupRepository.findById(userGroup.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Could not find user group with id " +userGroup.getId()  ));
 
+        for(User user : oldUserGroup.getUsers()) {
+            user.setUserGroup(null);
+        }
+
         //Get users from ids in updated group
         List<User> newUsersList = userRepository.findByIdIn(userGroup.getUsers()
                 .stream()
@@ -40,7 +44,10 @@ public class UserGroupService {
 
         //Set new values
         oldUserGroup.setGroupName(userGroup.getGroupName());
-        oldUserGroup.setUsers(newUsersList);
+        oldUserGroup.getUsers().clear();
+        for(User u: newUsersList) {
+            oldUserGroup.addUser(u);
+        }
 
         userGroupRepository.save(oldUserGroup);
     }

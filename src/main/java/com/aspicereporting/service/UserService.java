@@ -83,4 +83,12 @@ public class UserService {
                 }
         );
     }
+
+    public void removeUserFromGroup(User user, UserGroup userGroup) {
+        //TODO Change tempalte, source and reports shared group
+    }
+
+    public void addUserToGroup(User user, UserGroup userGroup) {
+        //TODO Change tempalte, source and reports shared group
+    }
 }

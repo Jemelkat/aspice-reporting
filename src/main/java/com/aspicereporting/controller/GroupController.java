@@ -20,16 +20,9 @@ public class GroupController {
 
     @PostMapping(value = "/edit")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<?> editUserGroup(@Valid UserGroup userGroup) {
+    public ResponseEntity<?> editUserGroup(@RequestBody @Valid UserGroup userGroup) {
         userGroupService.updateUserGroup(userGroup);
-        return ResponseEntity.ok(new MessageResponse("User group " + userGroup.getGroupName() + " added successfully."));
-    }
-
-    @PostMapping(value = "/update")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<?> updateUserGroup(@Valid UserGroup userGroup) {
-        userGroupService.updateUserGroup(userGroup);
-        return ResponseEntity.ok(new MessageResponse("User group " + userGroup.getGroupName() + " updated successfully."));
+        return ResponseEntity.ok(new MessageResponse("User group " + userGroup.getGroupName() + " edited successfully."));
     }
 
     @PostMapping(value = "/delete")

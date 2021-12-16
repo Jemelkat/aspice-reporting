@@ -4,15 +4,11 @@ import com.aspicereporting.controller.response.MessageResponse;
 import com.aspicereporting.entity.Template;
 import com.aspicereporting.entity.User;
 import com.aspicereporting.service.TemplateService;
-import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.List;
 
 @CrossOrigin
@@ -22,9 +18,6 @@ public class TemplateController {
 
     @Autowired
     TemplateService templateService;
-
-    @Autowired
-    Mapper mapper;
 
     @PostMapping("/save")
     public ResponseEntity<?> createOrEditTemplate(@RequestBody Template template, Authentication authentication) {

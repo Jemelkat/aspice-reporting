@@ -22,26 +22,22 @@ public class UserController {
     @Autowired
     UserService userService;
 
-    @Autowired
-    Mapper mapper;
-
     @PostMapping(value = "/addToGroup")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> addUserGroup(@RequestParam("groupId") Long groupId, @RequestParam(value = "userId", required = false) Long userId, Authentication authentication) {
-        User loggedUser = mapper.map(authentication.getPrincipal(), User.class);
+        User loggedUser = (User) authentication.getPrincipal();
         userService.addGroupToUser(groupId, userId, loggedUser);
         return ResponseEntity.ok(new MessageResponse("User " + loggedUser.getUsername() + " added to group successfully."));
     }
 
-    @PostMapping(value ="/edit")
+    @PostMapping(value = "/edit")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> editUser(@RequestBody User user, Authentication authentication) {
-        User loggedUser = mapper.map(authentication.getPrincipal(), User.class);
+        User loggedUser = (User) authentication.getPrincipal();
 
-        if(((loggedUser.getId() != null) && (loggedUser.getId() == user.getId())) || (loggedUser.isAdmin())) {
+        if (((loggedUser.getId() != null) && (loggedUser.getId() == user.getId())) || (loggedUser.isAdmin())) {
             userService.update(user);
-        }
-        else {
+        } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("You cannot edit other users without admin rights"));
         }
 

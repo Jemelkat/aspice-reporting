@@ -8,9 +8,11 @@ import com.aspicereporting.service.ReportService;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:3000")
@@ -23,19 +25,16 @@ public class ReportController {
     @Autowired
     ReportService reportService;
 
-    @Autowired
-    Mapper mapper;
-
     @GetMapping(value = "/getAll")
     public List<Report> getAllReports(Authentication authentication) {
-        User loggedUser = mapper.map(authentication.getPrincipal(), User.class);
+        User loggedUser = (User) authentication.getPrincipal();
         //Get all reports for logged user
-        return reportService.getAllReportsByUser(loggedUser);
+        return reportService.getAllReportsForUser(loggedUser);
     }
 
     @PostMapping("/save")
     public ResponseEntity<?> createOrEditReport(@RequestBody Report report, Authentication authentication) {
-        User loggedUser = mapper.map(authentication.getPrincipal(), User.class);
+        User loggedUser = (User) authentication.getPrincipal();
         //Edit old or create new template
         reportService.saveOrEditReport(report, loggedUser);
         return ResponseEntity.ok(new MessageResponse(report.getReportName() + "saved."));
@@ -43,21 +42,21 @@ public class ReportController {
 
     @GetMapping("/get")
     public Report getReportById(@RequestParam Long reportId, Authentication authentication){
-        User loggerUser = mapper.map(authentication.getPrincipal(), User.class);
-        return reportService.getReportById(reportId, loggerUser);
+        User loggedUser = (User) authentication.getPrincipal();
+        return reportService.getReportById(reportId, loggedUser);
     }
 
     @PostMapping("/share")
     public ResponseEntity<?> shareReportWithGroup(@RequestParam Long reportId, Authentication authentication) {
-        User loggerUser = mapper.map(authentication.getPrincipal(), User.class);
-        reportService.shareReport(reportId, loggerUser);
+        User loggedUser = (User) authentication.getPrincipal();
+        reportService.shareReport(reportId, loggedUser);
         return ResponseEntity.ok(new MessageResponse("Report id= " + reportId + " shared with your group."));
     }
 
     @DeleteMapping("/delete")
     public ResponseEntity<?> deleteReport(@RequestParam Long reportId, Authentication authentication){
-        User loggerUser = mapper.map(authentication.getPrincipal(), User.class);
-        reportService.deleteReport(reportId, loggerUser);
+        User loggedUser = (User) authentication.getPrincipal();
+        reportService.deleteReport(reportId, loggedUser);
         return ResponseEntity.ok(new MessageResponse("Report id= " + reportId + " deleted."));
     }
 }

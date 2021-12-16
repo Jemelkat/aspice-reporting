@@ -24,8 +24,8 @@ public class ReportService {
     @Autowired
     UserGroupRepository userGroupRepository;
 
-    public List<Report> getAllReportsByUser(User user) {
-        return reportRepository.findAllByReportUser(user);
+    public List<Report> getAllReportsForUser(User user) {
+        return reportRepository.findAllByReportUserOrReportGroup(user, user.getUserGroup());
     }
 
     public Report getReportById(Long id, User user) {

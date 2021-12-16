@@ -19,18 +19,16 @@ import java.util.List;
 @RestController
 @RequestMapping("/source")
 public class SourceController {
-    @Autowired
-    private Mapper mapper;
 
     @Autowired
     private SourceService sourceService;
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadSource(@RequestParam("file") MultipartFile file, Authentication authentication) {
-        User user = mapper.map(authentication.getPrincipal(), User.class);
+        User loggedUser = (User) authentication.getPrincipal();
 
         //Store multipart file as source
-        sourceService.storeFileAsSource(file, user);
+        sourceService.storeFileAsSource(file, loggedUser);
 
         String fileName = file.getOriginalFilename();
         return ResponseEntity.ok(new MessageResponse(fileName + "saved."));
@@ -38,9 +36,9 @@ public class SourceController {
 
     @GetMapping("/getAll")
     public List<Source> getAllSources(Authentication authentication) {
-        User user = mapper.map(authentication.getPrincipal(), User.class);
+        User loggedUser = (User) authentication.getPrincipal();
         //Get all sources for logged user
-        return sourceService.getSourcesByUser(user);
+        return sourceService.getSourcesByUser(loggedUser);
     }
 
 }

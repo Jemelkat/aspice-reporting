@@ -1,6 +1,8 @@
 package com.aspicereporting.entity;
 
+import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonView;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,11 +12,13 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
+
 @Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonView(View.Simple.class)
+@Entity
 public class SourceColumn {
     @Id
     @GeneratedValue
@@ -24,6 +28,7 @@ public class SourceColumn {
     @Column(name = "column_name")
     private String columnName;
 
+    @JsonView(View.Detailed.class)
     @OneToMany (mappedBy = "sourceColumn", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SourceData> sourceData = new ArrayList<>();
 

@@ -3,7 +3,9 @@ package com.aspicereporting.controller;
 import com.aspicereporting.controller.response.MessageResponse;
 import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.User;
+import com.aspicereporting.entity.views.View;
 import com.aspicereporting.service.SourceService;
+import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -31,6 +33,7 @@ public class SourceController {
         return ResponseEntity.ok(new MessageResponse(fileName + "saved."));
     }
 
+    @JsonView(View.Simple.class)
     @GetMapping("/getAll")
     public List<Source> getAllSources(Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();

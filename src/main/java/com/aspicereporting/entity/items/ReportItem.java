@@ -3,9 +3,11 @@ package com.aspicereporting.entity.items;
 import com.aspicereporting.entity.Report;
 import com.aspicereporting.entity.Template;
 import com.aspicereporting.entity.TextItem;
+import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -28,6 +30,7 @@ import javax.persistence.*;
 )
 @Getter
 @Setter
+@JsonView(View.Simple.class)
 @Entity
 @Table(name = "report_item")
 public class ReportItem implements Comparable {

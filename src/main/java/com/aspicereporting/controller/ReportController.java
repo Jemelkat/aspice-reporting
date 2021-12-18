@@ -3,8 +3,10 @@ package com.aspicereporting.controller;
 import com.aspicereporting.controller.response.MessageResponse;
 import com.aspicereporting.entity.Report;
 import com.aspicereporting.entity.User;
+import com.aspicereporting.entity.views.View;
 import com.aspicereporting.repository.ReportRepository;
 import com.aspicereporting.service.ReportService;
+import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -22,6 +24,7 @@ public class ReportController {
     @Autowired
     ReportService reportService;
 
+    @JsonView(View.Simple.class)
     @GetMapping(value = "/getAll")
     public List<Report> getAllReports(Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
@@ -37,6 +40,7 @@ public class ReportController {
         return ResponseEntity.ok(new MessageResponse(report.getReportName() + "saved."));
     }
 
+    @JsonView(View.Canvas.class)
     @GetMapping("/get")
     public Report getReportById(@RequestParam Long reportId, Authentication authentication){
         User loggedUser = (User) authentication.getPrincipal();

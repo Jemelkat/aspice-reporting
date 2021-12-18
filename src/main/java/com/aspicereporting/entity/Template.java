@@ -1,9 +1,8 @@
 package com.aspicereporting.entity;
 
 import com.aspicereporting.entity.items.TemplateItem;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIdentityReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.aspicereporting.entity.views.View;
+import com.fasterxml.jackson.annotation.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,6 +14,7 @@ import java.util.List;
 
 @Getter
 @Setter
+@JsonView(View.Simple.class)
 @Entity
 @Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"template_name", "user_id"})})
 public class Template {
@@ -27,32 +27,35 @@ public class Template {
     @NotNull
     private String templateName;
 
+    @JsonView(View.SimpleTable.class)
     @Column(name = "template_created")
     @Temporal(TemporalType.TIMESTAMP)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date templateCreated;
 
+    @JsonView(View.SimpleTable.class)
     @Column(name = "template_last_updated")
     @Temporal(TemporalType.TIMESTAMP)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date templateLastUpdated;
 
-    @OneToMany(mappedBy = "template", cascade = {CascadeType.ALL}, orphanRemoval = true)
-    private List<TemplateItem> templateItems = new ArrayList<>();
-
+    @JsonView(View.SimpleTable.class)
     @ManyToOne
     @JoinColumn(name = "group_id")
-    @JsonIdentityReference(alwaysAsId = true)
     private UserGroup templateGroup;
+
+    @JsonView(View.SimpleTable.class)
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User templateUser;
+
+    @JsonView(View.Canvas.class)
+    @OneToMany(mappedBy = "template", cascade = {CascadeType.ALL}, orphanRemoval = true)
+    private List<TemplateItem> templateItems = new ArrayList<>();
 
     @OneToMany(mappedBy = "reportTemplate", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Report> reports = new ArrayList<>();
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    @JsonIgnore
-    private User templateUser;
 
     public void removeReport(Report report) {
         this.reports.remove(report);

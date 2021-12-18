@@ -1,9 +1,10 @@
 package com.aspicereporting.entity;
 
 import com.aspicereporting.entity.items.ReportItem;
+import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,6 +16,7 @@ import java.util.List;
 
 @Getter
 @Setter
+@JsonView(View.Simple.class)
 @Entity
 @Table(name = "report", uniqueConstraints = {@UniqueConstraint(columnNames = {"report_name","user_id"})})
 public class Report {
@@ -37,6 +39,7 @@ public class Report {
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Date reportLastUpdated;
 
+    @JsonView(View.Canvas.class)
     @OneToMany(mappedBy = "report", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<ReportItem> reportItems = new ArrayList<>();
 
@@ -44,9 +47,9 @@ public class Report {
     @JoinColumn(name="template_id")
     private Template reportTemplate;
 
+    @JsonView(View.SimpleTable.class)
     @ManyToOne
     @JoinColumn(name = "group_id")
-    @JsonIdentityReference(alwaysAsId = true)
     private UserGroup reportGroup;
 
     @ManyToOne

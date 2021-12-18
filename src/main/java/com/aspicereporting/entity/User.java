@@ -1,6 +1,8 @@
 package com.aspicereporting.entity;
 
+import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonView;
 import com.sun.istack.NotNull;
 import lombok.*;
 
@@ -13,6 +15,7 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonView(View.Simple.class)
 @Entity
 @Table(name = "users", uniqueConstraints = {@UniqueConstraint(columnNames = "username"), @UniqueConstraint(columnNames = "email")})
 public class User {
@@ -27,6 +30,7 @@ public class User {
 
     @Size(max = 60)
     @NotNull
+    @JsonView(View.Detailed.class)
     private String email;
 
     @Size(max = 120)
@@ -38,6 +42,7 @@ public class User {
     @JoinTable(name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @JsonView(View.Detailed.class)
     private Set<Role> roles = new HashSet<>();
 
     @ManyToOne
@@ -78,6 +83,7 @@ public class User {
         this.userGroup = userGroup;
     }
 
+    @JsonIgnore
     public boolean isAdmin() {
         return roles
                 .stream()

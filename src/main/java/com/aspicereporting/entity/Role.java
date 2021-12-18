@@ -1,5 +1,7 @@
 package com.aspicereporting.entity;
 
+import com.aspicereporting.entity.views.View;
+import com.fasterxml.jackson.annotation.JsonView;
 import lombok.*;
 
 import javax.persistence.*;
@@ -8,6 +10,7 @@ import javax.persistence.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonView(View.Simple.class)
 @Entity
 public class Role {
     @Id

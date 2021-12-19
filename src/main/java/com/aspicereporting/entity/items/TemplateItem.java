@@ -1,7 +1,9 @@
 package com.aspicereporting.entity.items;
 
 import com.aspicereporting.entity.Template;
+import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,6 +11,7 @@ import javax.persistence.*;
 
 @Getter
 @Setter
+@JsonView(View.Simple.class)
 @Entity
 public class TemplateItem {
     @Id

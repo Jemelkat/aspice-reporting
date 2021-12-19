@@ -3,8 +3,10 @@ package com.aspicereporting.controller;
 import com.aspicereporting.controller.response.MessageResponse;
 import com.aspicereporting.entity.Report;
 import com.aspicereporting.entity.User;
+import com.aspicereporting.entity.views.View;
 import com.aspicereporting.repository.ReportRepository;
 import com.aspicereporting.service.ReportService;
+import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -22,6 +24,7 @@ public class ReportController {
     @Autowired
     ReportService reportService;
 
+    @JsonView(View.Simple.class)
     @GetMapping(value = "/getAll")
     public List<Report> getAllReports(Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
@@ -29,14 +32,15 @@ public class ReportController {
         return reportService.getAllReportsForUser(loggedUser);
     }
 
+    @JsonView(View.Canvas.class)
     @PostMapping("/save")
-    public ResponseEntity<?> createOrEditReport(@RequestBody Report report, Authentication authentication) {
+    public Report createOrEditReport(@RequestBody Report report, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
         //Edit old or create new template
-        reportService.saveOrEditReport(report, loggedUser);
-        return ResponseEntity.ok(new MessageResponse(report.getReportName() + "saved."));
+        return reportService.saveOrEditReport(report, loggedUser);
     }
 
+    @JsonView(View.Canvas.class)
     @GetMapping("/get")
     public Report getReportById(@RequestParam Long reportId, Authentication authentication){
         User loggedUser = (User) authentication.getPrincipal();

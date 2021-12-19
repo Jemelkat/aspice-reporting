@@ -1,7 +1,9 @@
 package com.aspicereporting.entity;
 
+import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonView;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,6 +18,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonView(View.Simple.class)
 @Entity
 @Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"source_name", "user_id"})})
 public class Source {
@@ -37,11 +40,11 @@ public class Source {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date sourceLastUpdated;
 
+    @JsonView(View.Detailed.class)
     @OneToMany(mappedBy = "source", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SourceColumn> sourceColumns;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonIgnore
     private User user;
 }

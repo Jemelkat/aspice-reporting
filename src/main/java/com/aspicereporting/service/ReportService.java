@@ -33,7 +33,7 @@ public class ReportService {
     }
 
     @Transactional
-    public void saveOrEditReport(Report report, User user) {
+    public Report saveOrEditReport(Report report, User user) {
         Report newReport;
         Date changeDate = new Date();
         //Edit existing template
@@ -63,7 +63,7 @@ public class ReportService {
         for(ReportItem item: newReport.getReportItems()) {
             item.setReport(newReport);
         }
-        reportRepository.save(newReport);
+        return reportRepository.save(newReport);
     }
 
     public void deleteReport(Long reportId, User user) {

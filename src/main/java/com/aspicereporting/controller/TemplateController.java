@@ -28,11 +28,10 @@ public class TemplateController {
     TemplateService templateService;
 
     @PostMapping("/save")
-    public ResponseEntity<?> createOrEditTemplate(@RequestBody Template template, Authentication authentication) {
+    public Template createOrEditTemplate(@RequestBody Template template, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
         //Edit old or create new template
-        templateService.saveOrEditTemplate(template, loggedUser);
-        return ResponseEntity.ok(new MessageResponse(template.getTemplateName() + "saved."));
+        return templateService.saveOrEditTemplate(template, loggedUser);
     }
 
     @JsonView(View.SimpleTable.class)

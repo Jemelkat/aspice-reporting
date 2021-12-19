@@ -37,7 +37,7 @@ public class TemplateService {
     }
 
     @Transactional
-    public void saveOrEditTemplate(Template template, User user) {
+    public Template saveOrEditTemplate(Template template, User user) {
         Template newTemplate;
         Date changeDate = new Date();
         //Edit existing template
@@ -66,7 +66,7 @@ public class TemplateService {
         for(TemplateItem item: newTemplate.getTemplateItems()) {
             item.setTemplate(newTemplate);
         }
-        templateRepository.save(newTemplate);
+        return templateRepository.save(newTemplate);
     }
 
     public void shareTemplate(Long templateId, User user) {

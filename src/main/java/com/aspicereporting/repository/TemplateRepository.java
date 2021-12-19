@@ -9,4 +9,5 @@ import java.util.List;
 public interface TemplateRepository extends JpaRepository<Template, Long> {
     List<Template> findAllByTemplateUser(User user);
     Template findByTemplateUserAndTemplateId(User user, Long id);
+    Template save(Template template);
 }

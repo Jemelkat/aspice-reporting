@@ -32,12 +32,12 @@ public class ReportController {
         return reportService.getAllReportsForUser(loggedUser);
     }
 
+    @JsonView(View.Canvas.class)
     @PostMapping("/save")
-    public ResponseEntity<?> createOrEditReport(@RequestBody Report report, Authentication authentication) {
+    public Report createOrEditReport(@RequestBody Report report, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
         //Edit old or create new template
-        reportService.saveOrEditReport(report, loggedUser);
-        return ResponseEntity.ok(new MessageResponse(report.getReportName() + "saved."));
+        return reportService.saveOrEditReport(report, loggedUser);
     }
 
     @JsonView(View.Canvas.class)

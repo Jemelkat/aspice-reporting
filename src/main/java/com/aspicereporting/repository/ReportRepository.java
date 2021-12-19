@@ -11,4 +11,5 @@ public interface ReportRepository extends CrudRepository<Report, Long> {
 
     List<Report> findAllByReportUserOrReportGroup(User user, UserGroup userGroup);
     Report findByReportIdAndReportUser(Long id, User user);
+    Report save(Report report);
 }

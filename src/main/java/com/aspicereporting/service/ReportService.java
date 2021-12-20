@@ -9,6 +9,7 @@ import com.aspicereporting.entity.items.TemplateItem;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.repository.ReportRepository;
 import com.aspicereporting.repository.UserGroupRepository;
+import net.sf.jasperreports.engine.JRException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.AccessType;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,13 @@ public class ReportService {
     ReportRepository reportRepository;
     @Autowired
     UserGroupRepository userGroupRepository;
+    @Autowired
+    JasperService jasperService;
+
+    public void generateReport(Long reportId, User user) throws JRException, ClassNotFoundException {
+        Report report = reportRepository.findByReportIdAndReportUser(reportId, user);
+        jasperService.generateReport(report);
+    }
 
     public List<Report> getAllReportsForUser(User user) {
         return reportRepository.findAllByReportUserOrReportGroup(user, user.getUserGroup());

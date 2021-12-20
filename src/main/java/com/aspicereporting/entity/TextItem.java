@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 
@@ -15,5 +16,6 @@ import javax.persistence.Entity;
 @DiscriminatorValue("STATIC_TEXT")
 @Entity
 public class TextItem extends ReportItem {
+    @Column(columnDefinition = "TEXT")
     private String textArea;
 }

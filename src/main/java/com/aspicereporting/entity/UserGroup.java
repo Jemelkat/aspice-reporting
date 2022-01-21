@@ -8,8 +8,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Setter
 @Getter
@@ -26,8 +25,8 @@ public class UserGroup {
     private String groupName;
 
     @JsonView(View.Detailed.class)
-    @OneToMany (mappedBy = "userGroup", fetch = FetchType.LAZY)
-    private List<User> users = new ArrayList<>();
+    @ManyToMany(mappedBy="userGroups", fetch = FetchType.LAZY)
+    private Set<User> users = new HashSet<>();
 
     @OneToMany (mappedBy = "templateGroup", fetch = FetchType.LAZY)
     @JsonIgnore
@@ -43,7 +42,22 @@ public class UserGroup {
     }
 
     public void addUser(User user) {
-        user.setUserGroup(this);
+        user.addUserGroup(this);
         this.users.add(user);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+
+        if (!(o instanceof UserGroup)) return false;
+
+        return id != null && id.equals(((UserGroup) o).getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

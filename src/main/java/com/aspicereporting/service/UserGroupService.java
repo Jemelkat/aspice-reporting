@@ -10,9 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,32 +22,36 @@ public class UserGroupService {
     @Autowired
     UserRepository userRepository;
 
-    public void updateUserGroup(UserGroup userGroup) {
-        if (userGroup.getId() == null) {
-            throw new EntityNotFoundException("Cannot update user group " + userGroup.getGroupName() + " no id provided.");
+    public void updateUserGroup(UserGroup updatedGroup) throws Exception {
+        if (updatedGroup.getId() == null) {
+            throw new EntityNotFoundException("Cannot update user group " + updatedGroup.getGroupName() + " no id provided.");
         }
         //Get current group by id
-        UserGroup oldUserGroup = userGroupRepository.findById(userGroup.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Could not find user group with id " +userGroup.getId()  ));
+        UserGroup currentGroup = userGroupRepository.findById(updatedGroup.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Could not find user group with id " +updatedGroup.getId()  ));
 
-        for(User user : oldUserGroup.getUsers()) {
-            user.setUserGroup(null);
+       //Get and remove all removed users from this group
+        Set<User> removedUsers = currentGroup.getUsers();
+        removedUsers.removeAll(updatedGroup.getUsers());
+
+        for(User user : removedUsers) {
+            user.removeUserGroup(updatedGroup);
         }
 
-        //Get users from ids in updated group
-        List<User> newUsersList = userRepository.findByIdIn(userGroup.getUsers()
+        //Get users from ids in updated group entity
+        List<User> updatedUsersList = userRepository.findByIdIn(updatedGroup.getUsers()
                 .stream()
                 .map(User::getId)
                 .collect(Collectors.toList()));
 
-        //Set new values
-        oldUserGroup.setGroupName(userGroup.getGroupName());
-        oldUserGroup.getUsers().clear();
-        for(User u: newUsersList) {
-            oldUserGroup.addUser(u);
+        //Update group name
+        currentGroup.setGroupName(updatedGroup.getGroupName());
+        //Set new users to the group
+        for(User u: updatedUsersList) {
+            u.addUserGroup(currentGroup);
         }
 
-        userGroupRepository.save(oldUserGroup);
+        userGroupRepository.save(currentGroup);
     }
 
     public void deleteUserGroup(Long userGroupId) {
@@ -60,7 +62,7 @@ public class UserGroupService {
                 (group) -> {
                     //Handle one to many relations
                     for (User u : group.getUsers()) {
-                        u.setUserGroup(null);
+                        //u.setUserGroup(null);
                     }
                     for (Template t : group.getTemplates()) {
                         t.setTemplateGroup(null);
@@ -93,10 +95,10 @@ public class UserGroupService {
         //Get user entities
         List<User> users = userRepository.findByIdIn(userIds);
         //Add user entities to group
-        group.setUsers(users);
+        //group.setUsers(users);
         //Reconstruct
         for (User u : users) {
-            u.setUserGroup(group);
+            //u.setUserGroup(group);
         }
 
         userGroupRepository.save(group);

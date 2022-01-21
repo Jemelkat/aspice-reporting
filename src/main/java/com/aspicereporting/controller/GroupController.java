@@ -20,7 +20,7 @@ public class GroupController {
 
     @PostMapping(value = "/edit")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<?> editUserGroup(@RequestBody @Valid UserGroup userGroup) {
+    public ResponseEntity<?> editUserGroup(@RequestBody @Valid UserGroup userGroup) throws Exception {
         userGroupService.updateUserGroup(userGroup);
         return ResponseEntity.ok(new MessageResponse("User group " + userGroup.getGroupName() + " edited successfully."));
     }

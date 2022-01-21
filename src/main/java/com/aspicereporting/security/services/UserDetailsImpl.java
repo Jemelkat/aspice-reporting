@@ -24,7 +24,7 @@ public class UserDetailsImpl extends User implements UserDetails {
     }
 
     public UserDetailsImpl(User user,  Collection<? extends GrantedAuthority> authorities) {
-        super(user.getId(), user.getUsername(),user.getEmail(),user.getPassword(),user.getRoles(),user.getUserGroup(),user.getSources(),user.getReports(),user.getTemplates());
+        super(user.getId(), user.getUsername(),user.getEmail(),user.getPassword(),user.getRoles(),user.getUserGroups(),user.getSources(),user.getReports(),user.getTemplates());
         this.authorities = authorities;
     }
 

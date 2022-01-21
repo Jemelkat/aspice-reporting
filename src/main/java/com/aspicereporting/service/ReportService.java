@@ -33,7 +33,7 @@ public class ReportService {
     }
 
     public List<Report> getAllReportsForUser(User user) {
-        return reportRepository.findAllByReportUserOrReportGroup(user, user.getUserGroup());
+        return reportRepository.findAllByReportUserOrReportGroup(user, user.getUserGroups().stream().findFirst().get());
     }
 
     public Report getReportById(Long id, User user) {

@@ -6,10 +6,11 @@ import com.aspicereporting.entity.UserGroup;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;
+import java.util.Set;
 
 public interface ReportRepository extends CrudRepository<Report, Long> {
 
-    List<Report> findAllByReportUserOrReportGroup(User user, UserGroup userGroup);
+    List<Report> findAllByReportUserOrReportGroup(User user, UserGroup reportGroup);
     Report findByReportIdAndReportUser(Long id, User user);
     Report save(Report report);
 }

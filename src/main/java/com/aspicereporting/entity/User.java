@@ -9,6 +9,7 @@ import lombok.*;
 import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -45,10 +46,12 @@ public class User {
     @JsonView(View.Detailed.class)
     private Set<Role> roles = new HashSet<>();
 
-    @ManyToOne
-    @JoinColumn(name = "group_id")
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "user_groups",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "group_id"))
     @JsonIgnore
-    private UserGroup userGroup;
+    private Set<UserGroup> userGroups = new HashSet<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JsonIgnore
@@ -75,12 +78,14 @@ public class User {
         this.password = password;
     }
 
-    public User(Long id, String username, String email, String password, UserGroup userGroup) {
-        this.id = id;
-        this.username = username;
-        this.email = email;
-        this.password = password;
-        this.userGroup = userGroup;
+    public void addUserGroup(UserGroup userGroup) {
+        this.userGroups.add(userGroup);
+        userGroup.getUsers().add(this);
+    }
+
+    public void removeUserGroup(UserGroup userGroup) throws Exception {
+        this.userGroups.remove(userGroup);
+        userGroup.getUsers().remove(this);
     }
 
     @JsonIgnore
@@ -91,5 +96,20 @@ public class User {
                         .equals(Role.ERole.ROLE_ADMIN))
                 .findFirst()
                 .isPresent();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+
+        if (!(o instanceof User)) return false;
+
+        return id != null && id.equals(((User) o).getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

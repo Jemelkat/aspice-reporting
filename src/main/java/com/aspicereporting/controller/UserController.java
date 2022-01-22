@@ -1,14 +1,19 @@
 package com.aspicereporting.controller;
 
 import com.aspicereporting.controller.response.MessageResponse;
+import com.aspicereporting.entity.Group;
 import com.aspicereporting.entity.User;
+import com.aspicereporting.entity.views.View;
 import com.aspicereporting.service.UserService;
+import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @CrossOrigin
@@ -46,5 +51,13 @@ public class UserController {
     public ResponseEntity<?> delete(@RequestParam Long id) {
         userService.delete(id);
         return ResponseEntity.ok(new MessageResponse("User id " + id + " deleted successfully."));
+    }
+
+    @JsonView(View.Simple.class)
+    @GetMapping(value = "/groups")
+    public List<Group> getAllGroups(Authentication authentication){
+        User loggedUser = (User) authentication.getPrincipal();
+        List<Group> test=  userService.getAllGroups(loggedUser);
+        return test;
     }
 }

@@ -1,7 +1,7 @@
 package com.aspicereporting.service;
 
+import com.aspicereporting.entity.Group;
 import com.aspicereporting.entity.User;
-import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.repository.UserGroupRepository;
 import com.aspicereporting.repository.UserRepository;
@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -24,7 +23,7 @@ public class UserService {
     @Transactional
     public void addGroupToUser(Long groupId, Long userId, User user) {
         //Get userGroupFromDb
-        UserGroup userGroup = userGroupRepository.getUserGroupById(groupId);
+        Group userGroup = userGroupRepository.getUserGroupById(groupId);
         if (userGroup == null) {
             throw new EntityNotFoundException("Could not find user group.");
         }
@@ -84,11 +83,15 @@ public class UserService {
         );
     }
 
-    public void removeUserFromGroup(User user, UserGroup userGroup) {
+    public void removeUserFromGroup(User user, Group userGroup) {
         //TODO Change tempalte, source and reports shared group
     }
 
-    public void addUserToGroup(User user, UserGroup userGroup) {
+    public void addUserToGroup(User user, Group userGroup) {
         //TODO Change tempalte, source and reports shared group
+    }
+
+    public List<Group> getAllGroups(User user) {
+        return userGroupRepository.findAllByUsersContains(user);
     }
 }

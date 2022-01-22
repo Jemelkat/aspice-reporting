@@ -2,13 +2,11 @@ package com.aspicereporting.entity;
 
 import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -54,12 +52,22 @@ public class Source {
     @JoinTable(name = "source_groups",
             joinColumns = @JoinColumn(name = "source_id"),
             inverseJoinColumns = @JoinColumn(name = "group_id"))
-    private Set<UserGroup> sourceGroups = new HashSet<>();
+    private Set<Group> sourceGroups = new HashSet<>();
 
     public void removeFromAllGroups() {
-        for(UserGroup group : sourceGroups) {
+        for(Group group : sourceGroups) {
             group.getSources().remove(this);
         }
         this.sourceGroups.clear();
+    }
+
+    public void addGroup(Group group) {
+        this.sourceGroups.add(group);
+        group.getSources().add(this);
+    }
+
+    public void removeGroup(Group group) {
+        this.sourceGroups.remove(group);
+        group.getSources().remove(this);
     }
 }

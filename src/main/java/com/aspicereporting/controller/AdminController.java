@@ -1,13 +1,12 @@
 package com.aspicereporting.controller;
 
+import com.aspicereporting.entity.Group;
 import com.aspicereporting.entity.User;
-import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.entity.views.View;
 import com.aspicereporting.service.UserGroupService;
 import com.aspicereporting.service.UserService;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,7 +35,7 @@ public class AdminController {
     @JsonView(View.Detailed.class)
     @GetMapping(value = "/getAllGroups")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public List<UserGroup> getAllGroups() {
+    public List<Group> getAllGroups() {
         return userGroupService.getAllUserGroups();
     }
 }

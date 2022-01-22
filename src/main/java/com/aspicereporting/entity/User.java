@@ -9,7 +9,6 @@ import lombok.*;
 import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -51,7 +50,7 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "group_id"))
     @JsonIgnore
-    private Set<UserGroup> userGroups = new HashSet<>();
+    private Set<Group> userGroups = new HashSet<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JsonIgnore
@@ -78,12 +77,12 @@ public class User {
         this.password = password;
     }
 
-    public void addUserGroup(UserGroup userGroup) {
+    public void addUserGroup(Group userGroup) {
         this.userGroups.add(userGroup);
         userGroup.getUsers().add(this);
     }
 
-    public void removeUserGroup(UserGroup userGroup){
+    public void removeUserGroup(Group userGroup){
         this.userGroups.remove(userGroup);
         userGroup.getUsers().remove(this);
     }

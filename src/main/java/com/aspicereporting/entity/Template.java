@@ -39,10 +39,10 @@ public class Template {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date templateLastUpdated;
 
-    @JsonView(View.SimpleTable.class)
     @ManyToOne
     @JoinColumn(name = "group_id")
-    private UserGroup templateGroup;
+    @JsonIgnore
+    private Group templateGroup;
 
     @JsonView(View.SimpleTable.class)
     @ManyToOne

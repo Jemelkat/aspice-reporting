@@ -1,14 +1,12 @@
 package com.aspicereporting.service;
 
-import com.aspicereporting.entity.Template;
 import com.aspicereporting.entity.User;
-import com.aspicereporting.entity.UserGroup;
+import com.aspicereporting.entity.Group;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.repository.UserGroupRepository;
 import com.aspicereporting.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -22,12 +20,12 @@ public class UserGroupService {
     @Autowired
     UserRepository userRepository;
 
-    public void updateUserGroup(UserGroup updatedGroup) throws Exception {
+    public void updateUserGroup(Group updatedGroup) throws Exception {
         if (updatedGroup.getId() == null) {
             throw new EntityNotFoundException("Cannot update user group " + updatedGroup.getGroupName() + " no id provided.");
         }
         //Get current group by id
-        UserGroup currentGroup = userGroupRepository.findById(updatedGroup.getId())
+        Group currentGroup = userGroupRepository.findById(updatedGroup.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Could not find user group with id " +updatedGroup.getId()  ));
 
        //Get and remove all removed users from this group
@@ -55,7 +53,7 @@ public class UserGroupService {
     }
 
     public void deleteUserGroup(Long userGroupId) {
-        Optional<UserGroup> userGroup = userGroupRepository.findById(userGroupId);
+        Optional<Group> userGroup = userGroupRepository.findById(userGroupId);
 
         //Delete only if group exists
         userGroup.ifPresentOrElse(
@@ -75,11 +73,11 @@ public class UserGroupService {
         );
     }
 
-    public List<UserGroup> getAllUserGroups() {
+    public List<Group> getAllUserGroups() {
         return userGroupRepository.findAll();
     }
 
-    public void createUserGroup(UserGroup group) {
+    public void createUserGroup(Group group) {
         //Get group user ids
         List<Long> userIds = new ArrayList<>();
         if (!group.getUsers().isEmpty()) {

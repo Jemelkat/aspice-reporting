@@ -1,19 +1,13 @@
 package com.aspicereporting.controller;
 
 import com.aspicereporting.controller.response.MessageResponse;
-import com.aspicereporting.dto.SimpleGroupDTO;
-import com.aspicereporting.dto.SimpleUserDTO;
 import com.aspicereporting.entity.Template;
 import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.views.View;
 import com.aspicereporting.service.TemplateService;
 import com.fasterxml.jackson.annotation.JsonView;
-import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 

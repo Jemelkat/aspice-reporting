@@ -3,8 +3,7 @@ package com.aspicereporting.service;
 import com.aspicereporting.entity.Report;
 import com.aspicereporting.entity.Template;
 import com.aspicereporting.entity.User;
-import com.aspicereporting.entity.UserGroup;
-import com.aspicereporting.entity.items.ReportItem;
+import com.aspicereporting.entity.Group;
 import com.aspicereporting.entity.items.TemplateItem;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.repository.TemplateRepository;
@@ -13,11 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class TemplateService {
@@ -70,7 +66,7 @@ public class TemplateService {
     }
 
     public void shareTemplate(Long templateId, User user) {
-        UserGroup userGroup = userGroupRepository.findByUsersContains(user);
+        Group userGroup = userGroupRepository.findByUsersContains(user);
         if(userGroup==null) {
             throw new EntityNotFoundException("You are not in any group.");
         }

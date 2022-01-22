@@ -50,7 +50,7 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "group_id"))
     @JsonIgnore
-    private Set<Group> userGroups = new HashSet<>();
+    private Set<UserGroup> userGroups = new HashSet<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JsonIgnore
@@ -77,12 +77,12 @@ public class User {
         this.password = password;
     }
 
-    public void addUserGroup(Group userGroup) {
+    public void addUserGroup(UserGroup userGroup) {
         this.userGroups.add(userGroup);
         userGroup.getUsers().add(this);
     }
 
-    public void removeUserGroup(Group userGroup){
+    public void removeUserGroup(UserGroup userGroup){
         this.userGroups.remove(userGroup);
         userGroup.getUsers().remove(this);
     }

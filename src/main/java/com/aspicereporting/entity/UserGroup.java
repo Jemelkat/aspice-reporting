@@ -15,7 +15,7 @@ import java.util.*;
 @NoArgsConstructor
 @JsonView(View.Simple.class)
 @Entity
-public class Group {
+public class UserGroup {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "group_id")
@@ -40,7 +40,7 @@ public class Group {
     @JsonView(View.Detailed.class)
     private List<Report> reports  = new ArrayList<>();
 
-    public Group(Long id, String groupName) {
+    public UserGroup(Long id, String groupName) {
         this.id = id;
         this.groupName = groupName;
     }
@@ -61,9 +61,9 @@ public class Group {
         if (this == o)
             return true;
 
-        if (!(o instanceof Group)) return false;
+        if (!(o instanceof UserGroup)) return false;
 
-        return id != null && id.equals(((Group) o).getId());
+        return id != null && id.equals(((UserGroup) o).getId());
     }
 
     @Override

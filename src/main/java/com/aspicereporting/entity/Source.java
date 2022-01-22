@@ -52,21 +52,21 @@ public class Source {
     @JoinTable(name = "source_groups",
             joinColumns = @JoinColumn(name = "source_id"),
             inverseJoinColumns = @JoinColumn(name = "group_id"))
-    private Set<Group> sourceGroups = new HashSet<>();
+    private Set<UserGroup> sourceGroups = new HashSet<>();
 
     public void removeFromAllGroups() {
-        for(Group group : sourceGroups) {
+        for(UserGroup group : sourceGroups) {
             group.getSources().remove(this);
         }
         this.sourceGroups.clear();
     }
 
-    public void addGroup(Group group) {
+    public void addGroup(UserGroup group) {
         this.sourceGroups.add(group);
         group.getSources().add(this);
     }
 
-    public void removeGroup(Group group) {
+    public void removeGroup(UserGroup group) {
         this.sourceGroups.remove(group);
         group.getSources().remove(this);
     }

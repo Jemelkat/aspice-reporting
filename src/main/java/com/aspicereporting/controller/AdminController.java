@@ -1,6 +1,6 @@
 package com.aspicereporting.controller;
 
-import com.aspicereporting.entity.Group;
+import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.views.View;
 import com.aspicereporting.service.UserGroupService;
@@ -35,7 +35,7 @@ public class AdminController {
     @JsonView(View.Detailed.class)
     @GetMapping(value = "/getAllGroups")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public List<Group> getAllGroups() {
+    public List<UserGroup> getAllGroups() {
         return userGroupService.getAllUserGroups();
     }
 }

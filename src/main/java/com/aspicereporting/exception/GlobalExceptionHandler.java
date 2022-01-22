@@ -46,6 +46,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({
             AccessDeniedException.class,
+            UnauthorizedAccessException.class
     })
     public ResponseEntity handleAccessDeniedExceptions(Exception ex) {
         logException(ex);

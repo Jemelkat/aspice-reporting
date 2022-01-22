@@ -42,7 +42,7 @@ public class Template {
     @ManyToOne
     @JoinColumn(name = "group_id")
     @JsonIgnore
-    private Group templateGroup;
+    private UserGroup templateGroup;
 
     @JsonView(View.SimpleTable.class)
     @ManyToOne

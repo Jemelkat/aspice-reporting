@@ -1,7 +1,7 @@
 package com.aspicereporting.controller;
 
 import com.aspicereporting.controller.response.MessageResponse;
-import com.aspicereporting.entity.Group;
+import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.service.UserGroupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +20,7 @@ public class GroupController {
 
     @PostMapping(value = "/edit")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<?> editUserGroup(@RequestBody @Valid Group group) throws Exception {
+    public ResponseEntity<?> editUserGroup(@RequestBody @Valid UserGroup group) throws Exception {
         userGroupService.updateUserGroup(group);
         return ResponseEntity.ok(new MessageResponse("User group " + group.getGroupName() + " edited successfully."));
     }
@@ -35,7 +35,7 @@ public class GroupController {
 
     @PostMapping(value = "/create")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<?> createUserGroup(@RequestBody @Valid Group group) {
+    public ResponseEntity<?> createUserGroup(@RequestBody @Valid UserGroup group) {
         userGroupService.createUserGroup(group);
         return ResponseEntity.ok(new MessageResponse("User group id " + group.getId() + " created successfully."));
     }

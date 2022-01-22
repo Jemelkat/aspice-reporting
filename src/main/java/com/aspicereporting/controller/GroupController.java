@@ -25,7 +25,7 @@ public class GroupController {
         return ResponseEntity.ok(new MessageResponse("User group " + userGroup.getGroupName() + " edited successfully."));
     }
 
-    @PostMapping(value = "/delete")
+    @DeleteMapping(value = "/delete")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> deleteUserGroup(@RequestParam("id") Long id) {
         userGroupService.deleteUserGroup(id);

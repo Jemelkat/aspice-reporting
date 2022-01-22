@@ -37,6 +37,7 @@ public class UserDetailsImpl extends User implements UserDetails {
         Hibernate.initialize(user.getSources());
         Hibernate.initialize(user.getReports());
         Hibernate.initialize(user.getTemplates());
+        Hibernate.initialize(user.getUserGroups());
 
         UserDetailsImpl u =  new UserDetailsImpl(user, authorities);
         return u;

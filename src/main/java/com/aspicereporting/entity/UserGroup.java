@@ -28,12 +28,18 @@ public class UserGroup {
     @ManyToMany(mappedBy="userGroups", fetch = FetchType.LAZY)
     private Set<User> users = new HashSet<>();
 
+    @JsonView(View.Detailed.class)
+    @ManyToMany(mappedBy="sourceGroups", fetch = FetchType.LAZY)
+    private Set<Source> sources = new HashSet<>();
+
     @OneToMany (mappedBy = "templateGroup", fetch = FetchType.LAZY)
     @JsonIgnore
+    @JsonView(View.Detailed.class)
     private List<Template> templates  = new ArrayList<>();
 
     @OneToMany (mappedBy = "reportGroup", fetch = FetchType.LAZY)
     @JsonIgnore
+    @JsonView(View.Detailed.class)
     private List<Report> reports  = new ArrayList<>();
 
     public UserGroup(Long id, String groupName) {
@@ -45,6 +51,12 @@ public class UserGroup {
         user.addUserGroup(this);
         this.users.add(user);
     }
+
+    public void removeSource(Source source) {
+        this.sources.remove(source);
+        source.getSourceGroups().remove(this);
+    }
+
 
     @Override
     public boolean equals(Object o) {

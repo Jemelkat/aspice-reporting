@@ -7,6 +7,7 @@ import com.aspicereporting.entity.views.View;
 import com.aspicereporting.service.SourceService;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -37,8 +38,13 @@ public class SourceController {
     @GetMapping("/getAll")
     public List<Source> getAllSources(Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
-        //Get all sources for logged user
         return sourceService.getSourcesByUser(loggedUser);
     }
 
+    @DeleteMapping("/delete")
+    public ResponseEntity<?> deleteSource(@Param("sourceId") Long sourceId, Authentication authentication) {
+        User loggedUser = (User) authentication.getPrincipal();
+        sourceService.deleteSourceById(sourceId, loggedUser);
+        return ResponseEntity.ok(new MessageResponse("Source id=" + sourceId + " deleted."));
+    }
 }

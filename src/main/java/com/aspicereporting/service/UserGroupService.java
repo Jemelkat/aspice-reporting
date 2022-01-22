@@ -60,13 +60,11 @@ public class UserGroupService {
         //Delete only if group exists
         userGroup.ifPresentOrElse(
                 (group) -> {
-                    //Handle one to many relations
+                    //Handle many to many relations
                     for (User u : group.getUsers()) {
-                        //u.setUserGroup(null);
+                        u.removeUserGroup(group);
                     }
-                    for (Template t : group.getTemplates()) {
-                        t.setTemplateGroup(null);
-                    }
+
 
                     //Delete group
                     userGroupRepository.delete(group);
@@ -81,7 +79,6 @@ public class UserGroupService {
         return userGroupRepository.findAll();
     }
 
-    @Transactional
     public void createUserGroup(UserGroup group) {
         //Get group user ids
         List<Long> userIds = new ArrayList<>();
@@ -95,10 +92,8 @@ public class UserGroupService {
         //Get user entities
         List<User> users = userRepository.findByIdIn(userIds);
         //Add user entities to group
-        //group.setUsers(users);
-        //Reconstruct
         for (User u : users) {
-            //u.setUserGroup(group);
+            u.addUserGroup(group);
         }
 
         userGroupRepository.save(group);

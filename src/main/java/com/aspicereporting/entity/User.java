@@ -83,7 +83,7 @@ public class User {
         userGroup.getUsers().add(this);
     }
 
-    public void removeUserGroup(UserGroup userGroup) throws Exception {
+    public void removeUserGroup(UserGroup userGroup){
         this.userGroups.remove(userGroup);
         userGroup.getUsers().remove(this);
     }

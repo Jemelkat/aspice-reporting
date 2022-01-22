@@ -1,10 +1,8 @@
 package com.aspicereporting.service;
 
-import com.aspicereporting.entity.Source;
-import com.aspicereporting.entity.SourceColumn;
-import com.aspicereporting.entity.SourceData;
-import com.aspicereporting.entity.User;
+import com.aspicereporting.entity.*;
 import com.aspicereporting.exception.CsvSourceFileException;
+import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.repository.SourceRepository;
 import com.opencsv.CSVParser;
 import com.opencsv.CSVParserBuilder;
@@ -13,6 +11,7 @@ import com.opencsv.CSVReaderBuilder;
 import com.opencsv.exceptions.CsvValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import com.aspicereporting.utils.*;
 
@@ -41,8 +40,20 @@ public class SourceService {
         sourceRepository.save(source);
     }
 
+    @Transactional
+    public void deleteSourceById(Long sourceId, User user) {
+        Source source = sourceRepository.findBySourceIdAndUserOrSourceGroupsIn(sourceId, user, user.getUserGroups());
+        if(source == null) {
+            throw new EntityNotFoundException("Could not find source with id = " + sourceId);
+        }
+        //Source was found - delete it
+        source.removeFromAllGroups();
+        sourceRepository.delete(source);
+    }
+
     public List<Source> getSourcesByUser(User user) {
-        return sourceRepository.findAllByUser(user);
+        //Get all owned or shared sources
+        return sourceRepository.findDistinctByUserOrSourceGroupsIn(user, user.getUserGroups());
     }
 
     private List<SourceColumn> parseFileToColumnsList(MultipartFile file, Source source) {

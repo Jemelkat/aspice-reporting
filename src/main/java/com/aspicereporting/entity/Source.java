@@ -12,7 +12,9 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Setter
 @Getter
@@ -47,4 +49,17 @@ public class Source {
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "source_groups",
+            joinColumns = @JoinColumn(name = "source_id"),
+            inverseJoinColumns = @JoinColumn(name = "group_id"))
+    private Set<UserGroup> sourceGroups = new HashSet<>();
+
+    public void removeFromAllGroups() {
+        for(UserGroup group : sourceGroups) {
+            group.getSources().remove(this);
+        }
+        this.sourceGroups.clear();
+    }
 }

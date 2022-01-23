@@ -53,16 +53,16 @@ public class UserGroupService {
         //Delete only if group exists
         userGroup.ifPresentOrElse((group) -> {
             //Handle many to many relations
-            for (User u : group.getUsers()) {
+            for (User u : new HashSet<>(group.getUsers())) {
                 u.removeUserGroup(group);
             }
-            for (Source s : group.getSources()) {
+            for (Source s : new HashSet<>(group.getSources())) {
                 s.removeGroup(group);
             }
-            for (Template t : group.getTemplates()) {
+            for (Template t : new HashSet<>(group.getTemplates())) {
                 t.removeGroup(group);
             }
-            for (Report r : group.getReports()) {
+            for (Report r : new HashSet<>(group.getReports())) {
                 r.removeGroup(group);
             }
 

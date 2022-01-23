@@ -30,7 +30,7 @@ public class TemplateService {
     }
 
     public Template getTemplateById(Long id, User user) {
-        return templateRepository.findByTemplateUserAndTemplateId(user, id);
+        return templateRepository.findByTemplateUserAndId(user, id);
     }
 
     @Transactional
@@ -38,11 +38,11 @@ public class TemplateService {
         Template newTemplate;
         Date changeDate = new Date();
         //Edit existing template
-        if (template.getTemplateId() != null) {
+        if (template.getId() != null) {
             //Get template if ID is defined - only templates belonging to this user can be changed
-            newTemplate = getTemplateById(template.getTemplateId(), user);
+            newTemplate = getTemplateById(template.getId(), user);
             if (newTemplate == null) {
-                throw new EntityNotFoundException("Template " + template.getTemplateName() + " id " + template.getTemplateId() + " was not found and cannot be saved.");
+                throw new EntityNotFoundException("Template " + template.getTemplateName() + " id " + template.getId() + " was not found and cannot be saved.");
             }
 
             newTemplate.setTemplateName(template.getTemplateName());
@@ -67,9 +67,9 @@ public class TemplateService {
     }
 
     public void shareWithGroups(Long templateId, List<Long> groupIds, User user) {
-        Template template = templateRepository.findByTemplateUserAndTemplateId(user, templateId);
+        Template template = templateRepository.findByTemplateUserAndId(user, templateId);
         if (template == null) {
-            throw new EntityNotFoundException("Could not find template with id = " + template.getTemplateId());
+            throw new EntityNotFoundException("Could not find template with id = " + template.getId());
         }
 
         //Get all groups for update
@@ -92,7 +92,7 @@ public class TemplateService {
     }
 
     public Set<UserGroup> getGroupsForTemplate(Long templateId, User loggedUser) {
-        Template template = templateRepository.findByTemplateId(templateId);
+        Template template = templateRepository.findFirstById(templateId);
         if (template == null) {
             throw new EntityNotFoundException("Could not find template with id = " + templateId);
         }
@@ -104,7 +104,7 @@ public class TemplateService {
     }
 
     public void deleteTemplate(Long templateId, User user) {
-        Template template = templateRepository.findByTemplateUserAndTemplateId(user, templateId);
+        Template template = templateRepository.findByTemplateUserAndId(user, templateId);
         if (template == null) {
             throw new EntityNotFoundException("Could not find template with id =" + templateId);
         }

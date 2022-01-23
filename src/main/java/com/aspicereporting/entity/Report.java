@@ -21,7 +21,7 @@ public class Report {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "report_id")
-    private Long reportId;
+    private Long id;
 
     @Column(length = 50, name = "report_name")
     @NotNull

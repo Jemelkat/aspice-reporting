@@ -8,7 +8,6 @@ import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.exception.UnauthorizedAccessException;
 import com.aspicereporting.repository.ReportRepository;
 import com.aspicereporting.repository.UserGroupRepository;
-import net.sf.jasperreports.engine.JRException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +27,7 @@ public class ReportService {
     JasperService jasperService;
 
     public void generateReport(Long reportId, User user) {
-        Report report = reportRepository.findByReportIdAndReportUser(reportId, user);
+        Report report = reportRepository.findByIdAndReportUser(reportId, user);
         jasperService.generateReport(report);
     }
 
@@ -38,7 +37,7 @@ public class ReportService {
     }
 
     public Report getReportById(Long id, User user) {
-        return reportRepository.findByReportIdAndReportUser(id, user);
+        return reportRepository.findByIdAndReportUser(id, user);
     }
 
     @Transactional
@@ -46,11 +45,11 @@ public class ReportService {
         Report newReport;
         Date changeDate = new Date();
         //Edit existing template
-        if (report.getReportId() != null) {
+        if (report.getId() != null) {
             //Get template if ID is defined - only templates belonging to this user can be changed
-            newReport = getReportById(report.getReportId(), user);
+            newReport = getReportById(report.getId(), user);
             if (newReport == null) {
-                throw new EntityNotFoundException("Report " + report.getReportName() + " id " + report.getReportId() + " was not found and cannot be saved.");
+                throw new EntityNotFoundException("Report " + report.getReportName() + " id " + report.getId() + " was not found and cannot be saved.");
             }
 
             newReport.setReportName(report.getReportName());
@@ -76,7 +75,7 @@ public class ReportService {
     }
 
     public void deleteReport(Long reportId, User user) {
-        Report report = reportRepository.findByReportIdAndReportUser(reportId, user);
+        Report report = reportRepository.findByIdAndReportUser(reportId, user);
         if (report == null) {
             throw new EntityNotFoundException("Could not find report with id =" + reportId);
         }
@@ -84,9 +83,9 @@ public class ReportService {
     }
 
     public void shareWithGroups(Long reportId, List<Long> groupIds, User user) {
-        Report report = reportRepository.findByReportIdAndReportUser(reportId, user);
+        Report report = reportRepository.findByIdAndReportUser(reportId, user);
         if (report == null) {
-            throw new EntityNotFoundException("Could not find report with id = " + report.getReportId());
+            throw new EntityNotFoundException("Could not find report with id = " + report.getId());
         }
 
         //Get all groups for update
@@ -109,7 +108,7 @@ public class ReportService {
     }
 
     public Set<UserGroup> getGroupsForReport(Long reportId, User loggedUser) {
-        Report report = reportRepository.findByReportId(reportId);
+        Report report = reportRepository.findFirstById(reportId);
         if (report == null) {
             throw new EntityNotFoundException("Could not find report with id = " + reportId);
         }

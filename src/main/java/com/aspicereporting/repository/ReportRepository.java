@@ -11,9 +11,9 @@ import java.util.Set;
 public interface ReportRepository extends CrudRepository<Report, Long> {
     List<Report> findDistinctByReportUserOrReportGroupsIn(User user, Set<UserGroup> userGroups);
 
-    Report findByReportIdAndReportUser(Long id, User user);
+    Report findByIdAndReportUser(Long id, User user);
 
     Report save(Report report);
 
-    Report findByReportId(Long reportId);
+    Report findFirstById(Long reportId);
 }

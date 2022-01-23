@@ -13,10 +13,10 @@ import java.util.Set;
 public interface SourceRepository extends CrudRepository<Source, Long> {
     List<Source> findDistinctByUserOrSourceGroupsIn(User user, Set<UserGroup> userGroups);
 
-    Source findBySourceId(Long sourceId);
+    Source findFirstById(Long sourceId);
 
-    Source findBySourceIdAndUser(Long sourceId, User user);
+    Source findByIdAndUser(Long sourceId, User user);
 
-    @Query("select distinct s from Source s left join s.sourceGroups g WHERE s.sourceId=:sourceId and (s.user = :user or g in (:userGroups))")
-    Source findBySourceIdAndUserOrSourceGroupsIn(@Param("sourceId") Long sourceId, @Param("user") User user, @Param("userGroups") Set<UserGroup> userGroups);
+    @Query("select distinct s from Source s left join s.sourceGroups g WHERE s.id=:sourceId and (s.user = :user or g in (:userGroups))")
+    Source findByIdAndUserOrSourceGroupsIn(@Param("sourceId") Long sourceId, @Param("user") User user, @Param("userGroups") Set<UserGroup> userGroups);
 }

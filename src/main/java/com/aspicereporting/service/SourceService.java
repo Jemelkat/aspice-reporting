@@ -44,7 +44,7 @@ public class SourceService {
 
     @Transactional
     public void deleteById(Long sourceId, User user) {
-        Source source = sourceRepository.findBySourceIdAndUserOrSourceGroupsIn(sourceId, user, user.getUserGroups());
+        Source source = sourceRepository.findByIdAndUserOrSourceGroupsIn(sourceId, user, user.getUserGroups());
         if (source == null) {
             throw new EntityNotFoundException("Could not find source with id = " + sourceId);
         }
@@ -59,7 +59,7 @@ public class SourceService {
     }
 
     public Set<UserGroup> getGroupsForSource(Long sourceId, User loggedUser) {
-        Source source = sourceRepository.findBySourceId(sourceId);
+        Source source = sourceRepository.findFirstById(sourceId);
         if (source == null) {
             throw new EntityNotFoundException("Could not find source with id = " + sourceId);
         }
@@ -106,7 +106,7 @@ public class SourceService {
 
     //Share selected source with selected groups
     public void shareWithGroups(Long sourceId, List<Long> groupIds, User user) {
-        Source source = sourceRepository.findBySourceIdAndUser(sourceId, user);
+        Source source = sourceRepository.findByIdAndUser(sourceId, user);
         if (source == null) {
             throw new EntityNotFoundException("Could not find source with id = " + sourceId);
         }

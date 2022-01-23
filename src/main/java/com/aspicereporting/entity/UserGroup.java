@@ -51,12 +51,6 @@ public class UserGroup {
         this.users.add(user);
     }
 
-    public void removeSource(Source source) {
-        this.sources.remove(source);
-        source.getSourceGroups().remove(this);
-    }
-
-
     @Override
     public boolean equals(Object o) {
         if (this == o)

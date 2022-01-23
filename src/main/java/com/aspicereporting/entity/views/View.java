@@ -17,4 +17,7 @@ public class View {
     public static class Detailed extends Simple{
 
     }
+    public static class Full extends Detailed {
+
+    }
 }

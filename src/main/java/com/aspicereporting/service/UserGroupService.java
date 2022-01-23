@@ -1,7 +1,6 @@
 package com.aspicereporting.service;
 
-import com.aspicereporting.entity.UserGroup;
-import com.aspicereporting.entity.User;
+import com.aspicereporting.entity.*;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.repository.UserGroupRepository;
 import com.aspicereporting.repository.UserRepository;
@@ -56,6 +55,15 @@ public class UserGroupService {
             //Handle many to many relations
             for (User u : group.getUsers()) {
                 u.removeUserGroup(group);
+            }
+            for (Source s : group.getSources()) {
+                s.removeGroup(group);
+            }
+            for (Template t : group.getTemplates()) {
+                t.removeGroup(group);
+            }
+            for (Report r : group.getReports()) {
+                r.removeGroup(group);
             }
 
 

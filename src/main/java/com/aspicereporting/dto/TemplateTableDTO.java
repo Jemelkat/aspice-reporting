@@ -13,7 +13,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TemplateTableDTO {
-    private Long templateId;
+    private Long id;
     private String templateName;
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private Date templateCreated;

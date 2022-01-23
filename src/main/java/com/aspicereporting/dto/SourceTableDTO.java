@@ -12,7 +12,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SourceTableDTO {
-    private Long sourceId;
+    private Long id;
     private String sourceName;
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private Date sourceCreated;

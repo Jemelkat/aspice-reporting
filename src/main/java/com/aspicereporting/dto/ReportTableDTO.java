@@ -13,7 +13,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReportTableDTO {
-    private Long reportId;
+    private Long id;
     private String reportName;
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private Date reportCreated;

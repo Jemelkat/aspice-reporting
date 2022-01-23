@@ -24,8 +24,9 @@ public class TemplateService {
     @Autowired
     UserGroupRepository userGroupRepository;
 
-    public List<Template> getAllTemplatesByUser(User user) {
-        return templateRepository.findAllByTemplateUser(user);
+    //Get all owned or shared sources
+    public List<Template> getAllByUserOrShared(User user) {
+        return templateRepository.findDistinctByTemplateUserOrTemplateGroupsIn(user, user.getUserGroups());
     }
 
     public Template getById(Long id, User user){
@@ -93,10 +94,10 @@ public class TemplateService {
     public Set<UserGroup> getGroupsForTemplate(Long templateId, User loggedUser) {
         Template template = templateRepository.findByTemplateId(templateId);
         if(template == null) {
-            throw new EntityNotFoundException("Could not find source with id = " + templateId);
+            throw new EntityNotFoundException("Could not find template with id = " + templateId);
         }
         if(template.getTemplateUser().getId() != loggedUser.getId()) {
-            throw new UnauthorizedAccessException("Only the owner of this source can share it.");
+            throw new UnauthorizedAccessException("Only the owner of this template can share it.");
         }
 
         return template.getTemplateGroups();

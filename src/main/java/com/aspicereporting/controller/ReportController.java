@@ -1,28 +1,33 @@
 package com.aspicereporting.controller;
 
 import com.aspicereporting.controller.response.MessageResponse;
+import com.aspicereporting.dto.ReportTableDTO;
 import com.aspicereporting.entity.Report;
 import com.aspicereporting.entity.User;
+import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.entity.views.View;
-import com.aspicereporting.repository.ReportRepository;
 import com.aspicereporting.service.JasperService;
 import com.aspicereporting.service.ReportService;
 import com.fasterxml.jackson.annotation.JsonView;
 import net.sf.jasperreports.engine.JRException;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin()
 @RestController
-@RequestMapping("/report")
+@RequestMapping("/reports")
 public class ReportController {
+
+    @Autowired
+    ModelMapper modelMapper;
 
     @Autowired
     ReportService reportService;
@@ -30,11 +35,20 @@ public class ReportController {
     @Autowired
     JasperService jasperService;
 
-    @JsonView(View.Simple.class)
     @GetMapping(value = "/getAll")
-    public List<Report> getAllReports(Authentication authentication) {
+    public List<ReportTableDTO> getAll(Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
-        return reportService.getAllReportsForUser(loggedUser);
+        List<Report> reports = reportService.getAllByUserOrShared(loggedUser);
+
+        //Convert Entity to custom DTO
+        return reports.stream().map((s) -> {
+            ReportTableDTO sDTO = modelMapper.map(s, ReportTableDTO.class);
+            if (!s.getReportGroups().isEmpty()) {
+                sDTO.setShared(Boolean.TRUE);
+                sDTO.setSharedBy(s.getReportUser().getId() == loggedUser.getId() ? "You" : s.getReportUser().getUsername());
+            }
+            return sDTO;
+        }).collect(Collectors.toList());
     }
 
     @JsonView(View.Canvas.class)
@@ -47,27 +61,34 @@ public class ReportController {
 
     @JsonView(View.Canvas.class)
     @GetMapping("/get")
-    public Report getReportById(@RequestParam Long reportId, Authentication authentication) {
+    public Report getById(@RequestParam Long reportId, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
         return reportService.getReportById(reportId, loggedUser);
     }
 
-    @PostMapping("/share")
-    public ResponseEntity<?> shareReportWithGroup(@RequestParam Long reportId, Authentication authentication) {
+    @PostMapping("/{id}/share")
+    public ResponseEntity<?> shareWithGroups(@PathVariable("id") Long reportId, @RequestBody List<Long> groupIds, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
-        reportService.shareReport(reportId, loggedUser);
-        return ResponseEntity.ok(new MessageResponse("Report id= " + reportId + " shared with your group."));
+        reportService.shareWithGroups(reportId, groupIds, loggedUser);
+        return ResponseEntity.ok(new MessageResponse("Report id= " + reportId + " shared."));
+    }
+
+    @JsonView(View.Simple.class)
+    @GetMapping("/{id}/groups")
+    public Set<UserGroup> getGroups(@PathVariable("id") Long reportId, Authentication authentication) {
+        User loggedUser = (User) authentication.getPrincipal();
+        return reportService.getGroupsForReport(reportId, loggedUser);
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<?> deleteReport(@RequestParam Long reportId, Authentication authentication) {
+    public ResponseEntity<?> delete(@RequestParam Long reportId, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
         reportService.deleteReport(reportId, loggedUser);
         return ResponseEntity.ok(new MessageResponse("Report id= " + reportId + " deleted."));
     }
 
     @PostMapping("/generate")
-    public ResponseEntity<?> generateReport(@RequestParam Long reportId, Authentication authentication) throws JRException, ClassNotFoundException {
+    public ResponseEntity<?> generate(@RequestParam Long reportId, Authentication authentication) throws JRException, ClassNotFoundException {
         User loggedUser = (User) authentication.getPrincipal();
         Report report = reportService.getReportById(reportId, loggedUser);
         jasperService.generateReport(report);

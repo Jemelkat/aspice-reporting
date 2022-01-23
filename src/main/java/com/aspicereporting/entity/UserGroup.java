@@ -37,9 +37,9 @@ public class UserGroup {
     @ManyToMany (mappedBy = "templateGroups", fetch = FetchType.LAZY)
     private Set<Template> templates  = new HashSet<>();
 
-    @OneToMany (mappedBy = "reportGroup", fetch = FetchType.LAZY)
     @JsonView(View.Detailed.class)
-    private List<Report> reports  = new ArrayList<>();
+    @ManyToMany (mappedBy = "reportGroups", fetch = FetchType.LAZY)
+    private Set<Report> reports  = new HashSet<>();
 
     public UserGroup(Long id, String groupName) {
         this.id = id;

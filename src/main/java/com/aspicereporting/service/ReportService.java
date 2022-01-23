@@ -5,6 +5,7 @@ import com.aspicereporting.entity.Report;
 import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.items.ReportItem;
 import com.aspicereporting.exception.EntityNotFoundException;
+import com.aspicereporting.exception.UnauthorizedAccessException;
 import com.aspicereporting.repository.ReportRepository;
 import com.aspicereporting.repository.UserGroupRepository;
 import net.sf.jasperreports.engine.JRException;
@@ -13,7 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class ReportService {
@@ -24,13 +27,14 @@ public class ReportService {
     @Autowired
     JasperService jasperService;
 
-    public void generateReport(Long reportId, User user) throws JRException, ClassNotFoundException {
+    public void generateReport(Long reportId, User user) {
         Report report = reportRepository.findByReportIdAndReportUser(reportId, user);
         jasperService.generateReport(report);
     }
 
-    public List<Report> getAllReportsForUser(User user) {
-        return reportRepository.findAllByReportUserOrReportGroup(user, user.getUserGroups().stream().findFirst().get());
+    //Get all owned or shared sources
+    public List<Report> getAllByUserOrShared(User user) {
+        return reportRepository.findDistinctByReportUserOrReportGroupsIn(user, user.getUserGroups());
     }
 
     public Report getReportById(Long id, User user) {
@@ -79,19 +83,40 @@ public class ReportService {
         reportRepository.delete(report);
     }
 
-    public void shareReport(Long reportId, User user) {
-        UserGroup userGroup = userGroupRepository.findByUsersContains(user);
-        if(userGroup==null) {
-            throw new EntityNotFoundException("You are not in any group.");
-        }
-
+    public void shareWithGroups(Long reportId, List<Long> groupIds, User user) {
         Report report = reportRepository.findByReportIdAndReportUser(reportId, user);
-        if(report==null) {
-            throw new EntityNotFoundException("Could not find report with id=" + reportId);
+        if(report == null) {
+            throw new EntityNotFoundException("Could not find report with id = " + report.getReportId());
         }
 
-        report.setReportGroup(userGroup);
-        report.setReportLastUpdated(new Date());
+        //Get all groups for update
+        List<UserGroup> reportGroupList = userGroupRepository.findAllByIdIn(groupIds);
+
+        //Get all removed groups
+        Set<UserGroup> removedGroups = new HashSet<>(report.getReportGroups());
+        removedGroups.removeAll(reportGroupList);
+
+        //Remove removed groups
+        for(UserGroup group : removedGroups) {
+            report.removeGroup(group);
+        }
+        //Add new groups
+        for(UserGroup group : reportGroupList) {
+            report.addGroup(group);
+        }
+
         reportRepository.save(report);
+    }
+
+    public Set<UserGroup> getGroupsForReport(Long reportId, User loggedUser) {
+        Report report = reportRepository.findByReportId(reportId);
+        if(report == null) {
+            throw new EntityNotFoundException("Could not find report with id = " + reportId);
+        }
+        if(report.getReportUser().getId() != loggedUser.getId()) {
+            throw new UnauthorizedAccessException("Only the owner of this report can share it.");
+        }
+
+        return report.getReportGroups();
     }
 }

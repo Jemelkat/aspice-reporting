@@ -53,8 +53,8 @@ public class SourceService {
         sourceRepository.delete(source);
     }
 
-    public List<Source> getByUser(User user) {
-        //Get all owned or shared sources
+    //Get all owned or shared sources
+    public List<Source> getAllByUserOrShared(User user) {
         return sourceRepository.findDistinctByUserOrSourceGroupsIn(user, user.getUserGroups());
     }
 

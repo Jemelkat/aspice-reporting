@@ -1,7 +1,6 @@
 package com.aspicereporting.controller;
 
 import com.aspicereporting.controller.response.MessageResponse;
-import com.aspicereporting.dto.SourceTableDTO;
 import com.aspicereporting.dto.TemplateTableDTO;
 import com.aspicereporting.entity.Template;
 import com.aspicereporting.entity.User;
@@ -40,7 +39,7 @@ public class TemplateController {
     @GetMapping("/getAll")
     public List<TemplateTableDTO> getAll(Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
-        List<Template> templates = templateService.getAllTemplatesByUser(loggedUser);
+        List<Template> templates = templateService.getAllByUserOrShared(loggedUser);
 
         //Convert Entity to custom DTO
         return templates.stream().map((s) -> {
@@ -61,7 +60,7 @@ public class TemplateController {
     }
 
     @PostMapping("/{id}/share")
-    public ResponseEntity<?> shareWithGroup(@PathVariable("id") Long templateId, @RequestBody List<Long> groupIds, Authentication authentication) {
+    public ResponseEntity<?> shareWithGroups(@PathVariable("id") Long templateId, @RequestBody List<Long> groupIds, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
         templateService.shareWithGroups(templateId, groupIds, loggedUser);
         return ResponseEntity.ok(new MessageResponse("Template id= " + templateId + " shared."));

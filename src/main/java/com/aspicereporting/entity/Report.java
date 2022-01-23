@@ -10,9 +10,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Getter
 @Setter
@@ -47,13 +45,24 @@ public class Report {
     @JoinColumn(name="template_id")
     private Template reportTemplate;
 
-    @JsonView(View.SimpleTable.class)
-    @ManyToOne
-    @JoinColumn(name = "group_id")
-    private UserGroup reportGroup;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "report_groups",
+            joinColumns = @JoinColumn(name = "report_id"),
+            inverseJoinColumns = @JoinColumn(name = "group_id"))
+    private Set<UserGroup> reportGroups = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name="user_id", nullable=false)
     @JsonIgnore
     private User reportUser;
+
+    public void addGroup(UserGroup group) {
+        this.reportGroups.add(group);
+        group.getReports().add(this);
+    }
+
+    public void removeGroup(UserGroup group) {
+        this.reportGroups.remove(group);
+        group.getReports().remove(this);
+    }
 }

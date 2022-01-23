@@ -44,7 +44,7 @@ public class SourceController {
     @GetMapping("/getAll")
     public List<SourceTableDTO> getAll(Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
-        List<Source> sourcesList = sourceService.getByUser(loggedUser);
+        List<Source> sourcesList = sourceService.getAllByUserOrShared(loggedUser);
 
         //Convert Entity to custom DTO
         return sourcesList

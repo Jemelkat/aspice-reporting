@@ -25,21 +25,21 @@ public class UserGroup {
     private String groupName;
 
     @JsonView(View.Detailed.class)
-    @ManyToMany(mappedBy="userGroups", fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "userGroups", fetch = FetchType.LAZY)
     private Set<User> users = new HashSet<>();
 
     @JsonView(View.Detailed.class)
-    @ManyToMany(mappedBy="sourceGroups", fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "sourceGroups", fetch = FetchType.LAZY)
     private Set<Source> sources = new HashSet<>();
 
 
     @JsonView(View.Detailed.class)
-    @ManyToMany (mappedBy = "templateGroups", fetch = FetchType.LAZY)
-    private Set<Template> templates  = new HashSet<>();
+    @ManyToMany(mappedBy = "templateGroups", fetch = FetchType.LAZY)
+    private Set<Template> templates = new HashSet<>();
 
     @JsonView(View.Detailed.class)
-    @ManyToMany (mappedBy = "reportGroups", fetch = FetchType.LAZY)
-    private Set<Report> reports  = new HashSet<>();
+    @ManyToMany(mappedBy = "reportGroups", fetch = FetchType.LAZY)
+    private Set<Report> reports = new HashSet<>();
 
     public UserGroup(Long id, String groupName) {
         this.id = id;

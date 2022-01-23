@@ -51,7 +51,7 @@ public class SourceController {
                 .stream()
                 .map((s) -> {
                     SourceTableDTO sDTO = modelMapper.map(s, SourceTableDTO.class);
-                    if(!s.getSourceGroups().isEmpty()) {
+                    if (!s.getSourceGroups().isEmpty()) {
                         sDTO.setShared(Boolean.TRUE);
                         sDTO.setSharedBy(s.getUser().getId() == loggedUser.getId() ? "You" : s.getUser().getUsername());
                     }
@@ -69,7 +69,7 @@ public class SourceController {
 
     @JsonView(View.Simple.class)
     @GetMapping("/{id}/groups")
-    public Set<UserGroup> getGroups (@PathVariable("id") Long sourceId, Authentication authentication) {
+    public Set<UserGroup> getGroups(@PathVariable("id") Long sourceId, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
         return sourceService.getGroupsForSource(sourceId, loggedUser);
     }

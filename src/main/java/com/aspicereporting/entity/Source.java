@@ -32,12 +32,12 @@ public class Source {
 
     @Column(name = "source_created")
     @Temporal(TemporalType.TIMESTAMP)
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private Date sourceCreated;
 
     @Column(name = "source_last_updated")
     @Temporal(TemporalType.TIMESTAMP)
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private Date sourceLastUpdated;
 
     @JsonView(View.Detailed.class)
@@ -55,7 +55,7 @@ public class Source {
     private Set<UserGroup> sourceGroups = new HashSet<>();
 
     public void removeFromAllGroups() {
-        for(UserGroup group : sourceGroups) {
+        for (UserGroup group : sourceGroups) {
             group.getSources().remove(this);
         }
         this.sourceGroups.clear();

@@ -45,7 +45,7 @@ public class SourceService {
     @Transactional
     public void deleteById(Long sourceId, User user) {
         Source source = sourceRepository.findBySourceIdAndUserOrSourceGroupsIn(sourceId, user, user.getUserGroups());
-        if(source == null) {
+        if (source == null) {
             throw new EntityNotFoundException("Could not find source with id = " + sourceId);
         }
         //Source was found - delete it
@@ -60,10 +60,10 @@ public class SourceService {
 
     public Set<UserGroup> getGroupsForSource(Long sourceId, User loggedUser) {
         Source source = sourceRepository.findBySourceId(sourceId);
-        if(source == null) {
+        if (source == null) {
             throw new EntityNotFoundException("Could not find source with id = " + sourceId);
         }
-        if(source.getUser().getId() != loggedUser.getId()) {
+        if (source.getUser().getId() != loggedUser.getId()) {
             throw new UnauthorizedAccessException("Only the owner of this source can share it.");
         }
 
@@ -87,8 +87,7 @@ public class SourceService {
                     sourceColumn.setSource(source);
                     sourceColumns.add(sourceColumn);
                 }
-            }
-            else {
+            } else {
                 throw new CsvSourceFileException("Loaded file does not contain header.");
             }
 
@@ -108,7 +107,7 @@ public class SourceService {
     //Share selected source with selected groups
     public void shareWithGroups(Long sourceId, List<Long> groupIds, User user) {
         Source source = sourceRepository.findBySourceIdAndUser(sourceId, user);
-        if(source == null) {
+        if (source == null) {
             throw new EntityNotFoundException("Could not find source with id = " + sourceId);
         }
 
@@ -120,11 +119,11 @@ public class SourceService {
         removedGroups.removeAll(sourceGroupList);
 
         //Remove removed groups
-        for(UserGroup group : removedGroups) {
+        for (UserGroup group : removedGroups) {
             source.removeGroup(group);
         }
         //Add new groups
-        for(UserGroup group : sourceGroupList) {
+        for (UserGroup group : sourceGroupList) {
             source.addGroup(group);
         }
         sourceRepository.save(source);

@@ -29,7 +29,7 @@ public class TemplateService {
         return templateRepository.findDistinctByTemplateUserOrTemplateGroupsIn(user, user.getUserGroups());
     }
 
-    public Template getById(Long id, User user){
+    public Template getTemplateById(Long id, User user) {
         return templateRepository.findByTemplateUserAndTemplateId(user, id);
     }
 
@@ -38,10 +38,10 @@ public class TemplateService {
         Template newTemplate;
         Date changeDate = new Date();
         //Edit existing template
-        if(template.getTemplateId() != null) {
+        if (template.getTemplateId() != null) {
             //Get template if ID is defined - only templates belonging to this user can be changed
-            newTemplate = getById(template.getTemplateId(), user);
-            if(newTemplate == null) {
+            newTemplate = getTemplateById(template.getTemplateId(), user);
+            if (newTemplate == null) {
                 throw new EntityNotFoundException("Template " + template.getTemplateName() + " id " + template.getTemplateId() + " was not found and cannot be saved.");
             }
 
@@ -60,7 +60,7 @@ public class TemplateService {
         }
 
         //Reconstruct relationship
-        for(TemplateItem item: newTemplate.getTemplateItems()) {
+        for (TemplateItem item : newTemplate.getTemplateItems()) {
             item.setTemplate(newTemplate);
         }
         return templateRepository.save(newTemplate);
@@ -68,7 +68,7 @@ public class TemplateService {
 
     public void shareWithGroups(Long templateId, List<Long> groupIds, User user) {
         Template template = templateRepository.findByTemplateUserAndTemplateId(user, templateId);
-        if(template == null) {
+        if (template == null) {
             throw new EntityNotFoundException("Could not find template with id = " + template.getTemplateId());
         }
 
@@ -80,11 +80,11 @@ public class TemplateService {
         removedGroups.removeAll(templateGroupList);
 
         //Remove removed groups
-        for(UserGroup group : removedGroups) {
+        for (UserGroup group : removedGroups) {
             template.removeGroup(group);
         }
         //Add new groups
-        for(UserGroup group : templateGroupList) {
+        for (UserGroup group : templateGroupList) {
             template.addGroup(group);
         }
 
@@ -93,24 +93,24 @@ public class TemplateService {
 
     public Set<UserGroup> getGroupsForTemplate(Long templateId, User loggedUser) {
         Template template = templateRepository.findByTemplateId(templateId);
-        if(template == null) {
+        if (template == null) {
             throw new EntityNotFoundException("Could not find template with id = " + templateId);
         }
-        if(template.getTemplateUser().getId() != loggedUser.getId()) {
+        if (template.getTemplateUser().getId() != loggedUser.getId()) {
             throw new UnauthorizedAccessException("Only the owner of this template can share it.");
         }
 
         return template.getTemplateGroups();
     }
 
-    public void delete(Long templateId, User user) {
+    public void deleteTemplate(Long templateId, User user) {
         Template template = templateRepository.findByTemplateUserAndTemplateId(user, templateId);
-        if(template==null) {
-            throw new EntityNotFoundException("Could not find template with id =" + templateId );
+        if (template == null) {
+            throw new EntityNotFoundException("Could not find template with id =" + templateId);
         }
 
         //Remove foreign key in reports
-        for(Report r : template.getReports()) {
+        for (Report r : template.getReports()) {
             r.setReportTemplate(null);
         }
 

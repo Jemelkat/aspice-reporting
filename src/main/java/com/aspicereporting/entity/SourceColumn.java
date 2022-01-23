@@ -29,7 +29,7 @@ public class SourceColumn {
     private String columnName;
 
     @JsonView(View.Detailed.class)
-    @OneToMany (mappedBy = "sourceColumn", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "sourceColumn", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SourceData> sourceData = new ArrayList<>();
 
     @ManyToOne
@@ -41,7 +41,7 @@ public class SourceColumn {
         this.columnName = columnName;
     }
 
-    public void addSourceData(SourceData sourceData){
+    public void addSourceData(SourceData sourceData) {
         sourceData.setSourceColumn(this);
         this.sourceData.add(sourceData);
     }

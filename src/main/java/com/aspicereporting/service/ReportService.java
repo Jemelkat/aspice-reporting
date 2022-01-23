@@ -46,10 +46,10 @@ public class ReportService {
         Report newReport;
         Date changeDate = new Date();
         //Edit existing template
-        if(report.getReportId() != null) {
+        if (report.getReportId() != null) {
             //Get template if ID is defined - only templates belonging to this user can be changed
             newReport = getReportById(report.getReportId(), user);
-            if(newReport == null) {
+            if (newReport == null) {
                 throw new EntityNotFoundException("Report " + report.getReportName() + " id " + report.getReportId() + " was not found and cannot be saved.");
             }
 
@@ -69,7 +69,7 @@ public class ReportService {
         }
 
         //Reconstruct relationship
-        for(ReportItem item: newReport.getReportItems()) {
+        for (ReportItem item : newReport.getReportItems()) {
             item.setReport(newReport);
         }
         return reportRepository.save(newReport);
@@ -77,15 +77,15 @@ public class ReportService {
 
     public void deleteReport(Long reportId, User user) {
         Report report = reportRepository.findByReportIdAndReportUser(reportId, user);
-        if(report==null) {
-            throw new EntityNotFoundException("Could not find report with id =" + reportId );
+        if (report == null) {
+            throw new EntityNotFoundException("Could not find report with id =" + reportId);
         }
         reportRepository.delete(report);
     }
 
     public void shareWithGroups(Long reportId, List<Long> groupIds, User user) {
         Report report = reportRepository.findByReportIdAndReportUser(reportId, user);
-        if(report == null) {
+        if (report == null) {
             throw new EntityNotFoundException("Could not find report with id = " + report.getReportId());
         }
 
@@ -97,11 +97,11 @@ public class ReportService {
         removedGroups.removeAll(reportGroupList);
 
         //Remove removed groups
-        for(UserGroup group : removedGroups) {
+        for (UserGroup group : removedGroups) {
             report.removeGroup(group);
         }
         //Add new groups
-        for(UserGroup group : reportGroupList) {
+        for (UserGroup group : reportGroupList) {
             report.addGroup(group);
         }
 
@@ -110,10 +110,10 @@ public class ReportService {
 
     public Set<UserGroup> getGroupsForReport(Long reportId, User loggedUser) {
         Report report = reportRepository.findByReportId(reportId);
-        if(report == null) {
+        if (report == null) {
             throw new EntityNotFoundException("Could not find report with id = " + reportId);
         }
-        if(report.getReportUser().getId() != loggedUser.getId()) {
+        if (report.getReportUser().getId() != loggedUser.getId()) {
             throw new UnauthorizedAccessException("Only the owner of this report can share it.");
         }
 

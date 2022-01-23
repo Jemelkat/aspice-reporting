@@ -56,7 +56,7 @@ public class TemplateController {
     @GetMapping("/get")
     public Template getById(@RequestParam Long templateId, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
-        return templateService.getById(templateId, loggedUser);
+        return templateService.getTemplateById(templateId, loggedUser);
     }
 
     @PostMapping("/{id}/share")
@@ -76,7 +76,7 @@ public class TemplateController {
     @DeleteMapping("/delete")
     public ResponseEntity<?> delete(@RequestParam Long templateId, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
-        templateService.delete(templateId, loggedUser);
+        templateService.deleteTemplate(templateId, loggedUser);
         return ResponseEntity.ok(new MessageResponse("Template id= " + templateId + " deleted."));
     }
 

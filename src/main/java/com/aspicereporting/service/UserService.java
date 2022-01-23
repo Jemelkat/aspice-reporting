@@ -29,12 +29,11 @@ public class UserService {
         }
 
         //Use existing user or logger user
-        if(userId != null) {
+        if (userId != null) {
             Optional<User> foundUser = userRepository.findById(userId);
-            if(foundUser.isPresent()) {
+            if (foundUser.isPresent()) {
                 user = foundUser.get();
-            }
-            else {
+            } else {
                 throw new EntityNotFoundException("Could not find user with id " + userId);
             }
         }
@@ -43,9 +42,9 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void update(User user) {
+    public void updateUser(User user) {
         //If ID is not defined we cannot update the user
-        if(user.getId() == null) {
+        if (user.getId() == null) {
             throw new EntityNotFoundException("Cannot update user without ID.");
         }
 
@@ -53,7 +52,7 @@ public class UserService {
         User currentUser = null;
         try {
             currentUser = userRepository.findById(user.getId()).get();
-        }catch (NoSuchElementException e) {
+        } catch (NoSuchElementException e) {
             throw new EntityNotFoundException("Could not find user with id " + user.getId(), e);
         }
 
@@ -68,26 +67,15 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public void delete(Long userId) {
-        userRepository.findById(userId).ifPresentOrElse(
-                (obj) -> {
-                    userRepository.delete(obj);
-                },
-                () -> {
-                    throw new EntityNotFoundException("User id " + userId + " not found.");
-                }
-        );
+    public void deleteUser(Long userId) {
+        userRepository.findById(userId).ifPresentOrElse((obj) -> {
+            userRepository.delete(obj);
+        }, () -> {
+            throw new EntityNotFoundException("User id " + userId + " not found.");
+        });
     }
 
-    public void removeUserFromGroup(User user, UserGroup userGroup) {
-        //TODO Change tempalte, source and reports shared group
-    }
-
-    public void addUserToGroup(User user, UserGroup userGroup) {
-        //TODO Change tempalte, source and reports shared group
-    }
-
-    public List<UserGroup> getAllGroups(User user) {
+    public List<UserGroup> getGroupsForUser(User user) {
         return userGroupRepository.findAllByUsersContains(user);
     }
 }

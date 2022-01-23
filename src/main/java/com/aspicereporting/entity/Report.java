@@ -16,7 +16,7 @@ import java.util.*;
 @Setter
 @JsonView(View.Simple.class)
 @Entity
-@Table(name = "report", uniqueConstraints = {@UniqueConstraint(columnNames = {"report_name","user_id"})})
+@Table(name = "report", uniqueConstraints = {@UniqueConstraint(columnNames = {"report_name", "user_id"})})
 public class Report {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,12 +29,12 @@ public class Report {
 
     @Column(name = "report_created")
     @Temporal(TemporalType.TIMESTAMP)
-    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private Date reportCreated;
 
     @Column(name = "report_last_updated")
     @Temporal(TemporalType.TIMESTAMP)
-    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private Date reportLastUpdated;
 
     @JsonView(View.Canvas.class)
@@ -42,7 +42,7 @@ public class Report {
     private List<ReportItem> reportItems = new ArrayList<>();
 
     @ManyToOne
-    @JoinColumn(name="template_id")
+    @JoinColumn(name = "template_id")
     private Template reportTemplate;
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -52,7 +52,7 @@ public class Report {
     private Set<UserGroup> reportGroups = new HashSet<>();
 
     @ManyToOne
-    @JoinColumn(name="user_id", nullable=false)
+    @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
     private User reportUser;
 

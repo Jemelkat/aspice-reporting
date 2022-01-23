@@ -25,27 +25,23 @@ public class UserGroupService {
             throw new EntityNotFoundException("Cannot update user group " + updatedGroup.getGroupName() + " no id provided.");
         }
         //Get current group by id
-        UserGroup currentGroup = userGroupRepository.findById(updatedGroup.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Could not find user group with id " +updatedGroup.getId()  ));
+        UserGroup currentGroup = userGroupRepository.findById(updatedGroup.getId()).orElseThrow(() -> new EntityNotFoundException("Could not find user group with id " + updatedGroup.getId()));
 
-       //Get and remove all removed users from this group
+        //Get and remove all removed users from this group
         Set<User> removedUsers = new HashSet<>(currentGroup.getUsers());
         removedUsers.removeAll(updatedGroup.getUsers());
 
-        for(User user : removedUsers) {
+        for (User user : removedUsers) {
             user.removeUserGroup(updatedGroup);
         }
 
         //Get users from ids in updated group entity
-        List<User> updatedUsersList = userRepository.findByIdIn(updatedGroup.getUsers()
-                .stream()
-                .map(User::getId)
-                .collect(Collectors.toList()));
+        List<User> updatedUsersList = userRepository.findByIdIn(updatedGroup.getUsers().stream().map(User::getId).collect(Collectors.toList()));
 
         //Update group name
         currentGroup.setGroupName(updatedGroup.getGroupName());
         //Set new users to the group
-        for(User u: updatedUsersList) {
+        for (User u : updatedUsersList) {
             u.addUserGroup(currentGroup);
         }
 
@@ -56,21 +52,18 @@ public class UserGroupService {
         Optional<UserGroup> userGroup = userGroupRepository.findById(userGroupId);
 
         //Delete only if group exists
-        userGroup.ifPresentOrElse(
-                (group) -> {
-                    //Handle many to many relations
-                    for (User u : group.getUsers()) {
-                        u.removeUserGroup(group);
-                    }
+        userGroup.ifPresentOrElse((group) -> {
+            //Handle many to many relations
+            for (User u : group.getUsers()) {
+                u.removeUserGroup(group);
+            }
 
 
-                    //Delete group
-                    userGroupRepository.delete(group);
-                },
-                () -> {
-                    throw new EntityNotFoundException("User group id " + userGroupId + " not found.");
-                }
-        );
+            //Delete group
+            userGroupRepository.delete(group);
+        }, () -> {
+            throw new EntityNotFoundException("User group id " + userGroupId + " not found.");
+        });
     }
 
     public List<UserGroup> getAllUserGroups() {
@@ -81,10 +74,7 @@ public class UserGroupService {
         //Get group user ids
         List<Long> userIds = new ArrayList<>();
         if (!group.getUsers().isEmpty()) {
-            userIds = group.getUsers()
-                    .stream()
-                    .map(User::getId)
-                    .collect(Collectors.toList());
+            userIds = group.getUsers().stream().map(User::getId).collect(Collectors.toList());
         }
 
         //Get user entities

@@ -38,7 +38,7 @@ public class UserController {
         User loggedUser = (User) authentication.getPrincipal();
 
         if (((loggedUser.getId() != null) && (loggedUser.getId() == user.getId())) || (loggedUser.isAdmin())) {
-            userService.update(user);
+            userService.updateUser(user);
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("You cannot edit other users without admin rights"));
         }
@@ -49,15 +49,15 @@ public class UserController {
     @PostMapping(value = "/delete")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> delete(@RequestParam Long id) {
-        userService.delete(id);
+        userService.deleteUser(id);
         return ResponseEntity.ok(new MessageResponse("User id " + id + " deleted successfully."));
     }
 
     @JsonView(View.Simple.class)
     @GetMapping(value = "/groups")
-    public List<UserGroup> getAllGroups(Authentication authentication){
+    public List<UserGroup> getAllGroups(Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
-        List<UserGroup> test=  userService.getAllGroups(loggedUser);
+        List<UserGroup> test = userService.getGroupsForUser(loggedUser);
         return test;
     }
 }

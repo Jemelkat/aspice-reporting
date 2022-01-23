@@ -1,8 +1,8 @@
 package com.aspicereporting.service;
 
+import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.entity.Report;
 import com.aspicereporting.entity.User;
-import com.aspicereporting.entity.Group;
 import com.aspicereporting.entity.items.ReportItem;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.repository.ReportRepository;
@@ -80,7 +80,7 @@ public class ReportService {
     }
 
     public void shareReport(Long reportId, User user) {
-        Group userGroup = userGroupRepository.findByUsersContains(user);
+        UserGroup userGroup = userGroupRepository.findByUsersContains(user);
         if(userGroup==null) {
             throw new EntityNotFoundException("You are not in any group.");
         }

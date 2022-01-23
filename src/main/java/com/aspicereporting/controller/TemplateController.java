@@ -30,7 +30,7 @@ public class TemplateController {
 
     @JsonView(View.SimpleTable.class)
     @GetMapping("/getAll")
-    public List<Template> getAllTemplates(Authentication authentication) {
+    public List<Template> getAll(Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
         List<Template> templates = templateService.getAllTemplatesByUser(loggedUser);
 
@@ -40,22 +40,22 @@ public class TemplateController {
 
     @JsonView(View.Canvas.class)
     @GetMapping("/get")
-    public Template getTemplateById(@RequestParam Long templateId, Authentication authentication) {
+    public Template getById(@RequestParam Long templateId, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
-        return templateService.getTemplateById(templateId, loggedUser);
+        return templateService.getById(templateId, loggedUser);
     }
 
     @PostMapping("/share")
-    public ResponseEntity<?> shareTemplateWithGroup(@RequestParam Long templateId, Authentication authentication) {
+    public ResponseEntity<?> shareWithGroup(@RequestParam Long templateId, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
-        templateService.shareTemplate(templateId, loggedUser);
+        templateService.shareWithGroups(templateId, loggedUser);
         return ResponseEntity.ok(new MessageResponse("Template id= " + templateId + " shared with your group."));
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<?> deleteTemplate(@RequestParam Long templateId, Authentication authentication) {
+    public ResponseEntity<?> delete(@RequestParam Long templateId, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
-        templateService.deleteTemplate(templateId, loggedUser);
+        templateService.delete(templateId, loggedUser);
         return ResponseEntity.ok(new MessageResponse("Template id= " + templateId + " deleted."));
     }
 

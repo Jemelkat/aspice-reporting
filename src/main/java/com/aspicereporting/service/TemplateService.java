@@ -3,7 +3,7 @@ package com.aspicereporting.service;
 import com.aspicereporting.entity.Report;
 import com.aspicereporting.entity.Template;
 import com.aspicereporting.entity.User;
-import com.aspicereporting.entity.Group;
+import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.entity.items.TemplateItem;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.repository.TemplateRepository;
@@ -28,7 +28,7 @@ public class TemplateService {
         return templateRepository.findAllByTemplateUser(user);
     }
 
-    public Template getTemplateById(Long id,User user){
+    public Template getById(Long id, User user){
         return templateRepository.findByTemplateUserAndTemplateId(user, id);
     }
 
@@ -39,7 +39,7 @@ public class TemplateService {
         //Edit existing template
         if(template.getTemplateId() != null) {
             //Get template if ID is defined - only templates belonging to this user can be changed
-            newTemplate = getTemplateById(template.getTemplateId(), user);
+            newTemplate = getById(template.getTemplateId(), user);
             if(newTemplate == null) {
                 throw new EntityNotFoundException("Template " + template.getTemplateName() + " id " + template.getTemplateId() + " was not found and cannot be saved.");
             }
@@ -65,8 +65,8 @@ public class TemplateService {
         return templateRepository.save(newTemplate);
     }
 
-    public void shareTemplate(Long templateId, User user) {
-        Group userGroup = userGroupRepository.findByUsersContains(user);
+    public void shareWithGroups(Long templateId, User user) {
+        UserGroup userGroup = userGroupRepository.findByUsersContains(user);
         if(userGroup==null) {
             throw new EntityNotFoundException("You are not in any group.");
         }
@@ -81,7 +81,7 @@ public class TemplateService {
         templateRepository.save(template);
     }
 
-    public void deleteTemplate(Long templateId, User user) {
+    public void delete(Long templateId, User user) {
         Template template = templateRepository.findByTemplateUserAndTemplateId(user, templateId);
         if(template==null) {
             throw new EntityNotFoundException("Could not find template with id =" + templateId );

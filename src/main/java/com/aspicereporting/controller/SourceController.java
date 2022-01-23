@@ -2,7 +2,7 @@ package com.aspicereporting.controller;
 
 import com.aspicereporting.controller.response.MessageResponse;
 import com.aspicereporting.dto.SourceTableDTO;
-import com.aspicereporting.entity.Group;
+import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.views.View;
@@ -69,7 +69,7 @@ public class SourceController {
 
     @JsonView(View.Simple.class)
     @GetMapping("/{id}/groups")
-    public Set<Group> getGroups (@PathVariable("id") Long sourceId, Authentication authentication) {
+    public Set<UserGroup> getGroups (@PathVariable("id") Long sourceId, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
         return sourceService.getGroupsForSource(sourceId, loggedUser);
     }

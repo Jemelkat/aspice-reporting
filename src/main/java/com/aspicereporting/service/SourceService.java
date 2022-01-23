@@ -19,10 +19,7 @@ import com.aspicereporting.utils.*;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class SourceService {
@@ -61,13 +58,13 @@ public class SourceService {
         return sourceRepository.findDistinctByUserOrSourceGroupsIn(user, user.getUserGroups());
     }
 
-    public Set<Group> getGroupsForSource(Long sourceId, User loggedUser) {
+    public Set<UserGroup> getGroupsForSource(Long sourceId, User loggedUser) {
         Source source = sourceRepository.findBySourceId(sourceId);
         if(source == null) {
             throw new EntityNotFoundException("Could not find source with id = " + sourceId);
         }
         if(source.getUser().getId() != loggedUser.getId()) {
-            throw new UnauthorizedAccessException("Only the owner of this sourca can share it.");
+            throw new UnauthorizedAccessException("Only the owner of this source can share it.");
         }
 
         return source.getSourceGroups();
@@ -116,18 +113,18 @@ public class SourceService {
         }
 
         //Get all groups for update
-        List<Group> sourceGroupList = userGroupRepository.findAllByIdIn(groupIds);
+        List<UserGroup> sourceGroupList = userGroupRepository.findAllByIdIn(groupIds);
 
         //Get all removed groups
-        Set<Group> removedGroups = source.getSourceGroups();
+        Set<UserGroup> removedGroups = new HashSet<>(source.getSourceGroups());
         removedGroups.removeAll(sourceGroupList);
 
         //Remove removed groups
-        for(Group group : removedGroups) {
+        for(UserGroup group : removedGroups) {
             source.removeGroup(group);
         }
         //Add new groups
-        for(Group group : sourceGroupList) {
+        for(UserGroup group : sourceGroupList) {
             source.addGroup(group);
         }
         sourceRepository.save(source);

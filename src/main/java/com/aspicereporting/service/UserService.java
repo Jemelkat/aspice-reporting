@@ -1,6 +1,6 @@
 package com.aspicereporting.service;
 
-import com.aspicereporting.entity.Group;
+import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.entity.User;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.repository.UserGroupRepository;
@@ -23,7 +23,7 @@ public class UserService {
     @Transactional
     public void addGroupToUser(Long groupId, Long userId, User user) {
         //Get userGroupFromDb
-        Group userGroup = userGroupRepository.getUserGroupById(groupId);
+        UserGroup userGroup = userGroupRepository.getUserGroupById(groupId);
         if (userGroup == null) {
             throw new EntityNotFoundException("Could not find user group.");
         }
@@ -40,10 +40,6 @@ public class UserService {
         }
 
         userGroup.addUser(user);
-        userRepository.save(user);
-    }
-
-    public void createOrUpdate(User user) {
         userRepository.save(user);
     }
 
@@ -83,15 +79,15 @@ public class UserService {
         );
     }
 
-    public void removeUserFromGroup(User user, Group userGroup) {
+    public void removeUserFromGroup(User user, UserGroup userGroup) {
         //TODO Change tempalte, source and reports shared group
     }
 
-    public void addUserToGroup(User user, Group userGroup) {
+    public void addUserToGroup(User user, UserGroup userGroup) {
         //TODO Change tempalte, source and reports shared group
     }
 
-    public List<Group> getAllGroups(User user) {
+    public List<UserGroup> getAllGroups(User user) {
         return userGroupRepository.findAllByUsersContains(user);
     }
 }

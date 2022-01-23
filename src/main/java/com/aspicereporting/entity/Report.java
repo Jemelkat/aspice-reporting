@@ -50,7 +50,7 @@ public class Report {
     @JsonView(View.SimpleTable.class)
     @ManyToOne
     @JoinColumn(name = "group_id")
-    private Group reportGroup;
+    private UserGroup reportGroup;
 
     @ManyToOne
     @JoinColumn(name="user_id", nullable=false)

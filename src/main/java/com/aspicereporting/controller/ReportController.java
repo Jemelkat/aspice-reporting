@@ -12,11 +12,15 @@ import com.fasterxml.jackson.annotation.JsonView;
 import net.sf.jasperreports.engine.JRException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -87,11 +91,18 @@ public class ReportController {
         return ResponseEntity.ok(new MessageResponse("Report id= " + reportId + " deleted."));
     }
 
-    @PostMapping("/generate")
-    public ResponseEntity<?> generate(@RequestParam Long reportId, Authentication authentication) throws JRException, ClassNotFoundException {
+    @GetMapping("/generate")
+    public ResponseEntity<?> generate(@RequestParam Long reportId, Authentication authentication) throws JRException {
         User loggedUser = (User) authentication.getPrincipal();
         Report report = reportService.getReportById(reportId, loggedUser);
-        jasperService.generateReport(report);
-        return ResponseEntity.ok(new MessageResponse("Report generated."));
+        //Get report PDF as byte array stream
+        ByteArrayOutputStream out = jasperService.generateReport(report);
+        ByteArrayResource resource = new ByteArrayResource(out.toByteArray());
+
+        HttpHeaders headers = new HttpHeaders(); headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + report.getReportName() + ".pdf");
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(resource);
     }
 }

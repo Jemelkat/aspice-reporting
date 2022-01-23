@@ -8,6 +8,7 @@ import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.exception.UnauthorizedAccessException;
 import com.aspicereporting.repository.ReportRepository;
 import com.aspicereporting.repository.UserGroupRepository;
+import net.sf.jasperreports.engine.JRException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +27,7 @@ public class ReportService {
     @Autowired
     JasperService jasperService;
 
-    public void generateReport(Long reportId, User user) {
+    public void generateReport(Long reportId, User user) throws JRException {
         Report report = reportRepository.findByIdAndReportUser(reportId, user);
         jasperService.generateReport(report);
     }

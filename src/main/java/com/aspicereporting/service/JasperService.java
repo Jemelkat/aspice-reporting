@@ -31,7 +31,7 @@ import static com.aspicereporting.entity.items.ReportItem.EItemType.STATIC_TEXT;
 @Service
 public class JasperService {
 
-    public ByteArrayOutputStream generateReport(Report report) {
+    public ByteArrayOutputStream generateReport(Report report) throws JRException {
         //Get JasperDesign
         JasperDesign jasperDesign = getJasperDesign(report);
 
@@ -40,6 +40,7 @@ public class JasperService {
         try {
             jasperReport = JasperCompileManager.compileReport(jasperDesign);
         } catch (JRException e) {
+            throw e;
             //TODO throw exception
         }
 
@@ -49,23 +50,24 @@ public class JasperService {
         try {
             jasperPrint = JasperFillManager.fillReport(jasperReport, null, new JREmptyDataSource());
         } catch (JRException e) {
+            throw e;
             //TODO throw exception
         }
         //Export
         //TODO REMOVE
-        JRPdfExporter exporter = new JRPdfExporter();
-        exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
-        exporter.setExporterOutput(new SimpleOutputStreamExporterOutput("file2.pdf"));
-        SimplePdfExporterConfiguration configuration = new SimplePdfExporterConfiguration();
-        configuration.setMetadataAuthor("Petter");  //why not set some config as we like
-        exporter.setConfiguration(configuration);
-        try {
-            exporter.exportReport();
-        } catch (JRException e) {
-            e.printStackTrace();
-        }
-        return new ByteArrayOutputStream();
-        //return exportToPdf(jasperPrint, report.getReportUser().getUsername());
+//        JRPdfExporter exporter = new JRPdfExporter();
+//        exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
+//        exporter.setExporterOutput(new SimpleOutputStreamExporterOutput("file2.pdf"));
+//        SimplePdfExporterConfiguration configuration = new SimplePdfExporterConfiguration();
+//        configuration.setMetadataAuthor("Petter");  //why not set some config as we like
+//        exporter.setConfiguration(configuration);
+//        try {
+//            exporter.exportReport();
+//        } catch (JRException e) {
+//            e.printStackTrace();
+//        }
+        //return new ByteArrayOutputStream();
+        return exportToPdf(jasperPrint, report.getReportUser().getUsername());
     }
 
     private JasperDesign getJasperDesign(Report report) {
@@ -77,7 +79,7 @@ public class JasperService {
         //Make whole page design band
         JRDesignBand band = new JRDesignBand();
         //TODO MAKE DYNAMIC
-        band.setHeight(1122);
+        band.setHeight(1123);
         band.setSplitType(SplitTypeEnum.STRETCH);
 
         //Get report item
@@ -125,7 +127,7 @@ public class JasperService {
         JasperDesign jasperDesign = new JasperDesign();
         jasperDesign.setName("NoXmlDesignReport");
         jasperDesign.setPageWidth(794);
-        jasperDesign.setPageHeight(1122);
+        jasperDesign.setPageHeight(1123);
         jasperDesign.setLeftMargin(0);
         jasperDesign.setRightMargin(0);
         jasperDesign.setTopMargin(0);

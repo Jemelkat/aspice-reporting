@@ -17,7 +17,7 @@ public class TemplateItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "template_item_id")
-    private Long itemId;
+    private Long id;
     @Column(length = 50, name = "template_item_type")
     @Enumerated(EnumType.STRING)
     private ReportItem.EItemType type;

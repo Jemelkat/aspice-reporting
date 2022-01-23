@@ -1,7 +1,6 @@
 package com.aspicereporting.entity.items;
 
 import com.aspicereporting.entity.Report;
-import com.aspicereporting.entity.Template;
 import com.aspicereporting.entity.TextItem;
 import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -38,7 +37,7 @@ public class ReportItem implements Comparable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "report_item_id")
-    private long itemId;
+    private long id;
     @Column(length = 50, name = "report_item_type", insertable = false, updatable = false)
     @Enumerated(EnumType.STRING)
     private EItemType type;

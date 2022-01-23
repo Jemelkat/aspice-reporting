@@ -8,9 +8,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Getter
 @Setter
@@ -39,11 +37,6 @@ public class Template {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date templateLastUpdated;
 
-    @ManyToOne
-    @JoinColumn(name = "group_id")
-    @JsonIgnore
-    private UserGroup templateGroup;
-
     @JsonView(View.SimpleTable.class)
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -57,8 +50,24 @@ public class Template {
     @JsonIgnore
     private List<Report> reports = new ArrayList<>();
 
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "template_groups",
+            joinColumns = @JoinColumn(name = "template_id"),
+            inverseJoinColumns = @JoinColumn(name = "group_id"))
+    private Set<UserGroup> templateGroups = new HashSet<>();
+
     public void removeReport(Report report) {
         this.reports.remove(report);
         report.setReportTemplate(null);
+    }
+
+    public void addGroup(UserGroup group) {
+        this.templateGroups.add(group);
+        group.getTemplates().add(this);
+    }
+
+    public void removeGroup(UserGroup group) {
+        this.templateGroups.remove(group);
+        group.getTemplates().remove(this);
     }
 }

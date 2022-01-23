@@ -1,22 +1,31 @@
 package com.aspicereporting.controller;
 
 import com.aspicereporting.controller.response.MessageResponse;
+import com.aspicereporting.dto.SourceTableDTO;
+import com.aspicereporting.dto.TemplateTableDTO;
 import com.aspicereporting.entity.Template;
 import com.aspicereporting.entity.User;
+import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.entity.views.View;
 import com.aspicereporting.service.TemplateService;
 import com.fasterxml.jackson.annotation.JsonView;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @CrossOrigin
 @RestController
-@RequestMapping("/template")
+@RequestMapping("/templates")
 public class TemplateController {
+
+    @Autowired
+    private ModelMapper modelMapper;
 
     @Autowired
     TemplateService templateService;
@@ -28,14 +37,20 @@ public class TemplateController {
         return templateService.saveOrEditTemplate(template, loggedUser);
     }
 
-    @JsonView(View.SimpleTable.class)
     @GetMapping("/getAll")
-    public List<Template> getAll(Authentication authentication) {
+    public List<TemplateTableDTO> getAll(Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
         List<Template> templates = templateService.getAllTemplatesByUser(loggedUser);
 
-        //Get all templates for logged user
-        return templates;
+        //Convert Entity to custom DTO
+        return templates.stream().map((s) -> {
+            TemplateTableDTO sDTO = modelMapper.map(s, TemplateTableDTO.class);
+            if (!s.getTemplateGroups().isEmpty()) {
+                sDTO.setShared(Boolean.TRUE);
+                sDTO.setSharedBy(s.getTemplateUser().getId() == loggedUser.getId() ? "You" : s.getTemplateUser().getUsername());
+            }
+            return sDTO;
+        }).collect(Collectors.toList());
     }
 
     @JsonView(View.Canvas.class)
@@ -45,11 +60,18 @@ public class TemplateController {
         return templateService.getById(templateId, loggedUser);
     }
 
-    @PostMapping("/share")
-    public ResponseEntity<?> shareWithGroup(@RequestParam Long templateId, Authentication authentication) {
+    @PostMapping("/{id}/share")
+    public ResponseEntity<?> shareWithGroup(@PathVariable("id") Long templateId, @RequestBody List<Long> groupIds, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
-        templateService.shareWithGroups(templateId, loggedUser);
-        return ResponseEntity.ok(new MessageResponse("Template id= " + templateId + " shared with your group."));
+        templateService.shareWithGroups(templateId, groupIds, loggedUser);
+        return ResponseEntity.ok(new MessageResponse("Template id= " + templateId + " shared."));
+    }
+
+    @JsonView(View.Simple.class)
+    @GetMapping("/{id}/groups")
+    public Set<UserGroup> getGroups(@PathVariable("id") Long templateId, Authentication authentication) {
+        User loggedUser = (User) authentication.getPrincipal();
+        return templateService.getGroupsForTemplate(templateId, loggedUser);
     }
 
     @DeleteMapping("/delete")

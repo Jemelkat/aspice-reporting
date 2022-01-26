@@ -1,32 +1,24 @@
 package com.aspicereporting.service;
 
 import com.aspicereporting.entity.Report;
-import com.aspicereporting.entity.TextItem;
+import com.aspicereporting.entity.TextStyle;
+import com.aspicereporting.entity.items.TextItem;
 import com.aspicereporting.entity.items.ReportItem;
-import com.aspicereporting.repository.UserRepository;
+import com.aspicereporting.exception.JasperReportException;
 import net.sf.jasperreports.engine.*;
-import net.sf.jasperreports.engine.design.JRDesignBand;
-import net.sf.jasperreports.engine.design.JRDesignSection;
-import net.sf.jasperreports.engine.design.JRDesignStaticText;
-import net.sf.jasperreports.engine.design.JasperDesign;
+import net.sf.jasperreports.engine.design.*;
 import net.sf.jasperreports.engine.export.JRPdfExporter;
-import net.sf.jasperreports.engine.type.HorizontalAlignEnum;
 import net.sf.jasperreports.engine.type.HorizontalTextAlignEnum;
 import net.sf.jasperreports.engine.type.PositionTypeEnum;
 import net.sf.jasperreports.engine.type.SplitTypeEnum;
 import net.sf.jasperreports.export.SimpleExporterInput;
 import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
 import net.sf.jasperreports.export.SimplePdfExporterConfiguration;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedOutputStream;
+import java.awt.*;
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.util.Collections;
-
-import static com.aspicereporting.entity.items.ReportItem.EItemType.STATIC_TEXT;
 
 @Service
 public class JasperService {
@@ -82,12 +74,26 @@ public class JasperService {
         band.setHeight(1123);
         band.setSplitType(SplitTypeEnum.STRETCH);
 
+        int styleCount = 0;
         //Get report item
         for (ReportItem reportItem : report.getReportItems()) {
             //Create report item jasper object
             switch (reportItem.getType()) {
                 case STATIC_TEXT:
+                    //Create TEXT ITEM
                     JRDesignStaticText textItem = createStaticText((TextItem) reportItem);
+
+                    //Add style to text item - only if style is defined
+                    if(((TextItem) reportItem).getTextStyle() != null) {
+                        JRDesignStyle textStyle = createTextStyle(((TextItem) reportItem).getTextStyle(), styleCount++);
+                        try {
+                            jasperDesign.addStyle(textStyle);
+                            textItem.setStyle(textStyle);
+                        } catch (JRException e) {
+                            throw new JasperReportException("Error setting the text style of report.", e);
+                        }
+                    }
+                    textItem.setPositionType(PositionTypeEnum.FLOAT);
                     //Add created item to report
                     band.addElement(textItem);
                     break;
@@ -120,6 +126,18 @@ public class JasperService {
         element.setPositionType(PositionTypeEnum.FLOAT);
         element.setHorizontalTextAlign(HorizontalTextAlignEnum.LEFT);
         return element;
+    }
+
+    public JRDesignStyle createTextStyle(TextStyle textStyle, int styleCount){
+        JRDesignStyle jrDesignStyle = new JRDesignStyle();
+        jrDesignStyle.setName("Style" + styleCount);
+        jrDesignStyle.setBold(Boolean.valueOf(textStyle.isBold()));
+        jrDesignStyle.setItalic(Boolean.valueOf(textStyle.isItalic()));
+        jrDesignStyle.setUnderline(Boolean.valueOf(textStyle.isUnderline()));
+        //TODO ADD COLOR TO TEXT
+        //jrDesignStyle.setForecolor(Color.decode(textStyle.getColor()));
+        jrDesignStyle.setFontSize((float) textStyle.getFontSize());
+        return jrDesignStyle;
     }
 
     private JasperDesign initializeJasperDesign(Report report) {

@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 
@@ -24,7 +25,7 @@ public class Report {
     private Long id;
 
     @Column(length = 50, name = "report_name")
-    @NotNull
+    @NotBlank(message = "Report name is required.")
     private String reportName;
 
     @Column(name = "report_created")

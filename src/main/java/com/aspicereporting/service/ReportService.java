@@ -1,5 +1,6 @@
 package com.aspicereporting.service;
 
+import com.aspicereporting.entity.items.TextItem;
 import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.entity.Report;
 import com.aspicereporting.entity.User;
@@ -45,7 +46,7 @@ public class ReportService {
     public Report saveOrEditReport(Report report, User user) {
         Report newReport;
         Date changeDate = new Date();
-        //Edit existing template
+        //Edit existing report
         if (report.getId() != null) {
             //Get template if ID is defined - only templates belonging to this user can be changed
             newReport = getReportById(report.getId(), user);
@@ -61,7 +62,7 @@ public class ReportService {
             newReport.getReportItems().clear();
             newReport.getReportItems().addAll(report.getReportItems());
         }
-        //Create new template
+        //Create new report
         else {
             newReport = report;
             newReport.setReportCreated(changeDate);
@@ -71,6 +72,16 @@ public class ReportService {
         //Reconstruct relationship
         for (ReportItem item : newReport.getReportItems()) {
             item.setReport(newReport);
+            //Add text style to TextItems
+            //TODO improve - new text style is created every time
+            if(item instanceof TextItem textItem) {
+                if (textItem.getTextStyle().isFilled()) {
+                    textItem.addTextStyle(textItem.getTextStyle());
+                }
+                else {
+                    textItem.setTextStyle(null);
+                }
+            }
         }
         return reportRepository.save(newReport);
     }

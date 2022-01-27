@@ -1,16 +1,14 @@
 package com.aspicereporting.entity;
-
 import com.aspicereporting.entity.items.TextItem;
 import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.validation.annotation.Validated;
 
 import javax.persistence.*;
-import javax.print.attribute.TextSyntax;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 
 @Setter
 @Getter
@@ -22,6 +20,7 @@ public class TextStyle {
     @Column(name = "style_id")
     private Long id;
     @Column(name = "font_size")
+    @NotNull(message = "Font size must be defined.")
     private Integer fontSize;
     @Column(name = "bold")
     private boolean bold = false;
@@ -29,14 +28,15 @@ public class TextStyle {
     private boolean italic = false;
     @Column(name = "underline")
     private boolean underline = false;
-    @Column(length = 20, name = "color")
+    @Pattern(regexp = "^#(?:[0-9a-fA-F]{3}){1,2}$", message = "Font color needs to be in hex format.")
+    @Column(name = "color")
     private String color;
     @OneToOne(mappedBy = "textStyle")
     @JsonIgnore
     private TextItem textItem;
 
     public boolean isFilled() {
-        return (fontSize != null && !fontSize.equals(11)) || bold || italic || underline || (color!= null && !color.isEmpty());
+        return (fontSize != null && !fontSize.equals(11)) || bold || italic || underline || (color!= null && !color.isEmpty() && !color.equals("#000000"));
     }
 
     public boolean isSame(TextStyle otherStyle) {

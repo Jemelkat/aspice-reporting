@@ -1,6 +1,6 @@
 package com.aspicereporting.entity;
 
-import com.aspicereporting.entity.items.TemplateItem;
+import com.aspicereporting.entity.items.ReportItem;
 import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.*;
 import lombok.Getter;
@@ -43,8 +43,8 @@ public class Template {
     private User templateUser;
 
     @JsonView(View.Canvas.class)
-    @OneToMany(mappedBy = "template", cascade = {CascadeType.ALL}, orphanRemoval = true)
-    private List<TemplateItem> templateItems = new ArrayList<>();
+    @OneToMany(mappedBy = "template", cascade = {CascadeType.ALL}, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<ReportItem> templateItems = new ArrayList<>();
 
     @OneToMany(mappedBy = "reportTemplate", fetch = FetchType.LAZY)
     @JsonIgnore

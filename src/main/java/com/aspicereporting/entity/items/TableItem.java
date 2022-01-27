@@ -6,4 +6,8 @@ import javax.persistence.Entity;
 @Entity
 @DiscriminatorValue("TABLE")
 public class TableItem extends ReportItem {
+    @Override
+    public void update() {
+
+    }
 }

@@ -7,6 +7,7 @@ import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.items.ReportItem;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.exception.UnauthorizedAccessException;
+import com.aspicereporting.repository.ReportItemsRepository;
 import com.aspicereporting.repository.ReportRepository;
 import com.aspicereporting.repository.UserGroupRepository;
 import net.sf.jasperreports.engine.JRException;
@@ -14,10 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ReportService {
@@ -25,6 +24,8 @@ public class ReportService {
     ReportRepository reportRepository;
     @Autowired
     UserGroupRepository userGroupRepository;
+    @Autowired
+    ReportItemsRepository reportItemsRepository;
     @Autowired
     JasperService jasperService;
 
@@ -58,27 +59,50 @@ public class ReportService {
             newReport.setReportLastUpdated(changeDate);
             newReport.setReportTemplate(report.getReportTemplate());
 
-            //Cant change the collection add new one instead
+            //Configure item IDs - if they exist in current report or not
+            List<ReportItem> newReportItems = new ArrayList<>();
+            for (ReportItem reportItem : report.getReportItems()) {
+                Optional<ReportItem> existingItem = newReport.getReportItems().stream()
+                        .filter(p -> p.getId().equals(reportItem.getId()))
+                        .findAny();
+                if (existingItem.isEmpty()) {
+                    //If item with this ID does not exist - we will create new record in DB
+                    reportItem.setId(null);
+                }
+
+                //Add the correct item to temporary list
+                reportItem.setTemplate(null);
+                newReportItems.add(reportItem);
+            }
+            //Add all new items to list
             newReport.getReportItems().clear();
-            newReport.getReportItems().addAll(report.getReportItems());
+            newReport.getReportItems().addAll(newReportItems);
         }
         //Create new report
         else {
             newReport = report;
             newReport.setReportCreated(changeDate);
             newReport.setReportUser(user);
+            //Remove ids from items and text style - Will create new items in DB
+            for (ReportItem item : newReport.getReportItems()) {
+                item.setId(null);
+                item.setTemplate(null);
+                if (item instanceof TextItem textItem && textItem.getTextStyle() != null) {
+                    textItem.getTextStyle().setId(null);
+                }
+            }
         }
+
 
         //Reconstruct relationship
         for (ReportItem item : newReport.getReportItems()) {
             item.setReport(newReport);
             //Add text style to TextItems
             //TODO improve - new text style is created every time
-            if(item instanceof TextItem textItem) {
-                if (textItem.getTextStyle().isFilled()) {
+            if (item instanceof TextItem textItem) {
+                if (textItem.getTextStyle() != null && textItem.getTextStyle().isFilled()) {
                     textItem.addTextStyle(textItem.getTextStyle());
-                }
-                else {
+                } else {
                     textItem.setTextStyle(null);
                 }
             }

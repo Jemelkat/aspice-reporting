@@ -1,7 +1,8 @@
 package com.aspicereporting.service;
 
 import com.aspicereporting.entity.*;
-import com.aspicereporting.entity.items.TemplateItem;
+import com.aspicereporting.entity.items.ReportItem;
+import com.aspicereporting.entity.items.TextItem;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.exception.UnauthorizedAccessException;
 import com.aspicereporting.repository.TemplateRepository;
@@ -10,10 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class TemplateService {
@@ -48,20 +46,50 @@ public class TemplateService {
             newTemplate.setTemplateName(template.getTemplateName());
             newTemplate.setTemplateLastUpdated(changeDate);
 
-            //Cant change the collection add new one instead
+            //Configure item IDs - if they exist in current report or not
+            List<ReportItem> newTemplateItems = new ArrayList<>();
+            for (ReportItem reportItem : template.getTemplateItems()) {
+                Optional<ReportItem> existingItem = newTemplate.getTemplateItems().stream()
+                        .filter(i -> i.getId().equals(reportItem.getId()))
+                        .findAny();
+                if (existingItem.isEmpty()) {
+                    //If item with this ID does not exist - we will create new record in DB
+                    reportItem.setId(null);
+                }
+                //Add the correct item
+                reportItem.setReport(null);
+                newTemplateItems.add(reportItem);
+            }
+            //Add all new items to list
             newTemplate.getTemplateItems().clear();
-            newTemplate.getTemplateItems().addAll(template.getTemplateItems());
+            newTemplate.getTemplateItems().addAll(newTemplateItems);
         }
         //Create new template
         else {
             newTemplate = template;
             newTemplate.setTemplateCreated(changeDate);
             newTemplate.setTemplateUser(user);
+            //Remove ids from items and text style - Will create new items in DB
+            for (ReportItem item : newTemplate.getTemplateItems()) {
+                item.setId(null);
+                item.setReport(null);
+                if (item instanceof TextItem textItem && textItem.getTextStyle() != null) {
+                    textItem.getTextStyle().setId(null);
+                }
+            }
         }
 
         //Reconstruct relationship
-        for (TemplateItem item : newTemplate.getTemplateItems()) {
+        for (ReportItem item : newTemplate.getTemplateItems()) {
             item.setTemplate(newTemplate);
+            //TODO improve - new text style is created every time
+            if (item instanceof TextItem textItem) {
+                if (textItem.getTextStyle() != null && textItem.getTextStyle().isFilled()) {
+                    textItem.addTextStyle(textItem.getTextStyle());
+                } else {
+                    textItem.setTextStyle(null);
+                }
+            }
         }
         return templateRepository.save(newTemplate);
     }

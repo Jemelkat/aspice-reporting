@@ -11,6 +11,7 @@ import net.sf.jasperreports.engine.export.JRPdfExporter;
 import net.sf.jasperreports.engine.type.HorizontalTextAlignEnum;
 import net.sf.jasperreports.engine.type.PositionTypeEnum;
 import net.sf.jasperreports.engine.type.SplitTypeEnum;
+import net.sf.jasperreports.engine.xml.JRXmlWriter;
 import net.sf.jasperreports.export.SimpleExporterInput;
 import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
 import net.sf.jasperreports.export.SimplePdfExporterConfiguration;
@@ -26,7 +27,8 @@ public class JasperService {
     public ByteArrayOutputStream generateReport(Report report) throws JRException {
         //Get JasperDesign
         JasperDesign jasperDesign = getJasperDesign(report);
-
+        //TODO REMOVE
+        //JasperCompileManager.writeReportToXmlFile(jasperDesign, "test.jrxml");
         //Compile JasperDesign
         JasperReport jasperReport = null;
         try {
@@ -47,17 +49,17 @@ public class JasperService {
         }
         //Export
         //TODO REMOVE
-//        JRPdfExporter exporter = new JRPdfExporter();
-//        exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
-//        exporter.setExporterOutput(new SimpleOutputStreamExporterOutput("file2.pdf"));
-//        SimplePdfExporterConfiguration configuration = new SimplePdfExporterConfiguration();
-//        configuration.setMetadataAuthor("Petter");  //why not set some config as we like
-//        exporter.setConfiguration(configuration);
-//        try {
-//            exporter.exportReport();
-//        } catch (JRException e) {
-//            e.printStackTrace();
-//        }
+        JRPdfExporter exporter = new JRPdfExporter();
+        exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
+        exporter.setExporterOutput(new SimpleOutputStreamExporterOutput("file2.pdf"));
+        SimplePdfExporterConfiguration configuration = new SimplePdfExporterConfiguration();
+        configuration.setMetadataAuthor("Petter");  //why not set some config as we like
+        exporter.setConfiguration(configuration);
+        try {
+            exporter.exportReport();
+        } catch (JRException e) {
+            e.printStackTrace();
+        }
         //return new ByteArrayOutputStream();
         return exportToPdf(jasperPrint, report.getReportUser().getUsername());
     }
@@ -82,7 +84,6 @@ public class JasperService {
                 case STATIC_TEXT:
                     //Create TEXT ITEM
                     JRDesignStaticText textItem = createStaticText((TextItem) reportItem);
-
                     //Add style to text item - only if style is defined
                     if(((TextItem) reportItem).getTextStyle() != null) {
                         JRDesignStyle textStyle = createTextStyle(((TextItem) reportItem).getTextStyle(), styleCount++);
@@ -134,9 +135,9 @@ public class JasperService {
         jrDesignStyle.setBold(Boolean.valueOf(textStyle.isBold()));
         jrDesignStyle.setItalic(Boolean.valueOf(textStyle.isItalic()));
         jrDesignStyle.setUnderline(Boolean.valueOf(textStyle.isUnderline()));
-        //TODO ADD COLOR TO TEXT
-        //jrDesignStyle.setForecolor(Color.decode(textStyle.getColor()));
+        jrDesignStyle.setForecolor(Color.decode(textStyle.getColor()));
         jrDesignStyle.setFontSize((float) textStyle.getFontSize());
+        jrDesignStyle.setFontName("DejaVu Serif");
         return jrDesignStyle;
     }
 
@@ -153,7 +154,7 @@ public class JasperService {
         return jasperDesign;
     }
 
-    private ByteArrayOutputStream exportToPdf(JasperPrint jasperPrint, String author) {
+    private ByteArrayOutputStream exportToPdf(JasperPrint jasperPrint, String author) throws JRException {
         //Report output stream
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         //Exporter to PDF
@@ -166,7 +167,7 @@ public class JasperService {
         try {
             exporter.exportReport();
         } catch (JRException e) {
-            //TODO: LOG
+            throw e;
         }
         return outputStream;
     }

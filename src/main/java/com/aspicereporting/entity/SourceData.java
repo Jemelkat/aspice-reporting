@@ -19,7 +19,7 @@ import javax.persistence.*;
 @Entity
 public class SourceData {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "source_data_id")
     private Long id;
 

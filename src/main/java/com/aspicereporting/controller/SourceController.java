@@ -2,6 +2,7 @@ package com.aspicereporting.controller;
 
 import com.aspicereporting.controller.response.MessageResponse;
 import com.aspicereporting.dto.SourceTableDTO;
+import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.User;
@@ -58,6 +59,12 @@ public class SourceController {
                     return sDTO;
                 })
                 .collect(Collectors.toList());
+    }
+    @JsonView(View.Simple.class)
+    @GetMapping("/{id}/columns")
+    public List<SourceColumn> getColumns(@PathVariable("id") Long sourceId,Authentication authentication) {
+        User loggedUser = (User) authentication.getPrincipal();
+        return sourceService.getColumnsForSource(sourceId,loggedUser);
     }
 
     @DeleteMapping("/delete")

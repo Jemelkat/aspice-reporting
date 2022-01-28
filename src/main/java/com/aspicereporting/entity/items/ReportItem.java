@@ -19,10 +19,11 @@ import javax.persistence.*;
         visible = true)
 @JsonSubTypes({
         @JsonSubTypes.Type(value = TextItem.class, name = "STATIC_TEXT"),
-        @JsonSubTypes.Type(value = TableItem.class, name = "TABLE"),
+        @JsonSubTypes.Type(value = TableItem.class, name = "SIMPLE_TABLE"),
+        @JsonSubTypes.Type(value = CapabilityTable.class, name = "CAPABILITY_TABLE"),
         @JsonSubTypes.Type(value = GraphItem.class, name = "GRAPH"),
 })
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(
         discriminatorType = DiscriminatorType.STRING,
         name = "report_item_type"
@@ -33,7 +34,6 @@ import javax.persistence.*;
 @Entity
 @Table(name = "report_item")
 public abstract class ReportItem implements Comparable {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "report_item_id")
@@ -61,7 +61,7 @@ public abstract class ReportItem implements Comparable {
     private Template template;
 
     public enum EItemType {
-        STATIC_TEXT,GRAPH,TABLE,IMAGE;
+        STATIC_TEXT,GRAPH,SIMPLE_TABLE,IMAGE,CAPABILITY_TABLE;
     }
 
     @Override
@@ -73,6 +73,4 @@ public abstract class ReportItem implements Comparable {
             return -1;
         return 0;
     }
-
-    public abstract void update();
 }

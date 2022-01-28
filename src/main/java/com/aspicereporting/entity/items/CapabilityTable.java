@@ -4,16 +4,19 @@ import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
+import javax.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.List;
 
 @Setter
 @Getter
 @Entity
-@DiscriminatorValue("SIMPLE_TABLE")
+@DiscriminatorValue("CAPABILITY_TABLE")
 @JsonView(View.Simple.class)
-public class TableItem extends ReportItem {
-    @OneToMany(mappedBy = "simpleTable", cascade = CascadeType.ALL, orphanRemoval = true)
+public class CapabilityTable extends ReportItem {
+    @OneToMany(mappedBy = "capabilityTable", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TableColumn> tableColumns = new ArrayList<>();
 }

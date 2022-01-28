@@ -101,7 +101,7 @@ public class JasperService {
                 case GRAPH:
                     System.out.println("");
                     break;
-                case TABLE:
+                case SIMPLE_TABLE:
                     break;
                 case IMAGE:
                     break;

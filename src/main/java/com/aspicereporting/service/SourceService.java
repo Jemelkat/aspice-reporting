@@ -128,4 +128,12 @@ public class SourceService {
         }
         sourceRepository.save(source);
     }
+
+    public List<SourceColumn> getColumnsForSource(Long sourceId, User user) {
+        Source source = sourceRepository.findByIdAndUserOrSourceGroupsIn(sourceId, user, user.getUserGroups());
+        if(source == null) {
+            throw new EntityNotFoundException("Could not find data for source id="+sourceId);
+        }
+        return source.getSourceColumns();
+    }
 }

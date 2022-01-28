@@ -27,9 +27,4 @@ public class TextItem extends ReportItem {
         this.textStyle = textStyle;
         textStyle.setTextItem(this);
     }
-
-    @Override
-    public void update() {
-
-    }
 }

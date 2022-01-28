@@ -1,5 +1,7 @@
 package com.aspicereporting.entity;
 
+import com.aspicereporting.entity.items.TableColumn;
+import com.aspicereporting.entity.items.TableItem;
 import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -32,9 +34,13 @@ public class SourceColumn {
     @OneToMany(mappedBy = "sourceColumn", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SourceData> sourceData = new ArrayList<>();
 
+    @JsonIgnore
+    @OneToMany(mappedBy = "sourceColumn")
+    private List<TableColumn> tableColumns = new ArrayList<>();
+
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "source_id", nullable = false)
-    @JsonIgnore
     private Source source;
 
     public SourceColumn(String columnName) {

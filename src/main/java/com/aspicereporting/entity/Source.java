@@ -1,22 +1,20 @@
 package com.aspicereporting.entity;
 
+import com.aspicereporting.entity.items.TableColumn;
+import com.aspicereporting.entity.items.TableItem;
 import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Setter
 @Getter
-@AllArgsConstructor
 @NoArgsConstructor
 @JsonView(View.Simple.class)
 @Entity
@@ -44,15 +42,19 @@ public class Source {
     @OneToMany(mappedBy = "source", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SourceColumn> sourceColumns;
 
+    @JsonIgnore
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "source_groups", joinColumns = @JoinColumn(name = "source_id"), inverseJoinColumns = @JoinColumn(name = "group_id"))
+    private Set<UserGroup> sourceGroups = new HashSet<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "source", fetch = FetchType.LAZY)
+    private List<TableColumn> tableColumns = new ArrayList<>();
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private User user;
-
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "source_groups",
-            joinColumns = @JoinColumn(name = "source_id"),
-            inverseJoinColumns = @JoinColumn(name = "group_id"))
-    private Set<UserGroup> sourceGroups = new HashSet<>();
 
     public void removeFromAllGroups() {
         for (UserGroup group : sourceGroups) {

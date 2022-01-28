@@ -52,9 +52,4 @@ public class TableColumn {
         this.sourceColumn = sourceColumn;
         sourceColumn.getTableColumns().add(this);
     }
-
-    public void addSimpleTable(TableItem tableItem) {
-        this.simpleTable = tableItem;
-        tableItem.getTableColumns().add(this);
-    }
 }

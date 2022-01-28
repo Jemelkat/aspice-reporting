@@ -61,12 +61,19 @@ public abstract class ReportItem implements Comparable {
     private Template template;
 
     public enum EItemType {
-        STATIC_TEXT,GRAPH,SIMPLE_TABLE,IMAGE,CAPABILITY_TABLE;
+        STATIC_TEXT, GRAPH, SIMPLE_TABLE, IMAGE, CAPABILITY_TABLE;
+    }
+
+    public void addTemplate(Template template) {
+        this.template = template;
+        if (!template.getTemplateItems().contains(this)) {
+            template.getTemplateItems().add(this);
+        }
     }
 
     @Override
     public int compareTo(Object o) {
-        ReportItem i = (ReportItem)o;
+        ReportItem i = (ReportItem) o;
         if (this.y >= i.y)
             return 1;
         else if (this.y < i.y)

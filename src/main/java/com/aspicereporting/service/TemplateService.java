@@ -3,7 +3,6 @@ package com.aspicereporting.service;
 import com.aspicereporting.entity.*;
 import com.aspicereporting.entity.items.*;
 import com.aspicereporting.exception.EntityNotFoundException;
-import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.exception.UnauthorizedAccessException;
 import com.aspicereporting.repository.SourceRepository;
 import com.aspicereporting.repository.TemplateRepository;
@@ -37,23 +36,25 @@ public class TemplateService {
     }
 
     @Transactional
-    public Template saveOrEditTemplate(Template template, User user) {
+    public Template saveOrEditTemplate(Template updatedTemplate, User user) {
         Template newTemplate;
         Date changeDate = new Date();
         //Edit existing template
-        if (template.getId() != null) {
+        if (updatedTemplate.getId() != null) {
             //Get template if ID is defined - only templates belonging to this user can be changed
-            newTemplate = getTemplateById(template.getId(), user);
+            Source source = sourceRepository.findByIdAndUserOrSourceGroupsIn(1L, user, user.getUserGroups());
+            newTemplate = getTemplateById(updatedTemplate.getId(), user);
+            Source source2 = sourceRepository.findByIdAndUserOrSourceGroupsIn(1L, user, user.getUserGroups());
             if (newTemplate == null) {
-                throw new EntityNotFoundException("Template " + template.getTemplateName() + " id=" + template.getId() + " was not found and cannot be saved.");
+                throw new EntityNotFoundException("Template " + updatedTemplate.getTemplateName() + " id=" + updatedTemplate.getId() + " was not found and cannot be saved.");
             }
 
-            newTemplate.setTemplateName(template.getTemplateName());
+            newTemplate.setTemplateName(updatedTemplate.getTemplateName());
             newTemplate.setTemplateLastUpdated(changeDate);
 
             //Configure item IDs - if they exist in current report or not
             List<ReportItem> newTemplateItems = new ArrayList<>();
-            for (ReportItem reportItem : template.getTemplateItems()) {
+            for (ReportItem reportItem : updatedTemplate.getTemplateItems()) {
                 Optional<ReportItem> existingItem = newTemplate.getTemplateItems().stream()
                         .filter(i -> i.getId().equals(reportItem.getId()))
                         .findAny();
@@ -70,23 +71,29 @@ public class TemplateService {
                     if (existingStyle.isEmpty()) {
                         textItem.getTextStyle().setId(null);
                     }
-                } else if (reportItem instanceof TableItem tableItem) {
-                    handleTableColumnIdsOnUpdate(newTemplate, tableItem.getTableColumns());
-                } else if (reportItem instanceof CapabilityTable capabilityTable) {
-                    handleTableColumnIdsOnUpdate(newTemplate, capabilityTable.getTableColumns());
                 }
 
-                //Add the correct item
+                //For safety - make report null - this item belongs to Template
                 reportItem.setReport(null);
+                //Set item to template
+                reportItem.setTemplate(newTemplate);
+                //Add correct item to temporary list
                 newTemplateItems.add(reportItem);
             }
+            Source source3 = sourceRepository.findByIdAndUserOrSourceGroupsIn(1L, user, user.getUserGroups());
             //Add all new items to list
-            newTemplate.getTemplateItems().clear();
+            for(Iterator<ReportItem> featureIterator = newTemplate.getTemplateItems().iterator();
+                featureIterator.hasNext(); ) {
+                ReportItem i = featureIterator .next();
+                i.setTemplate(null);
+                featureIterator.remove();
+            }
             newTemplate.getTemplateItems().addAll(newTemplateItems);
+            Source source4 = sourceRepository.findByIdAndUserOrSourceGroupsIn(1L, user, user.getUserGroups());
         }
         //Create new template
         else {
-            newTemplate = template;
+            newTemplate = updatedTemplate;
             newTemplate.setTemplateCreated(changeDate);
             newTemplate.setTemplateUser(user);
 
@@ -109,46 +116,62 @@ public class TemplateService {
                 }
             }
         }
+        //Reconstruction
+        for(ReportItem item: newTemplate.getTemplateItems()) {
+            if(item instanceof TableItem tableitem) {
+                for(TableColumn tableColumn : tableitem.getTableColumns()) {
+                    if (null != null) {
+                        throw new EntityNotFoundException("You dont have any source with id=" + tableColumn.getSource().getId());
+                    }
+                    tableColumn.setSimpleTable(tableitem);
+                }
+            }
+
+            //Add item to template
+            item.setTemplate(newTemplate);
+        }
 
         //Reconstruct all relationships
-        for (ReportItem item : newTemplate.getTemplateItems()) {
-            item.setTemplate(newTemplate);
-            //ADD TEXT STYLE TO TEXT ITEM
-            if (item instanceof TextItem textItem) {
-                //TODO improve - new text style is created every time
-                if (textItem.getTextStyle() != null && textItem.getTextStyle().isFilled()) {
-                    textItem.addTextStyle(textItem.getTextStyle());
-                } else {
-                    textItem.setTextStyle(null);
-                }
-
-            }
-            //ADD TABLE COLUMNS TO TABLES - validate if user can access this data sources
-            else if (item instanceof TableItem tableItem) {
-                if (!tableItem.getTableColumns().isEmpty()) {
-                    Long firstId = tableItem.getTableColumns().get(0).getSource().getId();
-                    List<TableColumn> sameSourceColumns = tableItem.getTableColumns().stream().takeWhile((i -> firstId == i.getSource().getId())).collect(Collectors.toList());
-                    if (sameSourceColumns.size() != tableItem.getTableColumns().size()) {
-                        throw new InvalidDataException("Simple table accepts only columns from one data source!");
-                    }
-                }
-                //Add and validate each table column
-                for (TableColumn tableColumn : new ArrayList<>(tableItem.getTableColumns())) {
-                    tableColumn.addSimpleTable(tableItem);
-                    //Check if user is the owner of this source
-//                    Source source = sourceRepository.findByIdAndUserOrSourceGroupsIn(tableColumn.getSource().getId(), user, user.getUserGroups());
+//        for (ReportItem item : oldTempalte.getTemplateItems()) {
+//            item.setTemplate(oldTempalte);
+//            //ADD TEXT STYLE TO TEXT ITEM
+//            if (item instanceof TextItem textItem) {
+//                //TODO improve - new text style is created every time
+//                if (textItem.getTextStyle() != null && textItem.getTextStyle().isFilled()) {
+//                    textItem.addTextStyle(textItem.getTextStyle());
+//                } else {
+//                    textItem.setTextStyle(null);
+//                }
+//
+//            }
+//            //ADD TABLE COLUMNS TO TABLES - validate if user can access this data sources
+//            else if (item instanceof TableItem tableItem) {
+//                Source source = null;
+//                if (!tableItem.getTableColumns().isEmpty()) {
+//                    Long firstId = tableItem.getTableColumns().get(0).getSource().getId();
+//                    List<TableColumn> sameSourceColumns = tableItem.getTableColumns().stream().takeWhile((i -> firstId == i.getSource().getId())).collect(Collectors.toList());
+//                    if (sameSourceColumns.size() != tableItem.getTableColumns().size()) {
+//                        throw new InvalidDataException("Simple table accepts only columns from one data source!");
+//                    }
+//                    source = sourceRepository.findByIdAndUserOrSourceGroupsIn(firstId, user, user.getUserGroups());
 //                    if (source == null) {
-//                        throw new EntityNotFoundException("You dont have any source with id=" + tableColumn.getSource().getId());
+//                        throw new EntityNotFoundException("You dont have any source with id=" + firstId);
 //                    }
-//                    Optional<SourceColumn> columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == tableColumn.getSourceColumn().getId()).findFirst();
-//                    if (columnExists.isEmpty()) {
-//                        throw new EntityNotFoundException("Invalid source column id=" + tableColumn.getSourceColumn().getId() + " for source id=" + tableColumn.getSource().getId());
+//                    //Add and validate each table column
+//                    for (TableColumn tableColumn : new ArrayList<>(tableItem.getTableColumns())) {
+//                        tableColumn.addSimpleTable(tableItem);
+//                        //Check if user is the owner of this source
+//                        Optional<SourceColumn> columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == tableColumn.getSourceColumn().getId()).findFirst();
+//                        if (columnExists.isEmpty()) {
+//                            throw new EntityNotFoundException("Invalid source column id=" + tableColumn.getSourceColumn().getId() + " for source id=" + tableColumn.getSource().getId());
+//                        }
+//                        tableColumn.addSource(source);
+//                        tableColumn.addSourceColumn(columnExists.get());
 //                    }
-//                    tableColumn.addSource(source);
-                    //tableColumn.addSourceColumn(columnExists.get());
-                }
-            }
-        }
+//                }
+//
+//            }
+//        }
         return templateRepository.save(newTemplate);
     }
 
@@ -186,9 +209,9 @@ public class TemplateService {
                     textItem.getTextStyle().setId(null);
                 }
             } else if (reportItem instanceof TableItem tableItem) {
-                handleTableColumnIdsOnUpdate(oldTemplate, tableItem.getTableColumns());
+                handleTableColumnIdsOnUpdate(oldTemplate, tableItem.getTableColumns(), existingItem);
             } else if (reportItem instanceof CapabilityTable capabilityTable) {
-                handleTableColumnIdsOnUpdate(oldTemplate, capabilityTable.getTableColumns());
+                handleTableColumnIdsOnUpdate(oldTemplate, capabilityTable.getTableColumns(), existingItem);
             }
 
             //Add the correct item
@@ -202,15 +225,27 @@ public class TemplateService {
     }
 
 
-    private void handleTableColumnIdsOnUpdate(Template oldTemplate, List<TableColumn> tableColumns) {
-        for(TableColumn tableColumn : tableColumns) {
-            Optional<ReportItem> existingTableColumn = oldTemplate.getTemplateItems().stream()
-                    .filter(i -> ((TableItem)i).getTableColumns().stream().anyMatch(tc -> tc.getId().equals(tableColumn.getId())))
-                    .findAny();
-            if (existingTableColumn.isEmpty()) {
-                tableColumn.setId(null);
-            }
-        }
+    private void handleTableColumnIdsOnUpdate(Template oldTemplate, List<TableColumn> newTableColumns, Optional<ReportItem> existingItem) {
+//        if(existingItem.isPresent()) {
+//            ReportItem reportItem = existingItem.get();
+//            Optional<TableColumn> existingColumn = Optional.empty();
+//            if(reportItem instanceof TableItem tableItem) {
+//                existingColumn = tableItem.getTableColumns().stream().filter(i -> i.getId().equals());
+//            }
+//        }
+//        else {
+//            for(TableColumn tableColumn : newTableColumns) {
+//                tableColumn.setId(null);
+//            }
+//        }
+//        for(TableColumn tableColumn : tableColumns) {
+//            Optional<ReportItem> existingTableColumn = oldTemplate.getTemplateItems().stream()
+//                    .filter(i -> ((TableItem)i).getTableColumns().stream().anyMatch(tc -> tc.getId().equals(tableColumn.getId())))
+//                    .findAny();
+//            if (existingTableColumn.isEmpty()) {
+//                tableColumn.setId(null);
+//            }
+//        }
     }
 
     public void shareWithGroups(Long templateId, List<Long> groupIds, User user) {

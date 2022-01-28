@@ -14,6 +14,6 @@ import java.util.List;
 @DiscriminatorValue("SIMPLE_TABLE")
 @JsonView(View.Simple.class)
 public class TableItem extends ReportItem {
-    @OneToMany(mappedBy = "simpleTable", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "simpleTable", cascade = {CascadeType.ALL}, orphanRemoval = true)
     private List<TableColumn> tableColumns = new ArrayList<>();
 }

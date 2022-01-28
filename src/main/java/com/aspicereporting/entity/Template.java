@@ -70,4 +70,11 @@ public class Template {
         this.templateGroups.remove(group);
         group.getTemplates().remove(this);
     }
+
+    public void addItem(ReportItem reportItem) {
+        if(!this.templateItems.contains(reportItem)) {
+            this.templateItems.add(reportItem);
+        }
+        reportItem.setTemplate(this);
+    }
 }

@@ -50,6 +50,7 @@ public class SourceService {
         }
         //Source was found - delete it
         source.removeFromAllGroups();
+        source.removeFromAllTableColumns();
         sourceRepository.delete(source);
     }
 

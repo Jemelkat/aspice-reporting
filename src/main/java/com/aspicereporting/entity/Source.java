@@ -63,6 +63,14 @@ public class Source {
         this.sourceGroups.clear();
     }
 
+    public void removeFromAllTableColumns() {
+        for(TableColumn tableColumn : tableColumns) {
+            tableColumn.setSourceColumn(null);
+            tableColumn.setSource(null);
+        }
+        this.tableColumns.clear();
+    }
+
     public void addGroup(UserGroup group) {
         this.sourceGroups.add(group);
         group.getSources().add(this);

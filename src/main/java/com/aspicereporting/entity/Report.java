@@ -66,4 +66,9 @@ public class Report {
         this.reportGroups.remove(group);
         group.getReports().remove(this);
     }
+
+    public void addTemplate(Template template) {
+        this.reportTemplate = template;
+        template.getReports().add(this);
+    }
 }

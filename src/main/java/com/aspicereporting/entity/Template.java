@@ -56,10 +56,6 @@ public class Template {
             inverseJoinColumns = @JoinColumn(name = "group_id"))
     private Set<UserGroup> templateGroups = new HashSet<>();
 
-    public void removeReport(Report report) {
-        this.reports.remove(report);
-        report.setReportTemplate(null);
-    }
 
     public void addGroup(UserGroup group) {
         this.templateGroups.add(group);

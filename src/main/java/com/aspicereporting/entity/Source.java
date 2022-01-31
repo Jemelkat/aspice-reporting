@@ -1,7 +1,6 @@
 package com.aspicereporting.entity;
 
 import com.aspicereporting.entity.items.TableColumn;
-import com.aspicereporting.entity.items.TableItem;
 import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -13,10 +12,10 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.util.*;
 
+@JsonView(View.Simple.class)
 @Setter
 @Getter
 @NoArgsConstructor
-@JsonView(View.Simple.class)
 @Entity
 @Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"source_name", "user_id"})})
 public class Source {
@@ -28,14 +27,16 @@ public class Source {
     @Column(name = "source_name")
     private String sourceName;
 
+    @JsonView(View.SimpleTable.class)
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     @Column(name = "source_created")
     @Temporal(TemporalType.TIMESTAMP)
-    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private Date sourceCreated;
 
+    @JsonView(View.SimpleTable.class)
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     @Column(name = "source_last_updated")
     @Temporal(TemporalType.TIMESTAMP)
-    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private Date sourceLastUpdated;
 
     @JsonView(View.Detailed.class)
@@ -61,6 +62,14 @@ public class Source {
             group.getSources().remove(this);
         }
         this.sourceGroups.clear();
+    }
+
+    public void removeFromAllTableColumns() {
+        for(TableColumn tableColumn : tableColumns) {
+            tableColumn.setSourceColumn(null);
+            tableColumn.setSource(null);
+        }
+        this.tableColumns.clear();
     }
 
     public void addGroup(UserGroup group) {

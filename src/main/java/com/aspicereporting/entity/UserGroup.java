@@ -10,10 +10,10 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 
+@JsonView(View.Simple.class)
 @Setter
 @Getter
 @NoArgsConstructor
-@JsonView(View.Simple.class)
 @Entity
 public class UserGroup {
     @Id
@@ -24,20 +24,20 @@ public class UserGroup {
     @NotNull
     private String groupName;
 
-    @JsonView(View.Detailed.class)
+    @JsonView(View.Simple.class)
     @ManyToMany(mappedBy = "userGroups", fetch = FetchType.LAZY)
     private Set<User> users = new HashSet<>();
 
-    @JsonView(View.Full.class)
+    @JsonView(View.Detailed.class)
     @ManyToMany(mappedBy = "sourceGroups", fetch = FetchType.LAZY)
     private Set<Source> sources = new HashSet<>();
 
 
-    @JsonView(View.Full.class)
+    @JsonView(View.Detailed.class)
     @ManyToMany(mappedBy = "templateGroups", fetch = FetchType.LAZY)
     private Set<Template> templates = new HashSet<>();
 
-    @JsonView(View.Full.class)
+    @JsonView(View.Detailed.class)
     @ManyToMany(mappedBy = "reportGroups", fetch = FetchType.LAZY)
     private Set<Report> reports = new HashSet<>();
 

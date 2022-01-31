@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.Table;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,181 +37,85 @@ public class TemplateService {
         return test;
     }
 
-    @Transactional
-    public Template saveOrEditTemplate(Template template, User user) {
-        Template newTemplate;
-        Date changeDate = new Date();
-        //Edit existing template
-        if (template.getId() != null) {
-            //Get template if ID is defined - only templates belonging to this user can be changed
-            newTemplate = getTemplateById(template.getId(), user);
-            if (newTemplate == null) {
-                throw new EntityNotFoundException("Template " + template.getTemplateName() + " id=" + template.getId() + " was not found and cannot be saved.");
-            }
-
-            newTemplate.setTemplateName(template.getTemplateName());
-            newTemplate.setTemplateLastUpdated(changeDate);
-
-            //Configure item IDs - if they exist in current report or not
-            List<ReportItem> newTemplateItems = new ArrayList<>();
-            for (ReportItem reportItem : template.getTemplateItems()) {
-                Optional<ReportItem> existingItem = newTemplate.getTemplateItems().stream()
-                        .filter(i -> i.getId().equals(reportItem.getId()))
-                        .findAny();
-                //If item with this ID does not exist - we will create new record in DB
-                if (existingItem.isEmpty()) {
-                    reportItem.setId(null);
-                }
-
-                //Change other ID to null if they did not exist before
-                if (reportItem instanceof TextItem textItem) {
-                    Optional<ReportItem> existingStyle = newTemplate.getTemplateItems().stream()
-                            .filter(i -> ((TextItem) i).getTextStyle().getId().equals(textItem.getTextStyle().getId()))
-                            .findAny();
-                    if (existingStyle.isEmpty()) {
-                        textItem.getTextStyle().setId(null);
-                    }
-                } else if (reportItem instanceof TableItem tableItem) {
-                    handleTableColumnIdsOnUpdate(newTemplate, tableItem.getTableColumns());
-                } else if (reportItem instanceof CapabilityTable capabilityTable) {
-                    handleTableColumnIdsOnUpdate(newTemplate, capabilityTable.getTableColumns());
-                }
-
-                //Add the correct item
-                reportItem.setReport(null);
-                newTemplateItems.add(reportItem);
-            }
-            //Add all new items to list
-            newTemplate.getTemplateItems().clear();
-            newTemplate.getTemplateItems().addAll(newTemplateItems);
-        }
-        //Create new template
-        else {
-            newTemplate = template;
-            newTemplate.setTemplateCreated(changeDate);
-            newTemplate.setTemplateUser(user);
-
-            //Remove ids from items and text style - Will create new items in DB
-            for (ReportItem item : newTemplate.getTemplateItems()) {
-                item.setId(null);
-                item.setReport(null);
-                if (item instanceof TextItem textItem && textItem.getTextStyle() != null) {
-                    textItem.getTextStyle().setId(null);
-                }
-                if (item instanceof TableItem tableItem) {
-                    for (TableColumn tableColumn : tableItem.getTableColumns()) {
-                        tableColumn.setId(null);
-                    }
-                }
-                if (item instanceof CapabilityTable capabilityTable) {
-                    for (TableColumn tableColumn : capabilityTable.getTableColumns()) {
-                        tableColumn.setId(null);
-                    }
-                }
-            }
-        }
-
-        //Reconstruct all relationships
-        for (ReportItem item : newTemplate.getTemplateItems()) {
-            item.setTemplate(newTemplate);
-            //ADD TEXT STYLE TO TEXT ITEM
-            if (item instanceof TextItem textItem) {
-                //TODO improve - new text style is created every time
-                if (textItem.getTextStyle() != null && textItem.getTextStyle().isFilled()) {
-                    textItem.addTextStyle(textItem.getTextStyle());
-                } else {
-                    textItem.setTextStyle(null);
-                }
-
-            }
-            //ADD TABLE COLUMNS TO TABLES - validate if user can access this data sources
-            else if (item instanceof TableItem tableItem) {
-                if (!tableItem.getTableColumns().isEmpty()) {
-                    Long firstId = tableItem.getTableColumns().get(0).getSource().getId();
-                    List<TableColumn> sameSourceColumns = tableItem.getTableColumns().stream().takeWhile((i -> firstId == i.getSource().getId())).collect(Collectors.toList());
-                    if (sameSourceColumns.size() != tableItem.getTableColumns().size()) {
-                        throw new InvalidDataException("Simple table accepts only columns from one data source!");
-                    }
-                }
-                //Add and validate each table column
-                for (TableColumn tableColumn : new ArrayList<>(tableItem.getTableColumns())) {
-                    tableColumn.addSimpleTable(tableItem);
-                    //Check if user is the owner of this source
-//                    Source source = sourceRepository.findByIdAndUserOrSourceGroupsIn(tableColumn.getSource().getId(), user, user.getUserGroups());
-//                    if (source == null) {
-//                        throw new EntityNotFoundException("You dont have any source with id=" + tableColumn.getSource().getId());
-//                    }
-//                    Optional<SourceColumn> columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == tableColumn.getSourceColumn().getId()).findFirst();
-//                    if (columnExists.isEmpty()) {
-//                        throw new EntityNotFoundException("Invalid source column id=" + tableColumn.getSourceColumn().getId() + " for source id=" + tableColumn.getSource().getId());
-//                    }
-//                    tableColumn.addSource(source);
-                    //tableColumn.addSourceColumn(columnExists.get());
-                }
-            }
-        }
-        return templateRepository.save(newTemplate);
-    }
-
-    @Transactional
-    public Template editExistingTemplate(Template template, User user) {
+    public Template saveOrEditTemplate(Template updatedTemplate, User user) {
         Template oldTemplate;
         Date changeDate = new Date();
-
-        //Get template if ID is defined - only templates belonging to this user can be changed
-        oldTemplate = getTemplateById(template.getId(), user);
-        if (oldTemplate == null) {
-            throw new EntityNotFoundException("Template " + template.getTemplateName() + " id=" + template.getId() + " was not found and cannot be saved.");
+        //Update
+        if (updatedTemplate.getId() != null) {
+            oldTemplate = getTemplateById(updatedTemplate.getId(), user);
+            if (oldTemplate == null) {
+                throw new EntityNotFoundException("Template " + updatedTemplate.getTemplateName() + " id=" + updatedTemplate.getId() + " was not found and cannot be saved.");
+            }
+            oldTemplate.setTemplateLastUpdated(changeDate);
+        }
+        //Create
+        else {
+            oldTemplate = updatedTemplate;
+            oldTemplate.setId(null);
+            oldTemplate.setTemplateCreated(changeDate);
+            oldTemplate.setTemplateUser(user);
         }
 
-        oldTemplate.setTemplateName(template.getTemplateName());
-        oldTemplate.setTemplateLastUpdated(changeDate);
+        //Update name and last changed time
+        oldTemplate.setTemplateName(updatedTemplate.getTemplateName());
 
-        //Configure item IDs - if they exist in current report or not
+        //Configure item IDs - if they exist use same ID - hibernate will MERGE
         List<ReportItem> newTemplateItems = new ArrayList<>();
-        for (ReportItem reportItem : template.getTemplateItems()) {
-            Optional<ReportItem> existingItem = oldTemplate.getTemplateItems().stream()
-                    .filter(i -> i.getId().equals(reportItem.getId()))
-                    .findAny();
+        for (ReportItem reportItem : updatedTemplate.getTemplateItems()) {
+            Optional<ReportItem> existingItem = Optional.empty();
+            if (oldTemplate.getId() != null) {
+                existingItem = oldTemplate.getTemplateItems().stream()
+                        .filter(i -> i.getId().equals(reportItem.getId()))
+                        .findAny();
+            }
             //If item with this ID does not exist - we will create new record in DB
             if (existingItem.isEmpty()) {
                 reportItem.setId(null);
             }
 
-            //Change other ID to null if they did not exist before
+            //Configure and reconstruct relationship items IDs
             if (reportItem instanceof TextItem textItem) {
-                Optional<ReportItem> existingStyle = oldTemplate.getTemplateItems().stream()
-                        .filter(i -> ((TextItem) i).getTextStyle().getId().equals(textItem.getTextStyle().getId()))
-                        .findAny();
-                if (existingStyle.isEmpty()) {
+                //If this item ID was not found or its instance is not TextItem
+                if (reportItem.getId() == null || !(existingItem.get() instanceof TextItem)) {
                     textItem.getTextStyle().setId(null);
+                } else {
+                    //Use existing textStyle ID
+                    textItem.getTextStyle().setId(((TextItem) existingItem.get()).getTextStyle().getId());
                 }
+                //Bidirectional
+                textItem.getTextStyle().setTextItem(textItem);
             } else if (reportItem instanceof TableItem tableItem) {
-                handleTableColumnIdsOnUpdate(oldTemplate, tableItem.getTableColumns());
-            } else if (reportItem instanceof CapabilityTable capabilityTable) {
-                handleTableColumnIdsOnUpdate(oldTemplate, capabilityTable.getTableColumns());
-            }
+                //Validate - all source columns need to be the same
+                Long firstId = tableItem.getTableColumns().get(0).getSource().getId();
+                List<TableColumn> sameSourceColumns = tableItem.getTableColumns().stream().takeWhile((i -> firstId == i.getSource().getId())).collect(Collectors.toList());
+                if (sameSourceColumns.size() != tableItem.getTableColumns().size()) {
+                    throw new InvalidDataException("Simple table accepts only columns from one data source!");
+                }
+                //Validate - user can use this source id
+                Source source = sourceRepository.findByIdAndUserOrSourceGroupsIn(firstId, user, user.getUserGroups());
+                if (source == null) {
+                    throw new EntityNotFoundException("You dont have any source with id=" + firstId);
+                }
 
-            //Add the correct item
-            reportItem.setReport(null);
+                //Table columns are reinserted every time - not updated
+                tableItem.getTableColumns().forEach(tableColumn -> {
+                    //Validate if column exists in source
+                    Optional<SourceColumn> columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == tableColumn.getSourceColumn().getId()).findFirst();
+                    if (columnExists.isEmpty()) {
+                        throw new EntityNotFoundException("Invalid source column id=" + tableColumn.getSourceColumn().getId() + " for source id=" + tableColumn.getSource().getId());
+                    }
+                    tableColumn.setId(null);
+                    //Bidirectional
+                    tableColumn.setSimpleTable(tableItem);
+                });
+            }
+            reportItem.setTemplate(oldTemplate);
             newTemplateItems.add(reportItem);
         }
-        //Add all new items to list
         oldTemplate.getTemplateItems().clear();
         oldTemplate.getTemplateItems().addAll(newTemplateItems);
-        return oldTemplate;
-    }
 
-
-    private void handleTableColumnIdsOnUpdate(Template oldTemplate, List<TableColumn> tableColumns) {
-        for(TableColumn tableColumn : tableColumns) {
-            Optional<ReportItem> existingTableColumn = oldTemplate.getTemplateItems().stream()
-                    .filter(i -> ((TableItem)i).getTableColumns().stream().anyMatch(tc -> tc.getId().equals(tableColumn.getId())))
-                    .findAny();
-            if (existingTableColumn.isEmpty()) {
-                tableColumn.setId(null);
-            }
-        }
+        return templateRepository.save(oldTemplate);
     }
 
     public void shareWithGroups(Long templateId, List<Long> groupIds, User user) {

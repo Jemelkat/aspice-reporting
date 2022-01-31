@@ -60,7 +60,7 @@ public class ReportController {
     public Report createOrEditReport(@RequestBody @Valid Report report, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
         //Edit old or create new template
-        return reportService.saveOrEditReport(report, loggedUser);
+        return reportService.save(report, loggedUser);
     }
 
     @JsonView(View.Canvas.class)

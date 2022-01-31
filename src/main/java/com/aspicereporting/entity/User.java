@@ -11,11 +11,11 @@ import javax.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Set;
 
+@JsonView(View.Simple.class)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonView(View.Simple.class)
 @Entity
 @Table(name = "users", uniqueConstraints = {@UniqueConstraint(columnNames = "username"), @UniqueConstraint(columnNames = "email")})
 public class User {
@@ -45,23 +45,23 @@ public class User {
     @JsonView(View.Detailed.class)
     private Set<Role> roles = new HashSet<>();
 
+    @JsonIgnore
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_groups",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "group_id"))
-    @JsonIgnore
     private Set<UserGroup> userGroups = new HashSet<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JsonIgnore
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private Set<Source> sources = new HashSet<>();;
 
-    @OneToMany(mappedBy="reportUser", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JsonIgnore
+    @OneToMany(mappedBy="reportUser", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private Set<Report> reports = new HashSet<>();
 
-    @OneToMany(mappedBy="templateUser", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JsonIgnore
+    @OneToMany(mappedBy="templateUser", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private Set<Template> templates = new HashSet<>();
 
     public User(String username, String email, String password) {

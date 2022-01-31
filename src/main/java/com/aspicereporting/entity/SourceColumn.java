@@ -15,11 +15,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+@JsonView(View.Simple.class)
 @Setter
 @Getter
-@AllArgsConstructor
 @NoArgsConstructor
-@JsonView(View.Simple.class)
 @Entity
 public class SourceColumn {
     @Id

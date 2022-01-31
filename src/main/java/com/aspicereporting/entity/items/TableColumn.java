@@ -43,13 +43,4 @@ public class TableColumn {
     @JoinColumn(name = "simple_table_id", referencedColumnName = "report_item_id")
     @JsonIgnore
     private TableItem simpleTable;
-
-    public void addSource(Source source) {
-        this.source = source;
-        source.getTableColumns().add(this);
-    }
-    public void addSourceColumn(SourceColumn sourceColumn) {
-        this.sourceColumn = sourceColumn;
-        sourceColumn.getTableColumns().add(this);
-    }
 }

@@ -4,15 +4,17 @@ import com.aspicereporting.entity.items.ReportItem;
 import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 
+@JsonView(View.Simple.class)
 @Getter
 @Setter
-@JsonView(View.Simple.class)
+@NoArgsConstructor
 @Entity
 @Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"template_name", "user_id"})})
 public class Template {
@@ -50,6 +52,7 @@ public class Template {
     @JsonIgnore
     private List<Report> reports = new ArrayList<>();
 
+    @JsonView(View.SimpleTable.class)
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "template_groups",
             joinColumns = @JoinColumn(name = "template_id"),
@@ -65,12 +68,5 @@ public class Template {
     public void removeGroup(UserGroup group) {
         this.templateGroups.remove(group);
         group.getTemplates().remove(this);
-    }
-
-    public void addItem(ReportItem reportItem) {
-        if(!this.templateItems.contains(reportItem)) {
-            this.templateItems.add(reportItem);
-        }
-        reportItem.setTemplate(this);
     }
 }

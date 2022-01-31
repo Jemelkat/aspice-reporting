@@ -6,11 +6,10 @@ import lombok.*;
 
 import javax.persistence.*;
 
+@JsonView(View.Simple.class)
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@JsonView(View.Simple.class)
 @Entity
 public class Role {
     @Id

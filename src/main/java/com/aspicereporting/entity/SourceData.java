@@ -11,11 +11,10 @@ import lombok.Setter;
 import javax.persistence.*;
 
 
+@JsonView(View.Simple.class)
 @Setter
 @Getter
-@AllArgsConstructor
 @NoArgsConstructor
-@JsonView(View.Simple.class)
 @Entity
 public class SourceData {
     @Id

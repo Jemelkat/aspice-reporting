@@ -26,14 +26,21 @@ public class AdminController {
     private UserGroupService userGroupService;
 
     @JsonView(View.Detailed.class)
-    @GetMapping(value = "/getAllUsers")
+    @GetMapping(value = "/allUsers")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public List<User> getAllUsers() {
         return userService.getAllUsers();
     }
 
-    @JsonView(View.Detailed.class)
-    @GetMapping(value = "/getAllGroups")
+    @JsonView(View.Simple.class)
+    @GetMapping(value = "/allUsersSimple")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public List<User> getAllUsersSimple() {
+        return userService.getAllUsers();
+    }
+
+    @JsonView(View.Simple.class)
+    @GetMapping(value = "/allGroups")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public List<UserGroup> getAllGroups() {
         return userGroupService.getAllUserGroups();

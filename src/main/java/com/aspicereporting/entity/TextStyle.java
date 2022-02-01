@@ -33,7 +33,8 @@ public class TextStyle {
     @Pattern(regexp = "^#(?:[0-9a-fA-F]{3}){1,2}$", message = "Font color needs to be in hex format.")
     @Column(name = "color")
     private String color;
-    @OneToOne(mappedBy = "textStyle")
+    @OneToOne
+    @JoinColumn(name ="report_item_id")
     @JsonIgnore
     private TextItem textItem;
 

@@ -31,6 +31,7 @@ public class SourceColumn {
 
     @JsonView(View.Detailed.class)
     @OneToMany(mappedBy = "sourceColumn", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderColumn(name = "column_ordinal")
     private List<SourceData> sourceData = new ArrayList<>();
 
     @JsonIgnore

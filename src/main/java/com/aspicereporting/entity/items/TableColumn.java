@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Setter
 @Getter
@@ -20,24 +22,14 @@ import javax.persistence.*;
 public class TableColumn {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "table_column")
+    @Column(name = "table_column_id")
     private Long id;
 
     private int width;
 
     @ManyToOne
-    @JoinColumn(name = "source_id", referencedColumnName = "source_id")
-    @JsonIgnoreProperties({"sourceColumns", "sourceGroups"})
-    private Source source;
-
-    @ManyToOne
     @JoinColumn(name = "source_column_id", referencedColumnName = "source_column_id")
     private SourceColumn sourceColumn;
-
-    @ManyToOne
-    @JoinColumn(name = "capability_table_id", referencedColumnName = "report_item_id")
-    @JsonIgnore
-    private CapabilityTable capabilityTable;
 
     @ManyToOne
     @JoinColumn(name = "simple_table_id", referencedColumnName = "report_item_id")

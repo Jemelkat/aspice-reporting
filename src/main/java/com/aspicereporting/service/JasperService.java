@@ -1,18 +1,12 @@
 package com.aspicereporting.service;
 
 import com.aspicereporting.entity.Report;
-import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.TextStyle;
 import com.aspicereporting.entity.items.*;
 import com.aspicereporting.exception.JasperReportException;
-import com.aspicereporting.jasper.SimpleTableModel;
-import net.sf.jasperreports.components.ComponentsExtensionsRegistryFactory;
-import net.sf.jasperreports.components.table.DesignCell;
-import net.sf.jasperreports.components.table.StandardColumn;
-import net.sf.jasperreports.components.table.StandardTable;
+import com.aspicereporting.jasper.service.CapabilityTableService;
+import com.aspicereporting.jasper.service.SimpleTableService;
 import net.sf.jasperreports.engine.*;
-import net.sf.jasperreports.engine.component.ComponentKey;
-import net.sf.jasperreports.engine.data.JRTableModelDataSource;
 import net.sf.jasperreports.engine.design.*;
 import net.sf.jasperreports.engine.export.JRPdfExporter;
 import net.sf.jasperreports.engine.type.HorizontalTextAlignEnum;
@@ -22,6 +16,7 @@ import net.sf.jasperreports.engine.type.WhenNoDataTypeEnum;
 import net.sf.jasperreports.export.SimpleExporterInput;
 import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
 import net.sf.jasperreports.export.SimplePdfExporterConfiguration;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
@@ -29,14 +24,16 @@ import org.springframework.stereotype.Service;
 import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
-import java.util.List;
 
 @Service
-@Scope(value="prototype", proxyMode= ScopedProxyMode.TARGET_CLASS)
+@Scope(value = "prototype", proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class JasperService {
 
-    private static final String TABLE_DATA = "tableData";
-    private static final String TABLE_DATASET = "tableDataset";
+    @Autowired
+    SimpleTableService simpleTableService;
+
+    @Autowired
+    CapabilityTableService capabilityTableService;
 
     //Parameters with data - used to fill report
     private Map<String, Object> parameters = new HashMap();
@@ -81,7 +78,7 @@ public class JasperService {
         return jasperReport;
     }
 
-    public JasperPrint fillReport(JasperReport jasperReport,Map<String, Object> parameters) {
+    public JasperPrint fillReport(JasperReport jasperReport, Map<String, Object> parameters) {
         JasperPrint jasperPrint;
         try {
             jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, new JREmptyDataSource());
@@ -132,90 +129,10 @@ public class JasperService {
             /*SIMPLE TABLE ITEM*/
             else if (reportItem instanceof TableItem tableItem) {
                 try {
-                    //Creates parameter for data TableModel
-                    JRDesignParameter parameter = new JRDesignParameter();
-                    parameter.setValueClass(JRTableModelDataSource.class);
-                    parameter.setName(TABLE_DATA + tableDatasetCount);
-
-                    jasperDesign.addParameter(parameter);
-
-
-                    //Creates subdataset
-                    JRDesignDataset tableSubdataset = new JRDesignDataset(false);
-                    tableSubdataset.setName(TABLE_DATASET + tableDatasetCount);
-
-                    //Creates required fields
-                    List<String> columnArrray = new ArrayList<>();
-                    int rows = 0;
-                    int columns = 0;
-                    for (TableColumn tableColumn : tableItem.getTableColumns()) {
-                        SourceColumn sourceColumn = tableColumn.getSourceColumn();
-
-                        JRDesignField field = new JRDesignField();
-                        field.setValueClass(String.class);
-                        field.setName(sourceColumn.getColumnName());
-                        tableSubdataset.addField(field);
-
-                        //Creates column names array
-                        columnArrray.add(sourceColumn.getColumnName());
-                        if (rows == 0 && columns == 0) {
-                            rows = sourceColumn.getSourceData().size();
-                            columns = tableItem.getTableColumns().size();
-                        }
-                    }
-                    jasperDesign.addDataset(tableSubdataset);
-
-                    //Creates object with data
-                    Object[][] test = new Object[rows][columns];
-                    for(int i = 0;i<tableItem.getTableColumns().size();i++){
-                        SourceColumn sc = tableItem.getTableColumns().get(i).getSourceColumn();
-                        for(int j = 0;j<sc.getSourceData().size();j++){
-                            test[j][i] = sc.getSourceData().get(j).getValue();
-                        }
-                    }
-
-                    //Creates data bean
-                    SimpleTableModel tableModel = new SimpleTableModel(rows, columns);
-                    tableModel.setColumnNames(columnArrray.toArray(new String[0]));
-                    tableModel.setData(test);
-
-                    this.parameters.put(TABLE_DATA+tableDatasetCount, new JRTableModelDataSource(tableModel));
-
-                    //Create table element
-                    JRDesignComponentElement tableElement = new JRDesignComponentElement(jasperDesign);
-                    tableElement.setX(tableItem.getX());
-                    tableElement.setY(tableItem.getY());
-                    tableElement.setWidth(tableItem.getWidth());
-                    tableElement.setHeight(tableItem.getHeight());
-                    tableElement.setPositionType(PositionTypeEnum.FLOAT);
-
-                    ComponentKey componentKey = new ComponentKey(ComponentsExtensionsRegistryFactory.NAMESPACE, "c",
-                            ComponentsExtensionsRegistryFactory.TABLE_COMPONENT_NAME);
-                    tableElement.setComponentKey(componentKey);
-
-                    //Standard table
-                    StandardTable table = new StandardTable();
-                    //the table data source
-                    JRDesignDatasetRun datasetRun = new JRDesignDatasetRun();
-                    datasetRun.setDatasetName(TABLE_DATASET + tableDatasetCount);
-                    datasetRun.setDataSourceExpression(new JRDesignExpression(
-                            "$P{" + TABLE_DATA + tableDatasetCount + "}"));
-                    table.setDatasetRun(datasetRun);
-
-                    //TODO REMOVE FIRST COLUMN
-//                    StandardColumn recNoColumn = createSimpleTableColumn(jasperDesign,100, 20, "Record", "$V{REPORT_COUNT}");
-//                    table.addColumn(recNoColumn);
-
-                    //Create all columns
-                    for(TableColumn column : tableItem.getTableColumns()) {
-                        String columnName = column.getSourceColumn().getColumnName();
-                        StandardColumn fieldColumn = createSimpleTableColumn(jasperDesign,column.getWidth(), 20, columnName, "$F{" + columnName + "}");
-                        table.addColumn(fieldColumn);
-                    }
-
-                    //Add element to report
-                    tableElement.setComponent(table);
-                    band.addElement(tableElement);
+                    //Create table element for JR
+                    JRDesignComponentElement JRTableElement = simpleTableService.createTableForJasperDesign(jasperDesign, tableItem, tableDatasetCount, parameters);
+                    //Add table to JR
+                    band.addElement(JRTableElement);
                     tableDatasetCount++;
                 } catch (JRException e) {
                     throw new JasperReportException("Error creating the table item for report", e);
@@ -223,7 +140,15 @@ public class JasperService {
             }
             /*CAPABILITY TABLE ITEM*/
             else if (reportItem instanceof CapabilityTable capabilityTable) {
-
+                try {
+                    //Create table element for JR
+                    JRDesignComponentElement JRTableElement = capabilityTableService.createTableForJasperDesign(jasperDesign, capabilityTable, tableDatasetCount, parameters);
+                    //Add table to JR
+                    band.addElement(JRTableElement);
+                    tableDatasetCount++;
+                } catch (JRException e) {
+                    throw new JasperReportException("Error creating the table item for report", e);
+                }
             }
             /*GRAPH ITEM*/
             else if (reportItem instanceof GraphItem graphItem) {
@@ -272,46 +197,6 @@ public class JasperService {
         jasperDesign.setBottomMargin(0);
         jasperDesign.setWhenNoDataType(WhenNoDataTypeEnum.ALL_SECTIONS_NO_DETAIL);
         return jasperDesign;
-    }
-
-    private StandardColumn createSimpleTableColumn(JasperDesign jasperDesign, int width, int height, String headerText, String detailExpression)
-    {
-        StandardColumn column = new StandardColumn();
-        column.setWidth(width);
-
-        //column header
-        DesignCell header = new DesignCell();
-        header.setDefaultStyleProvider(jasperDesign);
-        header.getLineBox().getPen().setLineWidth(1f);
-        header.setHeight(height);
-
-        JRDesignStaticText headerElement = new JRDesignStaticText(jasperDesign);
-        headerElement.setX(0);
-        headerElement.setY(0);
-        headerElement.setWidth(width);
-        headerElement.setHeight(height);
-        headerElement.setText(headerText);
-
-        header.addElement(headerElement);
-        column.setColumnHeader(header);
-
-        //column detail
-        DesignCell detail = new DesignCell();
-        detail.setDefaultStyleProvider(jasperDesign);
-        detail.getLineBox().getPen().setLineWidth(1f);
-        detail.setHeight(height);
-
-        JRDesignTextField detailElement = new JRDesignTextField(jasperDesign);
-        detailElement.setX(0);
-        detailElement.setY(0);
-        detailElement.setWidth(width);
-        detailElement.setHeight(height);
-        detailElement.setExpression(new JRDesignExpression(detailExpression));
-
-        detail.addElement(detailElement);
-        column.setDetailCell(detail);
-
-        return column;
     }
 
     private ByteArrayOutputStream exportToPdf(JasperPrint jasperPrint, String author) {

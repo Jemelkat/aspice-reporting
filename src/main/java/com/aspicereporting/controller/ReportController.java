@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@CrossOrigin()
+@CrossOrigin
 @RestController
 @RequestMapping("/reports")
 public class ReportController {
@@ -60,7 +60,7 @@ public class ReportController {
     public Report createOrEditReport(@RequestBody @Valid Report report, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
         //Edit old or create new template
-        return reportService.save(report, loggedUser);
+        return reportService.saveOrEdit(report, loggedUser);
     }
 
     @JsonView(View.Canvas.class)

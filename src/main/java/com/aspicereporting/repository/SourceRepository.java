@@ -1,5 +1,6 @@
 package com.aspicereporting.repository;
 
+import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.User;
@@ -19,4 +20,7 @@ public interface SourceRepository extends CrudRepository<Source, Long> {
 
     @Query("select distinct s from Source s left join s.sourceGroups g WHERE s.id=:sourceId and (s.user = :user or g in (:userGroups))")
     Source findByIdAndUserOrSourceGroupsIn(@Param("sourceId") Long sourceId, @Param("user") User user, @Param("userGroups") Set<UserGroup> userGroups);
+
+    @Query("Select distinct sd.value from SourceColumn sc join SourceData sd on sc.id=sd.sourceColumn.id where sc.id=?1")
+    List<String> findDistinctByColumnId(Long id);
 }

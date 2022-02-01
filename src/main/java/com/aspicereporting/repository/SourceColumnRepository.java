@@ -8,4 +8,6 @@ import java.util.Set;
 
 public interface SourceColumnRepository extends CrudRepository<SourceColumn, Long> {
     List<SourceColumn> findAllByIdIn(List<Long> ids);
+
+    SourceColumn findFirstById(Long id);
 }

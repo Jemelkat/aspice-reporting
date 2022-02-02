@@ -86,15 +86,11 @@ public class TemplateService {
                 textItem.getTextStyle().setTextItem(textItem);
             } else if (reportItem instanceof TableItem tableItem) {
                 //Validate - all source columns need to be the same
-                Long firstId = tableItem.getTableColumns().get(0).getSource().getId();
-                List<TableColumn> sameSourceColumns = tableItem.getTableColumns().stream().takeWhile((i -> firstId == i.getSource().getId())).collect(Collectors.toList());
-                if (sameSourceColumns.size() != tableItem.getTableColumns().size()) {
-                    throw new InvalidDataException("Simple table accepts only columns from one data source!");
-                }
+                Long sourceId = tableItem.getSource().getId();
                 //Validate - user can use this source id
-                Source source = sourceRepository.findByIdAndUserOrSourceGroupsIn(firstId, user, user.getUserGroups());
+                Source source = sourceRepository.findByIdAndUserOrSourceGroupsIn(sourceId, user, user.getUserGroups());
                 if (source == null) {
-                    throw new EntityNotFoundException("You dont have any source with id=" + firstId);
+                    throw new EntityNotFoundException("You dont have any source with id=" + sourceId);
                 }
 
                 //Table columns are reinserted every time - not updated
@@ -102,7 +98,7 @@ public class TemplateService {
                     //Validate if column exists in source
                     Optional<SourceColumn> columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == tableColumn.getSourceColumn().getId()).findFirst();
                     if (columnExists.isEmpty()) {
-                        throw new EntityNotFoundException("Invalid source column id=" + tableColumn.getSourceColumn().getId() + " for source id=" + tableColumn.getSource().getId());
+                        throw new EntityNotFoundException("Invalid source column id=" + tableColumn.getSourceColumn().getId() + " for source id=" + sourceId);
                     }
                     tableColumn.setId(null);
                     //Bidirectional

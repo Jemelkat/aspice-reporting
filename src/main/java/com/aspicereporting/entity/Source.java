@@ -1,6 +1,8 @@
 package com.aspicereporting.entity;
 
+import com.aspicereporting.entity.items.CapabilityTable;
 import com.aspicereporting.entity.items.TableColumn;
+import com.aspicereporting.entity.items.TableItem;
 import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -41,6 +43,7 @@ public class Source {
 
     @JsonView(View.Detailed.class)
     @OneToMany(mappedBy = "source", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderColumn(name = "column_ordinal")
     private List<SourceColumn> sourceColumns;
 
     @JsonIgnore
@@ -50,11 +53,15 @@ public class Source {
 
     @JsonIgnore
     @OneToMany(mappedBy = "source", fetch = FetchType.LAZY)
-    private List<TableColumn> tableColumns = new ArrayList<>();
+    private List<CapabilityTable> capabilityTables = new ArrayList<>();
 
+    @JsonIgnore
+    @OneToMany(mappedBy = "source", fetch = FetchType.LAZY)
+    private List<TableItem> simpleTables = new ArrayList<>();
+
+    @JsonIgnore
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonIgnore
     private User user;
 
     public void removeFromAllGroups() {
@@ -64,13 +71,27 @@ public class Source {
         this.sourceGroups.clear();
     }
 
-    public void removeFromAllTableColumns() {
-        for(TableColumn tableColumn : tableColumns) {
-            tableColumn.setSourceColumn(null);
-            tableColumn.setSource(null);
+    public void removeFromAllSimpleTables() {
+        for (TableItem table : simpleTables) {
+            table.setSource(null);
         }
-        this.tableColumns.clear();
+        this.sourceGroups.clear();
     }
+
+    public void removeFromAllCapabilityTables() {
+        for (CapabilityTable table : capabilityTables) {
+            table.setSource(null);
+        }
+        this.sourceGroups.clear();
+    }
+
+//    public void removeFromAllTableColumns() {
+//        for(TableColumn tableColumn : tableColumns) {
+//            tableColumn.setSourceColumn(null);
+//            tableColumn.setSource(null);
+//        }
+//        this.tableColumns.clear();
+//    }
 
     public void addGroup(UserGroup group) {
         this.sourceGroups.add(group);

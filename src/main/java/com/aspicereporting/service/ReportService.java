@@ -1,10 +1,7 @@
 package com.aspicereporting.service;
 
 import com.aspicereporting.entity.*;
-import com.aspicereporting.entity.items.TableColumn;
-import com.aspicereporting.entity.items.TableItem;
-import com.aspicereporting.entity.items.TextItem;
-import com.aspicereporting.entity.items.ReportItem;
+import com.aspicereporting.entity.items.*;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.exception.UnauthorizedAccessException;
@@ -46,74 +43,7 @@ public class ReportService {
         return reportRepository.findByIdAndReportUser(id, user);
     }
 
-    @Transactional
-    public Report saveOrEditReport(Report report, User user) {
-        Report newReport;
-        Date changeDate = new Date();
-        //Edit existing report
-        if (report.getId() != null) {
-            //Get template if ID is defined - only templates belonging to this user can be changed
-            newReport = getReportById(report.getId(), user);
-            if (newReport == null) {
-                throw new EntityNotFoundException("Report " + report.getReportName() + " id " + report.getId() + " was not found and cannot be saved.");
-            }
-
-            newReport.setReportName(report.getReportName());
-            newReport.setReportLastUpdated(changeDate);
-            newReport.setReportTemplate(report.getReportTemplate());
-
-            //Configure item IDs - if they exist in current report or not
-            List<ReportItem> newReportItems = new ArrayList<>();
-            for (ReportItem reportItem : report.getReportItems()) {
-                Optional<ReportItem> existingItem = newReport.getReportItems().stream()
-                        .filter(p -> p.getId().equals(reportItem.getId()))
-                        .findAny();
-                if (existingItem.isEmpty()) {
-                    //If item with this ID does not exist - we will create new record in DB
-                    reportItem.setId(null);
-                }
-
-                //Add the correct item to temporary list
-                reportItem.setTemplate(null);
-                newReportItems.add(reportItem);
-            }
-            //Add all new items to list
-            newReport.getReportItems().clear();
-            newReport.getReportItems().addAll(newReportItems);
-        }
-        //Create new report
-        else {
-            newReport = report;
-            newReport.setReportCreated(changeDate);
-            newReport.setReportUser(user);
-            //Remove ids from items and text style - Will create new items in DB
-            for (ReportItem item : newReport.getReportItems()) {
-                item.setId(null);
-                item.setTemplate(null);
-                if (item instanceof TextItem textItem && textItem.getTextStyle() != null) {
-                    textItem.getTextStyle().setId(null);
-                }
-            }
-        }
-
-
-        //Reconstruct relationship
-        for (ReportItem item : newReport.getReportItems()) {
-            item.setReport(newReport);
-            //Add text style to TextItems
-            //TODO improve - new text style is created every time
-            if (item instanceof TextItem textItem) {
-                if (textItem.getTextStyle() != null && textItem.getTextStyle().isFilled()) {
-                    textItem.addTextStyle(textItem.getTextStyle());
-                } else {
-                    textItem.setTextStyle(null);
-                }
-            }
-        }
-        return reportRepository.save(newReport);
-    }
-
-    public Report save(Report updatedReport, User user) {
+    public Report saveOrEdit(Report updatedReport, User user) {
         Report oldReport;
         Date changeDate = new Date();
         //Update
@@ -183,19 +113,15 @@ public class ReportService {
                     throw new InvalidDataException("Simple table has no columns defined.");
                 }
                 //Validate - source is defined
-                if (tableItem.getTableColumns().get(0).getSource().getId() == null) {
+                if (tableItem.getSource().getId() == null) {
                     throw new InvalidDataException("Simple table has no source defined.");
                 }
-                //Validate - all source columns need to be the same
-                Long firstId = tableItem.getTableColumns().get(0).getSource().getId();
-                List<TableColumn> sameSourceColumns = tableItem.getTableColumns().stream().takeWhile((i -> firstId == i.getSource().getId())).collect(Collectors.toList());
-                if (sameSourceColumns.size() != tableItem.getTableColumns().size()) {
-                    throw new InvalidDataException("Simple table accepts only columns from one data source!");
-                }
+
+                Long sourceId = tableItem.getSource().getId();
                 //Validate - user can use this source id
-                Source source = sourceRepository.findByIdAndUserOrSourceGroupsIn(firstId, user, user.getUserGroups());
+                Source source = sourceRepository.findByIdAndUserOrSourceGroupsIn(sourceId, user, user.getUserGroups());
                 if (source == null) {
-                    throw new EntityNotFoundException("You dont have any source with id=" + firstId);
+                    throw new EntityNotFoundException("You dont have any source with id=" + sourceId);
                 }
 
                 //Table columns are reinserted every time - not updated
@@ -203,12 +129,59 @@ public class ReportService {
                     //Validate if column exists in source
                     Optional<SourceColumn> columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == tableColumn.getSourceColumn().getId()).findFirst();
                     if (columnExists.isEmpty()) {
-                        throw new EntityNotFoundException("Invalid source column id=" + tableColumn.getSourceColumn().getId() + " for source id=" + tableColumn.getSource().getId());
+                        throw new EntityNotFoundException("Invalid source column id=" + tableColumn.getSourceColumn().getId() + " for source id=" + sourceId);
                     }
                     tableColumn.setId(null);
                     //Bidirectional
                     tableColumn.setSimpleTable(tableItem);
                 });
+            } else if (reportItem instanceof CapabilityTable capTable) {
+                //Validate - columns are defined
+                if (capTable.getProcessColumn() == null || capTable.getProcessColumn().getSourceColumn() == null) {
+                    throw new InvalidDataException("capability table has no process column defined.");
+                }
+                if (capTable.getLevelColumn() == null) {
+                    throw new InvalidDataException("Simple table has no capability level column defined.");
+                }
+                if (capTable.getEngineeringColumn()== null) {
+                    throw new InvalidDataException("Simple table has no engineering column defined.");
+                }
+                if (capTable.getScoreColumn()== null) {
+                    throw new InvalidDataException("Simple table has no score column defined.");
+                }
+                //Validate - source is defined
+                if (capTable.getSource().getId() == null) {
+                    throw new InvalidDataException("Simple table has no source defined.");
+                }
+                Long sourceId = capTable.getSource().getId();
+                //Validate - user can use this source id
+                Source source = sourceRepository.findByIdAndUserOrSourceGroupsIn(sourceId, user, user.getUserGroups());
+                if (source == null) {
+                    throw new EntityNotFoundException("You dont have any source with id=" + sourceId);
+                }
+
+                //PROCESS VALIDATE
+                Optional<SourceColumn> columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == capTable.getProcessColumn().getSourceColumn().getId()).findFirst();
+                if (columnExists.isEmpty()) {
+                    throw new EntityNotFoundException("Invalid source column id=" + capTable.getProcessColumn().getSourceColumn().getId() + " for source id=" + sourceId);
+                }
+                //LEVEL VALIDATE
+                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == capTable.getLevelColumn().getId()).findFirst();
+                if (columnExists.isEmpty()) {
+                    throw new EntityNotFoundException("Invalid source column id=" + capTable.getLevelColumn().getId() + " for source id=" + sourceId);
+                }
+                //ENGINEERING VALIDATE
+                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == capTable.getEngineeringColumn().getId()).findFirst();
+                if (columnExists.isEmpty()) {
+                    throw new EntityNotFoundException("Invalid source column id=" + capTable.getEngineeringColumn().getId() + " for source id=" + sourceId);
+                }
+                //SCORE VALIDATE
+                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == capTable.getScoreColumn().getId()).findFirst();
+                if (columnExists.isEmpty()) {
+                    throw new EntityNotFoundException("Invalid source column id=" + capTable.getScoreColumn().getId() + " for source id=" + sourceId);
+                }
+
+                capTable.getProcessColumn().setId(null);
             } else {
                 throw new InvalidDataException("Report contains unknown item type: " + reportItem.getType());
             }

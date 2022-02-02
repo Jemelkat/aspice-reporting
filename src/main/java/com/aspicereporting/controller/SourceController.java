@@ -60,6 +60,15 @@ public class SourceController {
                 })
                 .collect(Collectors.toList());
     }
+
+    @JsonView(View.Simple.class)
+    @GetMapping("/allSimple")
+    public List<Source> getAllSimple(Authentication authentication) {
+        User loggedUser = (User) authentication.getPrincipal();
+        return sourceService.getAllByUserOrShared(loggedUser);
+    }
+
+
     @JsonView(View.Simple.class)
     @GetMapping("/{id}/columns")
     public List<SourceColumn> getColumns(@PathVariable("id") Long sourceId,Authentication authentication) {

@@ -23,7 +23,7 @@ import javax.persistence.*;
         @JsonSubTypes.Type(value = CapabilityTable.class, name = "CAPABILITY_TABLE"),
         @JsonSubTypes.Type(value = GraphItem.class, name = "GRAPH"),
 })
-@Inheritance(strategy = InheritanceType.JOINED)
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(
         discriminatorType = DiscriminatorType.STRING,
         name = "report_item_type"

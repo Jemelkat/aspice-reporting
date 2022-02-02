@@ -1,4 +1,4 @@
-package com.aspicereporting.jasper;
+package com.aspicereporting.jasper.model;
 
 import javax.swing.table.AbstractTableModel;
 

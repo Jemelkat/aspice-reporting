@@ -13,7 +13,7 @@ import net.sf.jasperreports.engine.type.PositionTypeEnum;
 
 import java.awt.*;
 
-public class BaseTableService {
+public abstract class BaseTableService {
     protected static final String TABLE_DATA = "tableData";
     protected static final String TABLE_DATASET = "tableDataset";
 

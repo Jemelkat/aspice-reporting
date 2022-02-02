@@ -6,6 +6,7 @@ import com.aspicereporting.entity.items.*;
 import com.aspicereporting.exception.JasperReportException;
 import com.aspicereporting.jasper.service.CapabilityTableService;
 import com.aspicereporting.jasper.service.SimpleTableService;
+import com.aspicereporting.jasper.service.TextService;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.design.*;
 import net.sf.jasperreports.engine.export.JRPdfExporter;
@@ -28,9 +29,10 @@ public class JasperService {
 
     @Autowired
     SimpleTableService simpleTableService;
-
     @Autowired
     CapabilityTableService capabilityTableService;
+    @Autowired
+    TextService textService;
 
     //Parameters with data - used to fill report
     private Map<String, Object> parameters = new HashMap();
@@ -96,9 +98,9 @@ public class JasperService {
         //Sort based on Y - will be filling report from top to down
         Collections.sort(report.getReportItems());
 
-        //Counters for item settings
-        int styleCount = 0;
-        int tableDatasetCount = 0;
+        //Counters for item settings - will be used to name each parameter
+        Integer styleCount = 0;
+        Integer tableDataCount = 0;
         for (ReportItem reportItem : report.getReportItems()) {
             //Validate - report item is in bounds
             if ((reportItem.getX() + reportItem.getWidth()) > jasperDesign.getPageWidth() || (reportItem.getY() + reportItem.getHeight()) > jasperDesign.getPageHeight()) {
@@ -107,30 +109,21 @@ public class JasperService {
 
             /*TEXT ITEM*/
             if (reportItem instanceof TextItem textItem) {
-                JRDesignStaticText jrStaticText = createStaticText(textItem);
-
-                //Add style to text item - only if style is defined
-                if (textItem.getTextStyle() != null) {
-                    JRDesignStyle textStyle = createTextStyle(textItem.getTextStyle(), styleCount++);
-                    try {
-                        jasperDesign.addStyle(textStyle);
-                        jrStaticText.setStyle(textStyle);
-                    } catch (JRException e) {
-                        throw new JasperReportException("Error setting the text style of report.", e);
-                    }
+                try {
+                    JRDesignStaticText jrStaticText = textService.createTextForJasperDesign(jasperDesign, textItem, styleCount);
+                    //Add created item to report
+                    band.addElement(jrStaticText);
+                } catch (JRException e) {
+                    throw new JasperReportException("Error setting the text style of report.", e);
                 }
-                jrStaticText.setPositionType(PositionTypeEnum.FLOAT);
-                //Add created item to report
-                band.addElement(jrStaticText);
             }
             /*SIMPLE TABLE ITEM*/
             else if (reportItem instanceof TableItem tableItem) {
                 try {
                     //Create table element for JR
-                    JRDesignComponentElement JRTableElement = simpleTableService.createTableForJasperDesign(jasperDesign, tableItem, tableDatasetCount, parameters);
+                    JRDesignComponentElement JRTableElement = simpleTableService.createTableForJasperDesign(jasperDesign, tableItem, tableDataCount, parameters);
                     //Add table to JR
                     band.addElement(JRTableElement);
-                    tableDatasetCount++;
                 } catch (JRException e) {
                     throw new JasperReportException("Error creating the table item for report", e);
                 }
@@ -139,12 +132,12 @@ public class JasperService {
             else if (reportItem instanceof CapabilityTable capabilityTable) {
                 try {
                     //Create table element for JR
-                    JRDesignComponentElement JRTableElement = capabilityTableService.createTableForJasperDesign(jasperDesign, capabilityTable, tableDatasetCount, parameters);
+                    JRDesignComponentElement JRTableElement = capabilityTableService.createTableForJasperDesign(jasperDesign, capabilityTable, tableDataCount, parameters);
                     //Add table to JR
                     band.addElement(JRTableElement);
-                    tableDatasetCount++;
+                    tableDataCount++;
                 } catch (JRException e) {
-                    throw new JasperReportException("Error creating the table item for report", e);
+                    throw new JasperReportException("Error creating the capability table item for report", e);
                 }
             }
             /*GRAPH ITEM*/
@@ -157,30 +150,6 @@ public class JasperService {
         }
         ((JRDesignSection) jasperDesign.getDetailSection()).addBand(band);
         return jasperDesign;
-    }
-
-    private JRDesignStaticText createStaticText(TextItem item) {
-        JRDesignStaticText element = new JRDesignStaticText();
-        element.setText(item.getTextArea());
-        element.setX(item.getX());
-        element.setY(item.getY());
-        element.setWidth(item.getWidth());
-        element.setHeight(item.getHeight());
-        element.setPositionType(PositionTypeEnum.FLOAT);
-        element.setHorizontalTextAlign(HorizontalTextAlignEnum.LEFT);
-        return element;
-    }
-
-    public JRDesignStyle createTextStyle(TextStyle textStyle, int styleCount) {
-        JRDesignStyle jrDesignStyle = new JRDesignStyle();
-        jrDesignStyle.setName("Style" + styleCount);
-        jrDesignStyle.setBold(Boolean.valueOf(textStyle.isBold()));
-        jrDesignStyle.setItalic(Boolean.valueOf(textStyle.isItalic()));
-        jrDesignStyle.setUnderline(Boolean.valueOf(textStyle.isUnderline()));
-        jrDesignStyle.setForecolor(Color.decode(textStyle.getColor()));
-        jrDesignStyle.setFontSize((float) textStyle.getFontSize());
-        jrDesignStyle.setFontName("DejaVu Serif");
-        return jrDesignStyle;
     }
 
     private JasperDesign initializeJasperDesign(Report report) {

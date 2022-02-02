@@ -8,6 +8,7 @@ import com.aspicereporting.repository.SourceColumnRepository;
 import com.aspicereporting.repository.SourceRepository;
 import net.sf.jasperreports.components.table.DesignCell;
 import net.sf.jasperreports.components.table.StandardColumn;
+import net.sf.jasperreports.components.table.StandardColumnGroup;
 import net.sf.jasperreports.components.table.StandardTable;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.data.JRTableModelDataSource;
@@ -40,6 +41,9 @@ public class CapabilityTableService extends BaseTableService {
     private static int tablesCounter = 0;
 
     public JRDesignComponentElement createTableForJasperDesign(JasperDesign jasperDesign, CapabilityTable capabilityTable, int tableCount, Map<String, Object> parameters) throws JRException {
+        //Map for attributes for each level - {level : [a1,a2,a3]}
+        Map<String, LinkedHashSet<String>> levelAttributesMap = new LinkedHashMap<>();
+
         //Create data parameter for custom JRTableModelDataSource.class
         JRDesignParameter parameter = new JRDesignParameter();
         parameter.setValueClass(JRTableModelDataSource.class);
@@ -50,56 +54,26 @@ public class CapabilityTableService extends BaseTableService {
         JRDesignDataset tableSubdataset = new JRDesignDataset(false);
         tableSubdataset.setName(TABLE_DATASET + tableCount);
 
-        //Create table model
-        SimpleTableModel tableModel = createTableModel(capabilityTable);
+        //Create table model with data
+        SimpleTableModel tableModel = createTableModel(capabilityTable, levelAttributesMap);
         parameters.put(TABLE_DATA + tableCount, new JRTableModelDataSource(tableModel));
 
         //Add fields for columns
-        for (String column : columnArray) {
-            JRDesignField field = new JRDesignField();
-            field.setValueClass(String.class);
-            field.setName(column);
-            tableSubdataset.addField(field);
+        JRDesignField processField = new JRDesignField();
+        processField.setValueClass(String.class);
+        processField.setName(columnArray.get(0));
+        tableSubdataset.addField(processField);
+        for (var key : levelAttributesMap.keySet()) {
+            for (var column : levelAttributesMap.get(key)) {
+                JRDesignField field = new JRDesignField();
+                field.setValueClass(String.class);
+                field.setName(column + key);
+                tableSubdataset.addField(field);
+            }
         }
         jasperDesign.addDataset(tableSubdataset);
 
-
-        //Creates required fields
-//        List<String> columnArrray = new ArrayList<>();
-//        int rows = 0;
-//        int columns = 0;
-//        for (TableColumn tableColumn : tableItem.getTableColumns()) {
-//            SourceColumn sourceColumn = tableColumn.getSourceColumn();
-//
-
-//
-//            //Creates column names array
-//            columnArrray.add(sourceColumn.getColumnName());
-//            if (rows == 0 && columns == 0) {
-//                rows = sourceColumn.getSourceData().size();
-//                columns = tableItem.getTableColumns().size();
-//            }
-//        }
-
-//
-//        //Creates object with data
-//        Object[][] test = new Object[rows][columns];
-//        for (int i = 0; i < tableItem.getTableColumns().size(); i++) {
-//            SourceColumn sc = tableItem.getTableColumns().get(i).getSourceColumn();
-//            for (int j = 0; j < sc.getSourceData().size(); j++) {
-//                test[j][i] = sc.getSourceData().get(j).getValue();
-//            }
-//        }
-//
-//        //Creates data bean
-//        SimpleTableModel tableModel = new SimpleTableModel(rows, columns);
-//        tableModel.setColumnNames(columnArrray.toArray(new String[0]));
-//        tableModel.setData(test);
-//
-//        parameters.put(TABLE_DATA + tableCount, new JRTableModelDataSource(tableModel));
-//
-//
-//        //Create table element
+        //Create table element
         JRDesignComponentElement tableElement = createTableElement(jasperDesign, capabilityTable);
         StandardTable table = new StandardTable();
         //Define dataset for this table
@@ -109,23 +83,55 @@ public class CapabilityTableService extends BaseTableService {
                 "$P{" + TABLE_DATA + tableCount + "}"));
         table.setDatasetRun(datasetRun);
 
+        //Add first process column
+        StandardColumn processColumn = createCapabilityColumns(jasperDesign, capabilityTable.getProcessColumn().getWidth(), 20, columnArray.get(0), columnArray.get(0), false);
+        StandardColumnGroup processGroup = new StandardColumnGroup();
+        processGroup.setWidth(processColumn.getWidth());
+        DesignCell processHeader = new DesignCell();
+        processHeader.setDefaultStyleProvider(jasperDesign);
+        processHeader.setHeight(20);
+        processGroup.setColumnHeader(processHeader);
+        processGroup.addColumn(processColumn);
+        table.addColumn(processGroup);
+
         //Create all columns
-        int index = 0;
-        for (String columnName : columnArray) {
+        for (String key : levelAttributesMap.keySet()) {
+            List<StandardColumn> columnsList = new ArrayList<>();
             int width = 25;
-            if (index == 0) {
-                index++;
-                width = capabilityTable.getProcessColumn().getWidth();
+            for (String columnName : levelAttributesMap.get(key)) {
+                //Add new column
+                columnsList.add(createCapabilityColumns(jasperDesign, width, 20, columnName, columnName + key, true));
             }
-            StandardColumn fieldColumn = createCapabilityColumns(jasperDesign, width, 20, columnName, "$F{" + columnName + "}");
-            table.addColumn(fieldColumn);
+            StandardColumnGroup columnGroup = new StandardColumnGroup();
+            columnGroup.setWidth(columnsList.size() * width);
+            DesignCell header = new DesignCell();
+            header.setDefaultStyleProvider(jasperDesign);
+            header.getLineBox().getPen().setLineWidth(1f);
+            header.setHeight(20);
+
+
+            JRDesignStaticText headerElement = new JRDesignStaticText(jasperDesign);
+            headerElement.setX(0);
+            headerElement.setY(0);
+            headerElement.setWidth(columnsList.size() * width);
+            headerElement.setHeight(20);
+            headerElement.setText(key);
+            headerElement.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
+            headerElement.setVerticalTextAlign(VerticalTextAlignEnum.MIDDLE);
+            header.addElement(headerElement);
+            columnGroup.setColumnHeader(header);
+
+            for (var column : columnsList) {
+                columnGroup.addColumn(column);
+            }
+            table.addColumn(columnGroup);
         }
 
         tableElement.setComponent(table);
         return tableElement;
     }
 
-    private SimpleTableModel createTableModel(CapabilityTable capabilityTable) {
+    private SimpleTableModel createTableModel(CapabilityTable capabilityTable, Map<String, LinkedHashSet<String>> levelAttributesMap) {
         //Get all unique processes and levels
         List<String> processNames = sourceRepository.findDistinctByColumnId(capabilityTable.getProcessColumn().getSourceColumn().getId());
         List<String> levelNames = sourceRepository.findDistinctByColumnId(capabilityTable.getLevelColumn().getId());
@@ -134,8 +140,9 @@ public class CapabilityTableService extends BaseTableService {
         levelNames = levelNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
         processNames = processNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
 
-        //Sort levels alphabetically
+        //Sort alphabetically
         Collections.sort(levelNames);
+        Collections.sort(processNames);
 
         //Get all data for process, level, attribute and score columns
         SourceColumn processColumn = sourceColumnRepository.findFirstById(capabilityTable.getProcessColumn().getSourceColumn().getId());
@@ -143,13 +150,11 @@ public class CapabilityTableService extends BaseTableService {
         SourceColumn attributeColumn = sourceColumnRepository.findFirstById(capabilityTable.getEngineeringColumn().getId());
         SourceColumn scoreColumn = sourceColumnRepository.findFirstById(capabilityTable.getScoreColumn().getId());
 
-        //Map for attributes for each level - {level : [a1,a2,a3]}
-        Map<String, LinkedHashSet<String>> levelAttributesMap = new HashMap<>();
         //MultiKey map to store value for each process, level and attribute combination - {(process, level, attribute) : value}
         MultiKeyMap valuesMap = new MultiKeyMap();
 
         //Get all possible attributes for level and store them in Map
-        //TODO: make only one iteration - check if exist and then add
+        //TODO: make only one iteration - check if exist in hashmap and then add
         for (String level : levelNames) {
             List<String> attributesForLevel = new ArrayList<>();
 
@@ -177,7 +182,10 @@ public class CapabilityTableService extends BaseTableService {
         //Get all column names
         columnArray.add("Process Name");
         for (String key : levelNames) {
-            columnArray.addAll(levelAttributesMap.get(key));
+            LinkedHashSet<String> criterionsList = levelAttributesMap.get(key);
+            for(var criterion : criterionsList) {
+                columnArray.add(criterion + key);
+            }
         }
 
         int rows = processNames.size();
@@ -191,14 +199,21 @@ public class CapabilityTableService extends BaseTableService {
             test[rowIndex][columnIndex] = processName;
             columnIndex++;
 
-            for (String level : levelNames) {
-                for (var x : levelAttributesMap.get(level)) {
-                    String atribute = columnArray.get(columnIndex);
-                    String scoreValue = (String) valuesMap.get(new MultiKey(processName, level, atribute));
+            for(var levelKey : levelAttributesMap.keySet()) {
+                for(var criterion :levelAttributesMap.get(levelKey)) {
+                    String scoreValue = (String) valuesMap.get(new MultiKey(processName, levelKey, criterion));
                     test[rowIndex][columnIndex] = scoreValue;
                     columnIndex++;
                 }
             }
+//            for (String level : levelNames) {
+//                for (var x : levelAttributesMap.get(level)) {
+//                    String atribute = columnArray.get(columnIndex);
+//                    String scoreValue = (String) valuesMap.get(new MultiKey(processName, level, atribute));
+//                    test[rowIndex][columnIndex] = scoreValue;
+//                    columnIndex++;
+//                }
+//            }
             rowIndex++;
         }
 
@@ -210,7 +225,7 @@ public class CapabilityTableService extends BaseTableService {
         return tableModel;
     }
 
-    protected StandardColumn createCapabilityColumns(JasperDesign jasperDesign, int width, int height, String headerText, String detailExpression) throws JRException {
+    protected StandardColumn createCapabilityColumns(JasperDesign jasperDesign, int width, int height, String headerText, String detailExpression, boolean isStyled) throws JRException {
         StandardColumn column = new StandardColumn();
         column.setWidth(width);
 
@@ -243,52 +258,54 @@ public class CapabilityTableService extends BaseTableService {
         detailElement.setY(0);
         detailElement.setWidth(width);
         detailElement.setHeight(height);
-        detailElement.setExpression(new JRDesignExpression(detailExpression));
+        detailElement.setExpression(new JRDesignExpression("$F{" + detailExpression + "}"));
         detailElement.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
         detailElement.setVerticalTextAlign(VerticalTextAlignEnum.MIDDLE);
 
         //Create capability table style
-        JRDesignStyle jrDesignStyle = createCapabilityTableStyle(headerText);
-        jasperDesign.addStyle(jrDesignStyle);
+        if (isStyled) {
+            JRDesignStyle jrDesignStyle = createCapabilityTableStyle(detailExpression);
+            jasperDesign.addStyle(jrDesignStyle);
+            detailElement.setStyle(jrDesignStyle);
+        }
 
-        detailElement.setStyle(jrDesignStyle);
         detail.addElement(detailElement);
         column.setDetailCell(detail);
 
         return column;
     }
 
-    private JRDesignStyle createCapabilityTableStyle(String columnName) {
+    private JRDesignStyle createCapabilityTableStyle(String expression) {
         JRDesignStyle jrDesignStyle = new JRDesignStyle();
-        jrDesignStyle.setName(columnName + "_"+ tablesCounter +"_style");
+        jrDesignStyle.setName(expression + "_" + tablesCounter + "_style");
         jrDesignStyle.setFontSize((float) 10);
         jrDesignStyle.setFontName("DejaVu Serif");
         jrDesignStyle.setMode(ModeEnum.OPAQUE);
 
         //F - dark green
         JRDesignExpression FExpression = new JRDesignExpression();
-        FExpression.setText("$F{" + columnName + "}.equals(\"F\")");
+        FExpression.setText("$F{" + expression + "}.equals(\"F\")");
         JRDesignConditionalStyle FCondStyle = new JRDesignConditionalStyle();
         FCondStyle.setConditionExpression(FExpression);
         FCondStyle.setBackcolor(new Color(0, 176, 80));
         jrDesignStyle.addConditionalStyle(FCondStyle);
         //L- green
         JRDesignExpression Lexpression = new JRDesignExpression();
-        Lexpression.setText("$F{" + columnName + "}.equals(\"L\")");
+        Lexpression.setText("$F{" + expression + "}.equals(\"L\")");
         JRDesignConditionalStyle LCondStyle = new JRDesignConditionalStyle();
         LCondStyle.setConditionExpression(Lexpression);
         LCondStyle.setBackcolor(new Color(255, 192, 0));
         jrDesignStyle.addConditionalStyle(LCondStyle);
         //P- orange
         JRDesignExpression Pexpression = new JRDesignExpression();
-        Pexpression.setText("$F{" + columnName + "}.equals(\"P\")");
+        Pexpression.setText("$F{" + expression + "}.equals(\"P\")");
         JRDesignConditionalStyle PCondStyle = new JRDesignConditionalStyle();
         PCondStyle.setConditionExpression(Pexpression);
         PCondStyle.setBackcolor(new Color(146, 208, 80));
         jrDesignStyle.addConditionalStyle(PCondStyle);
         //N- red
         JRDesignExpression Nexpression = new JRDesignExpression();
-        Nexpression.setText("$F{" + columnName + "}.equals(\"N\")");
+        Nexpression.setText("$F{" + expression + "}.equals(\"N\")");
         JRDesignConditionalStyle NCondStyle = new JRDesignConditionalStyle();
         NCondStyle.setConditionExpression(Nexpression);
         NCondStyle.setBackcolor(new Color(255, 0, 0));

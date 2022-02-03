@@ -16,7 +16,7 @@ import java.awt.*;
 @Service
 public class TextService {
 
-    public JRDesignStaticText createTextForJasperDesign(JasperDesign jasperDesign, TextItem textItem, Integer styleCount) throws JRException {
+    public JRDesignStaticText createElement(JasperDesign jasperDesign, TextItem textItem, Integer styleCount) throws JRException {
         JRDesignStaticText jrStaticText = createStaticText(textItem);
 
         //Add style to text item - only if style is defined

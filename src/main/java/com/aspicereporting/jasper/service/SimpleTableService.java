@@ -20,7 +20,7 @@ import java.util.Map;
 
 @Service
 public class SimpleTableService extends BaseTableService{
-    public JRDesignComponentElement createTableForJasperDesign(JasperDesign jasperDesign, TableItem tableItem, Integer tableCount, Map<String, Object> parameters) throws JRException {
+    public JRDesignComponentElement createElement(JasperDesign jasperDesign, TableItem tableItem, Integer tableCount, Map<String, Object> parameters) throws JRException {
         //Create data parameter for custom JRTableModelDataSource.class
         JRDesignParameter parameter = new JRDesignParameter();
         parameter.setValueClass(JRTableModelDataSource.class);

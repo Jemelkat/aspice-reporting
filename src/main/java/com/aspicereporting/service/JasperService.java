@@ -90,8 +90,8 @@ public class JasperService {
         Collections.sort(report.getReportItems());
 
         //Counters for item settings - will be used to name each parameter
-        Integer styleCount = 0;
-        Integer tableDataCount = 0;
+        Integer textCounter = 0;
+        Integer tableCounter = 0;
         Integer graphCounter = 0;
         for (ReportItem reportItem : report.getReportItems()) {
             //Validate - report item is in bounds
@@ -102,7 +102,7 @@ public class JasperService {
             /*TEXT ITEM*/
             if (reportItem instanceof TextItem textItem) {
                 try {
-                    JRDesignStaticText jrStaticText = textService.createTextForJasperDesign(jasperDesign, textItem, styleCount);
+                    JRDesignStaticText jrStaticText = textService.createElement(jasperDesign, textItem, textCounter);
                     //Add created item to report
                     band.addElement(jrStaticText);
                 } catch (JRException e) {
@@ -113,7 +113,7 @@ public class JasperService {
             else if (reportItem instanceof TableItem tableItem) {
                 try {
                     //Create table element for JR
-                    JRDesignComponentElement JRTableElement = simpleTableService.createTableForJasperDesign(jasperDesign, tableItem, tableDataCount, parameters);
+                    JRDesignComponentElement JRTableElement = simpleTableService.createElement(jasperDesign, tableItem, tableCounter, parameters);
                     //Add table to JR
                     band.addElement(JRTableElement);
                 } catch (JRException e) {
@@ -124,10 +124,10 @@ public class JasperService {
             else if (reportItem instanceof CapabilityTable capabilityTable) {
                 try {
                     //Create table element for JR
-                    JRDesignComponentElement JRTableElement = capabilityTableService.createTableForJasperDesign(jasperDesign, capabilityTable, tableDataCount, parameters);
+                    JRDesignComponentElement JRTableElement = capabilityTableService.createELement(jasperDesign, capabilityTable, tableCounter, parameters);
                     //Add table to JR
                     band.addElement(JRTableElement);
-                    tableDataCount++;
+                    tableCounter++;
                 } catch (JRException e) {
                     throw new JasperReportException("Error creating the capability table item for report", e);
                 }

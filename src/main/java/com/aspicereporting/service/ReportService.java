@@ -143,10 +143,10 @@ public class ReportService {
                 if (capTable.getLevelColumn() == null) {
                     throw new InvalidDataException("Simple table has no capability level column defined.");
                 }
-                if (capTable.getEngineeringColumn()== null) {
+                if (capTable.getEngineeringColumn() == null) {
                     throw new InvalidDataException("Simple table has no engineering column defined.");
                 }
-                if (capTable.getScoreColumn()== null) {
+                if (capTable.getScoreColumn() == null) {
                     throw new InvalidDataException("Simple table has no score column defined.");
                 }
                 //Validate - source is defined
@@ -182,6 +182,7 @@ public class ReportService {
                 }
 
                 capTable.getProcessColumn().setId(null);
+            } else if (reportItem instanceof GraphItem graphItem) {
             } else {
                 throw new InvalidDataException("Report contains unknown item type: " + reportItem.getType());
             }

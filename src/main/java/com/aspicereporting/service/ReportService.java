@@ -9,10 +9,8 @@ import com.aspicereporting.repository.*;
 import net.sf.jasperreports.engine.JRException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class ReportService {
@@ -182,7 +180,26 @@ public class ReportService {
                 }
 
                 capTable.getProcessColumn().setId(null);
-            } else if (reportItem instanceof GraphItem graphItem) {
+            } else if (reportItem instanceof CapabilityBarGraph capabilityBarGraph) {
+                //Validate if user filled all required fields
+                capabilityBarGraph.validate();
+
+                Long sourceId = capabilityBarGraph.getSource().getId();
+                //Validate - user can use this source id
+                Source source = sourceRepository.findByIdAndUserOrSourceGroupsIn(sourceId, user, user.getUserGroups());
+                if (source == null) {
+                    throw new EntityNotFoundException("You dont have access to this source id = " + sourceId);
+                }
+                //LEVEL VALIDATE
+                Optional<SourceColumn> columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == capabilityBarGraph.getLevelColumn().getId()).findFirst();
+                if (columnExists.isEmpty()) {
+                    throw new EntityNotFoundException("Invalid source column id=" + capabilityBarGraph.getLevelColumn().getId() + " for source id=" + sourceId);
+                }
+                //SCORE VALIDATE
+                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == capabilityBarGraph.getScoreColumn().getId()).findFirst();
+                if (columnExists.isEmpty()) {
+                    throw new EntityNotFoundException("Invalid source column id=" + capabilityBarGraph.getScoreColumn().getId() + " for source id=" + sourceId);
+                }
             } else {
                 throw new InvalidDataException("Report contains unknown item type: " + reportItem.getType());
             }

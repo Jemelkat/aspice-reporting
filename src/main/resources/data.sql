@@ -48,47 +48,6 @@ VALUES ('Test source 4', 1);
 INSERT INTO source(source_name, user_id)
 VALUES ('Test source 5', 1);
 
-INSERT INTO source_column(source_column_id,column_name, source_id)
-VALUES (1,'Name',1);
-INSERT INTO source_column(source_column_id,column_name, source_id)
-VALUES (2,'Column 1',1);
-INSERT INTO source_column(source_column_id,column_name, source_id)
-VALUES (3,'Column 2',1);
-INSERT INTO source_column(source_column_id,column_name, source_id)
-VALUES (4,'Column 3',1);
-INSERT INTO source_data(source_data_value, source_column_id)
-    VALUES ('Tomas 1',1);
-INSERT INTO source_data(source_data_value, source_column_id)
-    VALUES ('Tomas 2',1);
-INSERT INTO source_data(source_data_value, source_column_id)
-    VALUES ('Tomas 3',1);
-INSERT INTO source_data(source_data_value, source_column_id)
-    VALUES ('Tomas 4',1);
-INSERT INTO source_data(source_data_value, source_column_id)
-    VALUES ('c1',2);
-INSERT INTO source_data(source_data_value, source_column_id)
-    VALUES ('c2',2);
-INSERT INTO source_data(source_data_value, source_column_id)
-    VALUES ('c3',2);
-INSERT INTO source_data(source_data_value, source_column_id)
-    VALUES ('c4',2);
-INSERT INTO source_data(source_data_value, source_column_id)
-    VALUES ('c11',3);
-INSERT INTO source_data(source_data_value, source_column_id)
-    VALUES ('c22',3);
-INSERT INTO source_data(source_data_value, source_column_id)
-    VALUES ('c33',3);
-INSERT INTO source_data(source_data_value, source_column_id)
-    VALUES ('c44',3);
-INSERT INTO source_data(source_data_value, source_column_id)
-    VALUES ('c111',4);
-INSERT INTO source_data(source_data_value, source_column_id)
-    VALUES ('c222',4);
-INSERT INTO source_data(source_data_value, source_column_id)
-    VALUES ('c333',4);
-INSERT INTO source_data(source_data_value, source_column_id)
-    VALUES ('c444',4);
-
 
 INSERT INTO template( template_name, template_created, template_last_updated, user_id, group_id)
 VALUES ('Template 1', current_timestamp, current_timestamp, 1, 1);

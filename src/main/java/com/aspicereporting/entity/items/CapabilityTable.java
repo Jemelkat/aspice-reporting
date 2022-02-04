@@ -7,8 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import javax.validation.constraints.NotNull;
 
 @Setter
 @Getter
@@ -16,19 +15,27 @@ import java.util.List;
 @DiscriminatorValue("CAPABILITY_TABLE")
 @JsonView(View.Simple.class)
 public class CapabilityTable extends ReportItem {
+    @NotNull(message = "Capability table needs source defined")
     @ManyToOne
     private Source source;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @NotNull(message = "Capability table needs process column defined")
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="process_column_id")
     private TableColumn processColumn;
-    @OneToOne(fetch = FetchType.EAGER)
+
+    @NotNull(message = "Capability table needs level column defined")
+    @ManyToOne
     @JoinColumn(name="level_column_id")
     private SourceColumn levelColumn;
-    @OneToOne(fetch = FetchType.EAGER)
+
+    @NotNull(message = "Capability table needs criterion column defined")
+    @ManyToOne
     @JoinColumn(name="engineering_column_id")
     private SourceColumn engineeringColumn;
-    @OneToOne(fetch = FetchType.EAGER)
+
+    @NotNull(message = "Capability table needs score column defined")
+    @ManyToOne
     @JoinColumn(name="score_column_id")
     private SourceColumn scoreColumn;
 }

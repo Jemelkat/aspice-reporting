@@ -9,21 +9,19 @@ import lombok.Setter;
 import org.w3c.dom.Text;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 
 @Getter
 @Setter
 @JsonView(View.Simple.class)
-@DiscriminatorValue("STATIC_TEXT")
+@DiscriminatorValue("TEXT")
 @Entity
 public class TextItem extends ReportItem {
     @Column(columnDefinition = "TEXT")
     private String textArea;
 
-    @OneToOne(mappedBy ="textItem", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "textItem", cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY)
+    @JoinColumn(name = "style_id", referencedColumnName = "report_item_id")
     private TextStyle textStyle;
-
-    public void addTextStyle(TextStyle textStyle) {
-        this.textStyle = textStyle;
-        textStyle.setTextItem(this);
-    }
 }

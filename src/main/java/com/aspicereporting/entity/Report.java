@@ -10,7 +10,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.*;
 
 @JsonView(View.Simple.class)
@@ -43,6 +45,7 @@ public class Report {
 
     @JsonView(View.Canvas.class)
     @OneToMany(mappedBy = "report", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Valid
     private List<ReportItem> reportItems = new ArrayList<>();
 
     @JsonView(View.Canvas.class)

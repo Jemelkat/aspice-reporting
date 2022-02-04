@@ -49,9 +49,7 @@ public class SourceService {
             throw new EntityNotFoundException("Could not find source with id = " + sourceId);
         }
         //Source was found - delete it
-        source.removeFromAllGroups();
-        source.removeFromAllCapabilityTables();
-        source.removeFromAllSimpleTables();
+        source.prepareForDelete();
         sourceRepository.delete(source);
     }
 

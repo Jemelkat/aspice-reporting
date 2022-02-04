@@ -40,7 +40,7 @@ public class CapabilityTableService extends BaseTableService {
     private List<String> columnArray = new ArrayList<>();
     private static int tablesCounter = 0;
 
-    public JRDesignComponentElement createTableForJasperDesign(JasperDesign jasperDesign, CapabilityTable capabilityTable, int tableCount, Map<String, Object> parameters) throws JRException {
+    public JRDesignComponentElement createELement(JasperDesign jasperDesign, CapabilityTable capabilityTable, int tableCount, Map<String, Object> parameters) throws JRException {
         //Map for attributes for each level - {level : [a1,a2,a3]}
         Map<String, LinkedHashSet<String>> levelAttributesMap = new LinkedHashMap<>();
 

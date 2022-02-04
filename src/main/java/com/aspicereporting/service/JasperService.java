@@ -1,9 +1,9 @@
 package com.aspicereporting.service;
 
 import com.aspicereporting.entity.Report;
-import com.aspicereporting.entity.TextStyle;
 import com.aspicereporting.entity.items.*;
 import com.aspicereporting.exception.JasperReportException;
+import com.aspicereporting.jasper.service.CapabilityBarGraphService;
 import com.aspicereporting.jasper.service.CapabilityTableService;
 import com.aspicereporting.jasper.service.SimpleTableService;
 import com.aspicereporting.jasper.service.TextService;
@@ -19,7 +19,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
 
-import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 
@@ -33,6 +32,8 @@ public class JasperService {
     CapabilityTableService capabilityTableService;
     @Autowired
     TextService textService;
+    @Autowired
+    CapabilityBarGraphService capabilityBarGraphService;
 
     //Parameters with data - used to fill report
     private Map<String, Object> parameters = new HashMap();
@@ -40,30 +41,20 @@ public class JasperService {
     public ByteArrayOutputStream generateReport(Report report) {
         //Get JasperDesign
         JasperDesign jasperDesign = getJasperDesign(report);
-        //TODO REMOVE
-        try {
-            JasperCompileManager.writeReportToXmlFile(jasperDesign, "test.jrxml");
-        } catch (JRException e) {
-            e.printStackTrace();
-        }
         //Compile JasperDesign
         JasperReport jasperReport = compileReport(jasperDesign);
-        JasperPrint jasperPrint = fillReport(jasperReport, this.parameters);
 
-        //Export
         //TODO REMOVE
-//        JRPdfExporter exporter = new JRPdfExporter();
-//        exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
-//        exporter.setExporterOutput(new SimpleOutputStreamExporterOutput("file2.pdf"));
-//        SimplePdfExporterConfiguration configuration = new SimplePdfExporterConfiguration();
-//        configuration.setMetadataAuthor("Petter");  //why not set some config as we like
-//        exporter.setConfiguration(configuration);
 //        try {
-//            exporter.exportReport();
+//            JasperCompileManager.writeReportToXmlFile(jasperDesign, "test.jrxml");
 //        } catch (JRException e) {
 //            e.printStackTrace();
 //        }
-        //return new ByteArrayOutputStream();
+
+        //Fill report
+        JasperPrint jasperPrint = fillReport(jasperReport, this.parameters);
+
+        //Export
         return exportToPdf(jasperPrint, report.getReportUser().getUsername());
     }
 
@@ -99,8 +90,9 @@ public class JasperService {
         Collections.sort(report.getReportItems());
 
         //Counters for item settings - will be used to name each parameter
-        Integer styleCount = 0;
-        Integer tableDataCount = 0;
+        Integer textCounter = 0;
+        Integer tableCounter = 0;
+        Integer graphCounter = 0;
         for (ReportItem reportItem : report.getReportItems()) {
             //Validate - report item is in bounds
             if ((reportItem.getX() + reportItem.getWidth()) > jasperDesign.getPageWidth() || (reportItem.getY() + reportItem.getHeight()) > jasperDesign.getPageHeight()) {
@@ -110,7 +102,7 @@ public class JasperService {
             /*TEXT ITEM*/
             if (reportItem instanceof TextItem textItem) {
                 try {
-                    JRDesignStaticText jrStaticText = textService.createTextForJasperDesign(jasperDesign, textItem, styleCount);
+                    JRDesignStaticText jrStaticText = textService.createElement(jasperDesign, textItem, textCounter);
                     //Add created item to report
                     band.addElement(jrStaticText);
                 } catch (JRException e) {
@@ -121,9 +113,10 @@ public class JasperService {
             else if (reportItem instanceof TableItem tableItem) {
                 try {
                     //Create table element for JR
-                    JRDesignComponentElement JRTableElement = simpleTableService.createTableForJasperDesign(jasperDesign, tableItem, tableDataCount, parameters);
+                    JRDesignComponentElement JRTableElement = simpleTableService.createElement(jasperDesign, tableItem, tableCounter, parameters);
                     //Add table to JR
                     band.addElement(JRTableElement);
+                    tableCounter++;
                 } catch (JRException e) {
                     throw new JasperReportException("Error creating the table item for report", e);
                 }
@@ -132,17 +125,19 @@ public class JasperService {
             else if (reportItem instanceof CapabilityTable capabilityTable) {
                 try {
                     //Create table element for JR
-                    JRDesignComponentElement JRTableElement = capabilityTableService.createTableForJasperDesign(jasperDesign, capabilityTable, tableDataCount, parameters);
+                    JRDesignComponentElement JRTableElement = capabilityTableService.createELement(jasperDesign, capabilityTable, tableCounter, parameters);
                     //Add table to JR
                     band.addElement(JRTableElement);
-                    tableDataCount++;
+                    tableCounter++;
                 } catch (JRException e) {
                     throw new JasperReportException("Error creating the capability table item for report", e);
                 }
             }
             /*GRAPH ITEM*/
-            else if (reportItem instanceof GraphItem graphItem) {
-
+            else if (reportItem instanceof CapabilityBarGraph capabilityBarGraph) {
+                JRDesignImage element = capabilityBarGraphService.createElement(jasperDesign, capabilityBarGraph, graphCounter, parameters);
+                band.addElement(element);
+                graphCounter++;
             } else {
                 throw new JasperReportException("Unknown report item type: " + reportItem.getType());
             }

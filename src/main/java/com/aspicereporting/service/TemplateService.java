@@ -102,7 +102,7 @@ public class TemplateService {
                     }
                     tableColumn.setId(null);
                     //Bidirectional
-                    tableColumn.setSimpleTable(tableItem);
+                    //tableColumn.setSimpleTable(tableItem);
                 });
             }
             reportItem.setTemplate(oldTemplate);

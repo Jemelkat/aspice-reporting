@@ -1,5 +1,6 @@
 package com.aspicereporting.entity;
 
+import com.aspicereporting.entity.items.CapabilityBarGraph;
 import com.aspicereporting.entity.items.CapabilityTable;
 import com.aspicereporting.entity.items.TableColumn;
 import com.aspicereporting.entity.items.TableItem;
@@ -42,56 +43,56 @@ public class Source {
     private Date sourceLastUpdated;
 
     @JsonView(View.Detailed.class)
-    @OneToMany(mappedBy = "source", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "source", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderColumn(name = "column_ordinal")
     private List<SourceColumn> sourceColumns;
 
     @JsonIgnore
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinTable(name = "source_groups", joinColumns = @JoinColumn(name = "source_id"), inverseJoinColumns = @JoinColumn(name = "group_id"))
     private Set<UserGroup> sourceGroups = new HashSet<>();
 
     @JsonIgnore
-    @OneToMany(mappedBy = "source", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "source", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     private List<CapabilityTable> capabilityTables = new ArrayList<>();
 
     @JsonIgnore
-    @OneToMany(mappedBy = "source", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "source", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     private List<TableItem> simpleTables = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "source", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    private List<CapabilityBarGraph> capabilityBarGraphs = new ArrayList<>();
 
     @JsonIgnore
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    public void removeFromAllGroups() {
-        for (UserGroup group : sourceGroups) {
-            group.getSources().remove(this);
-        }
-        this.sourceGroups.clear();
-    }
 
-    public void removeFromAllSimpleTables() {
+    public void prepareForDelete() {
         for (TableItem table : simpleTables) {
             table.setSource(null);
+            for (TableColumn tc : table.getTableColumns()) {
+                tc.setSourceColumn(null);
+            }
         }
-        this.sourceGroups.clear();
-    }
-
-    public void removeFromAllCapabilityTables() {
         for (CapabilityTable table : capabilityTables) {
             table.setSource(null);
+            table.getProcessColumn().setSourceColumn(null);
+            table.setProcessColumn(null);
+            table.setEngineeringColumn(null);
+            table.setLevelColumn(null);
+            table.setScoreColumn(null);
         }
-        this.sourceGroups.clear();
+        for (CapabilityBarGraph graph : capabilityBarGraphs) {
+            graph.setSource(null);
+            graph.setProcessColumn(null);
+            graph.setLevelColumn(null);
+            graph.setAttributeColumn(null);
+            graph.setScoreColumn(null);
+        }
     }
-
-//    public void removeFromAllTableColumns() {
-//        for(TableColumn tableColumn : tableColumns) {
-//            tableColumn.setSourceColumn(null);
-//            tableColumn.setSource(null);
-//        }
-//        this.tableColumns.clear();
-//    }
 
     public void addGroup(UserGroup group) {
         this.sourceGroups.add(group);

@@ -11,6 +11,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
@@ -18,12 +20,12 @@ import javax.persistence.*;
         property = "type",
         visible = true)
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = TextItem.class, name = "STATIC_TEXT"),
+        @JsonSubTypes.Type(value = TextItem.class, name = "TEXT"),
         @JsonSubTypes.Type(value = TableItem.class, name = "SIMPLE_TABLE"),
         @JsonSubTypes.Type(value = CapabilityTable.class, name = "CAPABILITY_TABLE"),
-        @JsonSubTypes.Type(value = GraphItem.class, name = "GRAPH"),
+        @JsonSubTypes.Type(value = CapabilityBarGraph.class, name = "CAPABILITY_BAR_GRAPH"),
 })
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(
         discriminatorType = DiscriminatorType.STRING,
         name = "report_item_type"
@@ -36,7 +38,7 @@ import javax.persistence.*;
 public abstract class ReportItem implements Comparable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "report_item_id")
+    @Column(name = "report_item_id", unique = true)
     private Long id;
     @Column(length = 50, name = "report_item_type", insertable = false, updatable = false)
     @Enumerated(EnumType.STRING)
@@ -61,14 +63,7 @@ public abstract class ReportItem implements Comparable {
     private Template template;
 
     public enum EItemType {
-        STATIC_TEXT, GRAPH, SIMPLE_TABLE, IMAGE, CAPABILITY_TABLE;
-    }
-
-    public void addTemplate(Template template) {
-        this.template = template;
-        if (!template.getTemplateItems().contains(this)) {
-            template.getTemplateItems().add(this);
-        }
+        TEXT, SIMPLE_TABLE, CAPABILITY_TABLE, CAPABILITY_BAR_GRAPH;
     }
 
     @Override

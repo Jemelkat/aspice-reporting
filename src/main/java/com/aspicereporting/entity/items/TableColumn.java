@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,12 +28,8 @@ public class TableColumn {
 
     private int width;
 
+    @NotNull(message = "Table requires all columns defined")
     @ManyToOne
     @JoinColumn(name = "source_column_id", referencedColumnName = "source_column_id")
     private SourceColumn sourceColumn;
-
-    @ManyToOne
-    @JoinColumn(name = "simple_table_id", referencedColumnName = "report_item_id")
-    @JsonIgnore
-    private TableItem simpleTable;
 }

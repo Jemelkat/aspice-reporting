@@ -24,10 +24,20 @@ public class CapabilityBarGraph extends ReportItem {
     @ManyToOne
     private Source source;
 
+    @NotNull(message = "Capability bar graph needs process column defined")
+    @ManyToOne
+    @JoinColumn(name = "process_column_id", referencedColumnName = "source_column_id")
+    private SourceColumn processColumn;
+
     @NotNull(message = "Capability bar graph needs level column defined")
     @ManyToOne
     @JoinColumn(name = "level_column_id", referencedColumnName = "source_column_id")
     private SourceColumn levelColumn;
+
+    @NotNull(message = "Capability bar graph needs attribute column defined")
+    @ManyToOne
+    @JoinColumn(name = "attribute_column_id", referencedColumnName = "source_column_id")
+    private SourceColumn attributeColumn;
 
     @NotNull(message = "Capability bar graph needs score/value column defined")
     @ManyToOne
@@ -35,10 +45,17 @@ public class CapabilityBarGraph extends ReportItem {
     private SourceColumn scoreColumn;
 
     public void validate() {
+
         if (this.source.getId() == null) {
             throw new InvalidDataException("Capability bar graph has no source defined.");
         }
+        if (this.processColumn.getId() == null) {
+            throw new InvalidDataException("Capability bar graph has no process defined.");
+        }
         if (this.levelColumn.getId() == null) {
+            throw new InvalidDataException("Capability bar graph has no capability level column defined.");
+        }
+        if (this.attributeColumn.getId() == null) {
             throw new InvalidDataException("Capability bar graph has no capability level column defined.");
         }
         if (this.scoreColumn.getId() == null) {

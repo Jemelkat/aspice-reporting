@@ -88,7 +88,6 @@ public class SimpleTableService extends BaseTableService{
         }
 
         tableElement.setComponent(table);
-        tableCount++;
         return tableElement;
     }
 }

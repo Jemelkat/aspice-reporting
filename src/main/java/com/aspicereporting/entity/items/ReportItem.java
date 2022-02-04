@@ -38,7 +38,7 @@ import javax.validation.constraints.NotNull;
 public abstract class ReportItem implements Comparable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "report_item_id")
+    @Column(name = "report_item_id", unique = true)
     private Long id;
     @Column(length = 50, name = "report_item_type", insertable = false, updatable = false)
     @Enumerated(EnumType.STRING)

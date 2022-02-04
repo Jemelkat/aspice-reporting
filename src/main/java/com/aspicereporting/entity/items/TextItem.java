@@ -20,6 +20,8 @@ public class TextItem extends ReportItem {
     @Column(columnDefinition = "TEXT")
     private String textArea;
 
-    @OneToOne(mappedBy ="textItem", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "textItem", cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY)
+    @JoinColumn(name = "style_id", referencedColumnName = "report_item_id")
     private TextStyle textStyle;
 }

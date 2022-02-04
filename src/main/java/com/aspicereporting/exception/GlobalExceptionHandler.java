@@ -59,17 +59,17 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 
-//    @Override
-//    protected ResponseEntity<Object> handleMethodArgumentNotValid(final MethodArgumentNotValidException ex, final HttpHeaders headers, final HttpStatus status, final WebRequest request) {
-//        logException(ex);
-//        String message = "Bad request";
-//        if (ex.getBindingResult().getFieldErrors().size() > 0) {
-//            final FieldError error = ex.getFieldError();
-//            message = error.getDefaultMessage();
-//        }
-//        ErrorResponse errorResponse = new ErrorResponse(LocalDateTime.now(), HttpStatus.BAD_REQUEST.value(), message);
-//        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-//    }
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(final MethodArgumentNotValidException ex, final HttpHeaders headers, final HttpStatus status, final WebRequest request) {
+        logException(ex);
+        String message = "Bad request";
+        if (ex.getBindingResult().getFieldErrors().size() > 0) {
+            final FieldError error = ex.getFieldError();
+            message = error.getDefaultMessage();
+        }
+        ErrorResponse errorResponse = new ErrorResponse(LocalDateTime.now(), HttpStatus.BAD_REQUEST.value(), message);
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
 
     private void logException(Exception ex) {
         if (ex.getCause() != null) {

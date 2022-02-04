@@ -32,9 +32,4 @@ public class TableColumn {
     @ManyToOne
     @JoinColumn(name = "source_column_id", referencedColumnName = "source_column_id")
     private SourceColumn sourceColumn;
-
-    @ManyToOne
-    @JoinColumn(name = "simple_table_id", referencedColumnName = "report_item_id")
-    @JsonIgnore
-    private TableItem simpleTable;
 }

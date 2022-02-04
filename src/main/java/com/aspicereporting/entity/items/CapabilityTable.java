@@ -20,22 +20,22 @@ public class CapabilityTable extends ReportItem {
     private Source source;
 
     @NotNull(message = "Capability table needs process column defined")
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="process_column_id")
     private TableColumn processColumn;
 
     @NotNull(message = "Capability table needs level column defined")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name="level_column_id")
     private SourceColumn levelColumn;
 
     @NotNull(message = "Capability table needs criterion column defined")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name="engineering_column_id")
     private SourceColumn engineeringColumn;
 
     @NotNull(message = "Capability table needs score column defined")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name="score_column_id")
     private SourceColumn scoreColumn;
 }

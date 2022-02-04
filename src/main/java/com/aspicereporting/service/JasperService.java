@@ -116,6 +116,7 @@ public class JasperService {
                     JRDesignComponentElement JRTableElement = simpleTableService.createElement(jasperDesign, tableItem, tableCounter, parameters);
                     //Add table to JR
                     band.addElement(JRTableElement);
+                    tableCounter++;
                 } catch (JRException e) {
                     throw new JasperReportException("Error creating the table item for report", e);
                 }
@@ -136,6 +137,7 @@ public class JasperService {
             else if (reportItem instanceof CapabilityBarGraph capabilityBarGraph) {
                 JRDesignImage element = capabilityBarGraphService.createElement(jasperDesign, capabilityBarGraph, graphCounter, parameters);
                 band.addElement(element);
+                graphCounter++;
             } else {
                 throw new JasperReportException("Unknown report item type: " + reportItem.getType());
             }

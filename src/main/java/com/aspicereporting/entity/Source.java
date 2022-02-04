@@ -73,10 +73,13 @@ public class Source {
     public void prepareForDelete() {
         for (TableItem table : simpleTables) {
             table.setSource(null);
-            table.getTableColumns().clear();
+            for (TableColumn tc : table.getTableColumns()) {
+                tc.setSourceColumn(null);
+            }
         }
         for (CapabilityTable table : capabilityTables) {
             table.setSource(null);
+            table.getProcessColumn().setSourceColumn(null);
             table.setProcessColumn(null);
             table.setEngineeringColumn(null);
             table.setLevelColumn(null);
@@ -84,7 +87,9 @@ public class Source {
         }
         for (CapabilityBarGraph graph : capabilityBarGraphs) {
             graph.setSource(null);
+            graph.setProcessColumn(null);
             graph.setLevelColumn(null);
+            graph.setAttributeColumn(null);
             graph.setScoreColumn(null);
         }
     }

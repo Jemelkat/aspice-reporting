@@ -22,7 +22,8 @@ public class TableItem extends ReportItem {
     private Source source;
 
     @NotEmpty(message = "Simple table needs at least one column defined.")
-    @OneToMany(mappedBy = "simpleTable", cascade = {CascadeType.ALL}, orphanRemoval = true)
+    @OneToMany(cascade = {CascadeType.ALL}, orphanRemoval = true)
+    @JoinColumn(name="simple_table_id", referencedColumnName = "report_item_id")
     @OrderColumn(name = "column_ordinal")
     private List<TableColumn> tableColumns = new ArrayList<>();
 }

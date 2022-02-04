@@ -97,7 +97,7 @@ public class ReportService {
             //Configure and reconstruct relationship items IDs
             if (reportItem instanceof TextItem textItem) {
                 //If this item ID was not found or its instance is not TextItem
-                if (reportItem.getId() == null || !(existingItem.get() instanceof TextItem)) {
+                if (reportItem.getId() == null) {
                     textItem.getTextStyle().setId(null);
                 } else {
                     //Use existing textStyle ID
@@ -131,7 +131,7 @@ public class ReportService {
                     }
                     tableColumn.setId(null);
                     //Bidirectional
-                    tableColumn.setSimpleTable(tableItem);
+                    //tableColumn.setSimpleTable(tableItem);
                 });
             } else if (reportItem instanceof CapabilityTable capTable) {
                 //Validate - columns are defined
@@ -190,10 +190,20 @@ public class ReportService {
                 if (source == null) {
                     throw new EntityNotFoundException("You dont have access to this source id = " + sourceId);
                 }
+                //PROCESS VALIDATE
+                Optional<SourceColumn> columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == capabilityBarGraph.getProcessColumn().getId()).findFirst();
+                if (columnExists.isEmpty()) {
+                    throw new EntityNotFoundException("Invalid source column id=" + capabilityBarGraph.getProcessColumn().getId() + " for source id=" + sourceId);
+                }
                 //LEVEL VALIDATE
-                Optional<SourceColumn> columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == capabilityBarGraph.getLevelColumn().getId()).findFirst();
+                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == capabilityBarGraph.getLevelColumn().getId()).findFirst();
                 if (columnExists.isEmpty()) {
                     throw new EntityNotFoundException("Invalid source column id=" + capabilityBarGraph.getLevelColumn().getId() + " for source id=" + sourceId);
+                }
+                //ATTRIBUTE VALIDATE
+                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == capabilityBarGraph.getAttributeColumn().getId()).findFirst();
+                if (columnExists.isEmpty()) {
+                    throw new EntityNotFoundException("Invalid source column id=" + capabilityBarGraph.getAttributeColumn().getId() + " for source id=" + sourceId);
                 }
                 //SCORE VALIDATE
                 columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == capabilityBarGraph.getScoreColumn().getId()).findFirst();

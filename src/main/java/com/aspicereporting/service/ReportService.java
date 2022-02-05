@@ -54,7 +54,7 @@ public class ReportService {
 
             //Update report template
             if (updatedReport.getReportTemplate() != null && updatedReport.getReportTemplate().getId() != null) {
-                Template template = templateRepository.findByTemplateUserAndIdOrTemplateGroupsIn(user, updatedReport.getReportTemplate().getId(), user.getUserGroups());
+                Template template = templateRepository.findByTemplateUserAndId(user, updatedReport.getReportTemplate().getId());
                 if (template == null) {
                     throw new EntityNotFoundException("Template id=" + updatedReport.getReportTemplate().getId() + " does not exist or you cannot access this template.");
                 }
@@ -70,7 +70,7 @@ public class ReportService {
             oldReport.setReportCreated(changeDate);
             oldReport.setReportUser(user);
             if (oldReport.getReportTemplate() != null) {
-                Template template = templateRepository.findByTemplateUserAndIdOrTemplateGroupsIn(user, oldReport.getReportTemplate().getId(), user.getUserGroups());
+                Template template = templateRepository.findByTemplateUserAndId(user, oldReport.getReportTemplate().getId());
                 if (template == null) {
                     throw new EntityNotFoundException("Template id=" + oldReport.getReportTemplate().getId() + " does not exist or you cannot access this template.");
                 }

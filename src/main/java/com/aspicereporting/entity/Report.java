@@ -12,7 +12,6 @@ import lombok.Setter;
 import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.util.*;
 
 @JsonView(View.Simple.class)
@@ -31,13 +30,13 @@ public class Report {
     @NotBlank(message = "Report name is required.")
     private String reportName;
 
-    @JsonView(View.SimpleTable.class)
+    @JsonView(View.Table.class)
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     @Column(name = "report_created")
     @Temporal(TemporalType.TIMESTAMP)
     private Date reportCreated;
 
-    @JsonView(View.SimpleTable.class)
+    @JsonView(View.Table.class)
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     @Column(name = "report_last_updated")
     @Temporal(TemporalType.TIMESTAMP)
@@ -53,7 +52,7 @@ public class Report {
     @JoinColumn(name = "template_id")
     private Template reportTemplate;
 
-    @JsonView(View.SimpleTable.class)
+    @JsonView(View.Table.class)
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "report_groups",
             joinColumns = @JoinColumn(name = "report_id"),

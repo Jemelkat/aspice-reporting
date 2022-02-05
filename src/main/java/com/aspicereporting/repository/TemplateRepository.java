@@ -12,12 +12,8 @@ import java.util.List;
 import java.util.Set;
 
 public interface TemplateRepository extends JpaRepository<Template, Long> {
-    List<Template> findDistinctByTemplateUserOrTemplateGroupsIn(User templateUser, Set<UserGroup> userGroups);
-
-    Template findFirstById(Long templateId);
-
+    List<Template> findAllByTemplateUser(User user);
     Template findByTemplateUserAndId(User user, Long id);
-    Template findByTemplateUserAndIdOrTemplateGroupsIn(User templateUser, Long id, Set<UserGroup> userGroups);
 
     Template save(Template template);
 }

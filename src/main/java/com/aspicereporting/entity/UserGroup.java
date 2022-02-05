@@ -32,11 +32,6 @@ public class UserGroup {
     @ManyToMany(mappedBy = "sourceGroups", fetch = FetchType.LAZY)
     private Set<Source> sources = new HashSet<>();
 
-
-    @JsonView(View.Detailed.class)
-    @ManyToMany(mappedBy = "templateGroups", fetch = FetchType.LAZY)
-    private Set<Template> templates = new HashSet<>();
-
     @JsonView(View.Detailed.class)
     @ManyToMany(mappedBy = "reportGroups", fetch = FetchType.LAZY)
     private Set<Report> reports = new HashSet<>();

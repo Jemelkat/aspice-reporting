@@ -18,7 +18,11 @@ import javax.persistence.*;
 @Entity
 public class SourceData {
     @Id
-    @GeneratedValue
+    @SequenceGenerator(name="source_data_source_data_id_seq",
+            sequenceName="source_data_source_data_id_seq",
+            allocationSize=25)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE,
+            generator="source_data_source_data_id_seq")
     @Column(name = "source_data_id")
     private Long id;
 

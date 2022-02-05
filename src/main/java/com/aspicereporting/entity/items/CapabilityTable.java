@@ -17,6 +17,7 @@ import javax.validation.constraints.NotNull;
 public class CapabilityTable extends ReportItem {
     @NotNull(message = "Capability table needs source defined")
     @ManyToOne
+    @JoinColumn(name = "source_id", referencedColumnName = "source_id")
     private Source source;
 
     @NotNull(message = "Capability table needs process column defined")

@@ -130,9 +130,8 @@ public class ReportService {
                         throw new EntityNotFoundException("Invalid source column id=" + tableColumn.getSourceColumn().getId() + " for source id=" + sourceId);
                     }
                     tableColumn.setId(null);
-                    //Bidirectional
-                    //tableColumn.setSimpleTable(tableItem);
                 });
+                source.addSimpleTable(tableItem);
             } else if (reportItem instanceof CapabilityTable capTable) {
                 //Validate - columns are defined
                 if (capTable.getProcessColumn() == null || capTable.getProcessColumn().getSourceColumn() == null) {
@@ -179,6 +178,7 @@ public class ReportService {
                     throw new EntityNotFoundException("Invalid source column id=" + capTable.getScoreColumn().getId() + " for source id=" + sourceId);
                 }
 
+                source.addCapabilityTable(capTable);
                 capTable.getProcessColumn().setId(null);
             } else if (reportItem instanceof CapabilityBarGraph capabilityBarGraph) {
                 //Validate if user filled all required fields
@@ -210,6 +210,8 @@ public class ReportService {
                 if (columnExists.isEmpty()) {
                     throw new EntityNotFoundException("Invalid source column id=" + capabilityBarGraph.getScoreColumn().getId() + " for source id=" + sourceId);
                 }
+
+                source.addCapabilityGraph(capabilityBarGraph);
             } else {
                 throw new InvalidDataException("Report contains unknown item type: " + reportItem.getType());
             }

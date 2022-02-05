@@ -53,15 +53,15 @@ public class User {
     private Set<UserGroup> userGroups = new HashSet<>();
 
     @JsonIgnore
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<Source> sources = new HashSet<>();;
 
     @JsonIgnore
-    @OneToMany(mappedBy="reportUser", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy="reportUser", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<Report> reports = new HashSet<>();
 
     @JsonIgnore
-    @OneToMany(mappedBy="templateUser", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy="templateUser", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<Template> templates = new HashSet<>();
 
     public User(String username, String email, String password) {

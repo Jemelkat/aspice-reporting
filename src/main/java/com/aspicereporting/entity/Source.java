@@ -105,9 +105,25 @@ public class Source {
     }
 
     public void addSourceColumns(List<SourceColumn> columns) {
-        for(var column : columns) {
+        for (var column : columns) {
             this.sourceColumns.add(column);
             column.setSource(this);
         }
     }
+
+    public void addCapabilityTable(CapabilityTable capabilityTable) {
+        this.capabilityTables.add(capabilityTable);
+        capabilityTable.setSource(this);
+    }
+
+    public void addSimpleTable(TableItem simpleTable) {
+        this.simpleTables.add(simpleTable);
+        simpleTable.setSource(this);
+    }
+
+    public void addCapabilityGraph(CapabilityBarGraph capabilityBarGraph) {
+        this.capabilityBarGraphs.add(capabilityBarGraph);
+        capabilityBarGraph.setSource(this);
+    }
+
 }

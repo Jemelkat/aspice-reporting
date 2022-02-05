@@ -17,6 +17,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -33,7 +35,7 @@ public class SourceController {
     private SourceService sourceService;
 
     @PostMapping("/upload")
-    public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file, Authentication authentication) {
+    public ResponseEntity<?> upload(@RequestParam("file") @Valid @NotBlank(message = "Source file is empty.") MultipartFile file, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
 
         //Store multipart file as source

@@ -34,9 +34,9 @@ public class UserDetailsImpl extends User implements UserDetails {
                 .collect(Collectors.toList());
 
         //Initialize lazy loaded objects to prevent issues with persistence bag
-        Hibernate.initialize(user.getSources());
-        Hibernate.initialize(user.getReports());
-        Hibernate.initialize(user.getTemplates());
+//        Hibernate.initialize(user.getSources());
+//        Hibernate.initialize(user.getReports());
+//        Hibernate.initialize(user.getTemplates());
         Hibernate.initialize(user.getUserGroups());
 
         UserDetailsImpl u =  new UserDetailsImpl(user, authorities);

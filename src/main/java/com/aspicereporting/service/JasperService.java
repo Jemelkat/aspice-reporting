@@ -135,9 +135,13 @@ public class JasperService {
             }
             /*GRAPH ITEM*/
             else if (reportItem instanceof CapabilityBarGraph capabilityBarGraph) {
-                JRDesignImage element = capabilityBarGraphService.createElement(jasperDesign, capabilityBarGraph, graphCounter, parameters);
-                band.addElement(element);
-                graphCounter++;
+                try {
+                    JRDesignImage element = capabilityBarGraphService.createElement(jasperDesign, capabilityBarGraph, graphCounter, parameters);
+                    band.addElement(element);
+                    graphCounter++;
+                } catch (JRException e) {
+                    throw new JasperReportException("Error creating the capability graph item for report", e);
+                }
             } else {
                 throw new JasperReportException("Unknown report item type: " + reportItem.getType());
             }

@@ -125,14 +125,13 @@ public class ReportService {
                 //Table columns are reinserted every time - not updated
                 tableItem.getTableColumns().forEach(tableColumn -> {
                     //Validate if column exists in source
-                    Optional<SourceColumn> columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == tableColumn.getSourceColumn().getId()).findFirst();
+                    Optional<SourceColumn> columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(tableColumn.getSourceColumn().getId())).findFirst();
                     if (columnExists.isEmpty()) {
                         throw new EntityNotFoundException("Invalid source column id=" + tableColumn.getSourceColumn().getId() + " for source id=" + sourceId);
                     }
                     tableColumn.setId(null);
-                    //Bidirectional
-                    //tableColumn.setSimpleTable(tableItem);
                 });
+                source.addSimpleTable(tableItem);
             } else if (reportItem instanceof CapabilityTable capTable) {
                 //Validate - columns are defined
                 if (capTable.getProcessColumn() == null || capTable.getProcessColumn().getSourceColumn() == null) {
@@ -159,26 +158,27 @@ public class ReportService {
                 }
 
                 //PROCESS VALIDATE
-                Optional<SourceColumn> columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == capTable.getProcessColumn().getSourceColumn().getId()).findFirst();
+                Optional<SourceColumn> columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capTable.getProcessColumn().getSourceColumn().getId())).findFirst();
                 if (columnExists.isEmpty()) {
                     throw new EntityNotFoundException("Invalid source column id=" + capTable.getProcessColumn().getSourceColumn().getId() + " for source id=" + sourceId);
                 }
                 //LEVEL VALIDATE
-                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == capTable.getLevelColumn().getId()).findFirst();
+                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capTable.getLevelColumn().getId())).findFirst();
                 if (columnExists.isEmpty()) {
                     throw new EntityNotFoundException("Invalid source column id=" + capTable.getLevelColumn().getId() + " for source id=" + sourceId);
                 }
                 //ENGINEERING VALIDATE
-                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == capTable.getEngineeringColumn().getId()).findFirst();
+                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capTable.getEngineeringColumn().getId())).findFirst();
                 if (columnExists.isEmpty()) {
                     throw new EntityNotFoundException("Invalid source column id=" + capTable.getEngineeringColumn().getId() + " for source id=" + sourceId);
                 }
                 //SCORE VALIDATE
-                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == capTable.getScoreColumn().getId()).findFirst();
+                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capTable.getScoreColumn().getId())).findFirst();
                 if (columnExists.isEmpty()) {
                     throw new EntityNotFoundException("Invalid source column id=" + capTable.getScoreColumn().getId() + " for source id=" + sourceId);
                 }
 
+                source.addCapabilityTable(capTable);
                 capTable.getProcessColumn().setId(null);
             } else if (reportItem instanceof CapabilityBarGraph capabilityBarGraph) {
                 //Validate if user filled all required fields
@@ -191,25 +191,27 @@ public class ReportService {
                     throw new EntityNotFoundException("You dont have access to this source id = " + sourceId);
                 }
                 //PROCESS VALIDATE
-                Optional<SourceColumn> columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == capabilityBarGraph.getProcessColumn().getId()).findFirst();
+                Optional<SourceColumn> columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capabilityBarGraph.getProcessColumn().getId())).findFirst();
                 if (columnExists.isEmpty()) {
                     throw new EntityNotFoundException("Invalid source column id=" + capabilityBarGraph.getProcessColumn().getId() + " for source id=" + sourceId);
                 }
                 //LEVEL VALIDATE
-                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == capabilityBarGraph.getLevelColumn().getId()).findFirst();
+                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capabilityBarGraph.getLevelColumn().getId())).findFirst();
                 if (columnExists.isEmpty()) {
                     throw new EntityNotFoundException("Invalid source column id=" + capabilityBarGraph.getLevelColumn().getId() + " for source id=" + sourceId);
                 }
                 //ATTRIBUTE VALIDATE
-                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == capabilityBarGraph.getAttributeColumn().getId()).findFirst();
+                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capabilityBarGraph.getAttributeColumn().getId())).findFirst();
                 if (columnExists.isEmpty()) {
                     throw new EntityNotFoundException("Invalid source column id=" + capabilityBarGraph.getAttributeColumn().getId() + " for source id=" + sourceId);
                 }
                 //SCORE VALIDATE
-                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == capabilityBarGraph.getScoreColumn().getId()).findFirst();
+                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capabilityBarGraph.getScoreColumn().getId())).findFirst();
                 if (columnExists.isEmpty()) {
                     throw new EntityNotFoundException("Invalid source column id=" + capabilityBarGraph.getScoreColumn().getId() + " for source id=" + sourceId);
                 }
+
+                source.addCapabilityGraph(capabilityBarGraph);
             } else {
                 throw new InvalidDataException("Report contains unknown item type: " + reportItem.getType());
             }

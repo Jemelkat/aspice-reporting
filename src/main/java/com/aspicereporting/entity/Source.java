@@ -45,7 +45,7 @@ public class Source {
     @JsonView(View.Detailed.class)
     @OneToMany(mappedBy = "source", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderColumn(name = "column_ordinal")
-    private List<SourceColumn> sourceColumns;
+    private List<SourceColumn> sourceColumns = new ArrayList<>();
 
     @JsonIgnore
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
@@ -103,4 +103,27 @@ public class Source {
         this.sourceGroups.remove(group);
         group.getSources().remove(this);
     }
+
+    public void addSourceColumns(List<SourceColumn> columns) {
+        for (var column : columns) {
+            this.sourceColumns.add(column);
+            column.setSource(this);
+        }
+    }
+
+    public void addCapabilityTable(CapabilityTable capabilityTable) {
+        this.capabilityTables.add(capabilityTable);
+        capabilityTable.setSource(this);
+    }
+
+    public void addSimpleTable(TableItem simpleTable) {
+        this.simpleTables.add(simpleTable);
+        simpleTable.setSource(this);
+    }
+
+    public void addCapabilityGraph(CapabilityBarGraph capabilityBarGraph) {
+        this.capabilityBarGraphs.add(capabilityBarGraph);
+        capabilityBarGraph.setSource(this);
+    }
+
 }

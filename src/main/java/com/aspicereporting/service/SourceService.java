@@ -1,7 +1,7 @@
 package com.aspicereporting.service;
 
 import com.aspicereporting.entity.*;
-import com.aspicereporting.exception.CsvSourceFileException;
+import com.aspicereporting.exception.SourceFileException;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.exception.UnauthorizedAccessException;
 import com.aspicereporting.repository.SourceRepository;
@@ -12,6 +12,7 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.exceptions.CsvValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,16 +29,27 @@ public class SourceService {
     SourceRepository sourceRepository;
     @Autowired
     UserGroupRepository userGroupRepository;
+    @Autowired
+    FileParsingService fileParsingService;
 
     public void storeFileAsSource(MultipartFile file, User user) {
-        Source source = new Source();
+
+        String fileName = file.getOriginalFilename();
+        Source source = null;
+        try {
+            if (fileName.toLowerCase().endsWith(".csv")) {
+                source = fileParsingService.parseCSVFile(file);
+            }
+        } catch (CsvValidationException | IOException e) {
+            throw new SourceFileException("Cannot read uploaded file.", e);
+        }
+
         source.setSourceName(file.getOriginalFilename());
         source.setUser(user);
         source.setSourceCreated(new Date());
-        source.setSourceLastUpdated(new Date());
 
         //Parse csv to objects
-        source.setSourceColumns(parseFileToColumnsList(file, source));
+        //source.setSourceColumns(parseFileToColumnsList(file, source));
 
         sourceRepository.save(source);
     }
@@ -88,7 +100,7 @@ public class SourceService {
                     sourceColumns.add(sourceColumn);
                 }
             } else {
-                throw new CsvSourceFileException("Loaded file does not contain header.");
+                throw new SourceFileException("File does not contain data.");
             }
 
             //Read data values for headers
@@ -99,7 +111,7 @@ public class SourceService {
             }
 
         } catch (IOException | CsvValidationException e) {
-            throw new CsvSourceFileException("There was error processing CSV file.", e);
+            throw new SourceFileException("There was error processing CSV file.", e);
         }
         return sourceColumns;
     }
@@ -131,8 +143,8 @@ public class SourceService {
 
     public List<SourceColumn> getColumnsForSource(Long sourceId, User user) {
         Source source = sourceRepository.findByIdAndUserOrSourceGroupsIn(sourceId, user, user.getUserGroups());
-        if(source == null) {
-            throw new EntityNotFoundException("Could not find data for source id="+sourceId);
+        if (source == null) {
+            throw new EntityNotFoundException("Could not find data for source id=" + sourceId);
         }
         return source.getSourceColumns();
     }

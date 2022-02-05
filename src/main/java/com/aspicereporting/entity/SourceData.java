@@ -18,14 +18,18 @@ import javax.persistence.*;
 @Entity
 public class SourceData {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @SequenceGenerator(name="source_data_source_data_id_seq",
+            sequenceName="source_data_source_data_id_seq",
+            allocationSize=25)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE,
+            generator="source_data_source_data_id_seq")
     @Column(name = "source_data_id")
     private Long id;
 
     @Column(name = "source_data_value")
     private String value;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "source_column_id", nullable = false)
     @JsonIgnore
     private SourceColumn sourceColumn;

@@ -6,6 +6,7 @@ import com.aspicereporting.entity.items.CapabilityTable;
 import com.aspicereporting.jasper.model.SimpleTableModel;
 import com.aspicereporting.repository.SourceColumnRepository;
 import com.aspicereporting.repository.SourceRepository;
+import com.aspicereporting.utils.NaturalOrderComparator;
 import net.sf.jasperreports.components.table.DesignCell;
 import net.sf.jasperreports.components.table.StandardColumn;
 import net.sf.jasperreports.components.table.StandardColumnGroup;
@@ -141,8 +142,8 @@ public class CapabilityTableService extends BaseTableService {
         processNames = processNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
 
         //Sort alphabetically
-        Collections.sort(levelNames);
-        Collections.sort(processNames);
+        Collections.sort(levelNames, new NaturalOrderComparator());
+        Collections.sort(processNames, new NaturalOrderComparator());
 
         //Get all data for process, level, attribute and score columns
         SourceColumn processColumn = sourceColumnRepository.findFirstById(capabilityTable.getProcessColumn().getSourceColumn().getId());
@@ -175,7 +176,7 @@ public class CapabilityTableService extends BaseTableService {
                 valuesMap.put(multiKey, scoreValue);
             }
             //Sort attributes alphabetically
-            Collections.sort(attributesForLevel);
+            Collections.sort(attributesForLevel, new NaturalOrderComparator());
             levelAttributesMap.put(level, new LinkedHashSet<>(attributesForLevel));
         }
 
@@ -202,6 +203,10 @@ public class CapabilityTableService extends BaseTableService {
             for(var levelKey : levelAttributesMap.keySet()) {
                 for(var criterion :levelAttributesMap.get(levelKey)) {
                     String scoreValue = (String) valuesMap.get(new MultiKey(processName, levelKey, criterion));
+                    //If process does not have this criterion measured
+                    if(scoreValue == null) {
+                        scoreValue = "";
+                    }
                     test[rowIndex][columnIndex] = scoreValue;
                     columnIndex++;
                 }

@@ -23,7 +23,7 @@ import java.util.List;
 @Entity
 public class SourceColumn {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "source_column_id")
     private Long id;
 
@@ -36,7 +36,7 @@ public class SourceColumn {
     private List<SourceData> sourceData = new ArrayList<>();
 
     @JsonIgnore
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "source_id", nullable = false)
     private Source source;
 

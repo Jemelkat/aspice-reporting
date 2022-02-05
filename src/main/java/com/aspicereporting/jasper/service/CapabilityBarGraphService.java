@@ -2,8 +2,10 @@ package com.aspicereporting.jasper.service;
 
 import com.aspicereporting.entity.items.CapabilityBarGraph;
 import com.aspicereporting.exception.InvalidDataException;
+import com.aspicereporting.exception.JasperReportException;
 import com.aspicereporting.repository.SourceColumnRepository;
 import com.aspicereporting.repository.SourceRepository;
+import com.aspicereporting.utils.NaturalOrderComparator;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRRenderable;
 import net.sf.jasperreports.engine.design.*;
@@ -32,7 +34,22 @@ public class CapabilityBarGraphService extends BaseChartService {
     @Autowired
     SourceColumnRepository sourceColumnRepository;
 
-    public JRDesignImage createElement(JasperDesign jasperDesign, CapabilityBarGraph capabilityBarGraph, Integer counter, Map<String, Object> parameters) {
+    Map<String, Double> scoreToValueMap = Map.ofEntries(
+            new AbstractMap.SimpleEntry<>("N", 0D),
+            new AbstractMap.SimpleEntry<>("P", 0.33D),
+            new AbstractMap.SimpleEntry<>("L", 0.66D),
+            new AbstractMap.SimpleEntry<>("F", 1D)
+    );
+
+    Map<Integer, ArrayList<String>> processAttributesMap = Map.ofEntries(
+            new AbstractMap.SimpleEntry<>(1, new ArrayList<>(Arrays.asList("PA1.1"))),
+            new AbstractMap.SimpleEntry<>(2, new ArrayList<>(Arrays.asList("PA2.1", "PA2.2"))),
+            new AbstractMap.SimpleEntry<>(3, new ArrayList<>(Arrays.asList("PA3.1", "PA3.2"))),
+            new AbstractMap.SimpleEntry<>(4, new ArrayList<>(Arrays.asList("PA4.1", "PA4.2"))),
+            new AbstractMap.SimpleEntry<>(5, new ArrayList<>(Arrays.asList("PA5.1", "PA5.2")))
+    );
+
+    public JRDesignImage createElement(JasperDesign jasperDesign, CapabilityBarGraph capabilityBarGraph, Integer counter, Map<String, Object> parameters) throws JRException {
         //Get all unique processes and levels
         List<String> processNames = sourceRepository.findDistinctByColumnId(capabilityBarGraph.getProcessColumn().getId());
         List<String> levelNames = sourceRepository.findDistinctByColumnId(capabilityBarGraph.getLevelColumn().getId());
@@ -45,15 +62,15 @@ public class CapabilityBarGraphService extends BaseChartService {
         }
 
         //Sort alphabetically
-        Collections.sort(levelNames);
-        Collections.sort(processNames);
+        Collections.sort(levelNames, new NaturalOrderComparator());
+        Collections.sort(processNames, new NaturalOrderComparator());
 
-        //MultiKey map to store value for each process, level combination - {(process, level) : [values]}
+        //MultiKey map to store value for each process, level combination - {(process, level) : (atribute: [value])}
         MultiKeyMap valuesMap = new MultiKeyMap();
         for (int i = 0; i < capabilityBarGraph.getScoreColumn().getSourceData().size(); i++) {
             String processValue = capabilityBarGraph.getProcessColumn().getSourceData().get(i).getValue();
             String levelValue = capabilityBarGraph.getLevelColumn().getSourceData().get(i).getValue();
-            String attributeValue = capabilityBarGraph.getAttributeColumn().getSourceData().get(i).getValue().toUpperCase().replaceAll("\\s","");
+            String attributeValue = capabilityBarGraph.getAttributeColumn().getSourceData().get(i).getValue().toUpperCase().replaceAll("\\s", "");
             String scoreValue = capabilityBarGraph.getScoreColumn().getSourceData().get(i).getValue();
 
             MultiKey key = new MultiKey(processValue, levelValue);
@@ -69,15 +86,7 @@ public class CapabilityBarGraphService extends BaseChartService {
             }
         }
 
-
-        HashMap<Integer, ArrayList<String>> processAttributesMap = new HashMap<>();
-        processAttributesMap.put(1, new ArrayList<>(Arrays.asList("PA1.1")));
-        processAttributesMap.put(2, new ArrayList<>(Arrays.asList("PA2.1", "PA2.2")));
-        processAttributesMap.put(3, new ArrayList<>(Arrays.asList("PA3.1", "PA3.2")));
-        processAttributesMap.put(4, new ArrayList<>(Arrays.asList("PA4.1", "PA4.2")));
-        processAttributesMap.put(5, new ArrayList<>(Arrays.asList("PA5.1", "PA5.2")));
-
-        //0 - not achieved, 1 - both are largely achieved, 2- all are fully
+        //Prepare default level for each process
         HashMap<String, Double> processLevelAchievedMap = new HashMap<>();
         for (String process : processNames) {
             processLevelAchievedMap.put(process, 0D);
@@ -88,8 +97,8 @@ public class CapabilityBarGraphService extends BaseChartService {
             int level = 0;
             boolean isPreviousLevelAchieved = true;
 
-            //For each level defined
             for (int i = 0; i < levelNames.size(); i++) {
+                //If previous level is not fully achieved move to another process
                 if (!isPreviousLevelAchieved) {
                     break;
                 }
@@ -99,20 +108,31 @@ public class CapabilityBarGraphService extends BaseChartService {
                 if (!valuesMap.containsKey(multikey)) {
                     break;
                 }
-                //Get atribute scores for (process, level) key
+                //Get all scores for (process, level) key
                 Map<String, ArrayList<String>> attributesScoreMap = (Map<String, ArrayList<String>>) valuesMap.get(multikey);
                 for (String attribute : processAttributesMap.get(i + 1)) {
                     double avgScore = 0;
                     if (attributesScoreMap.containsKey(attribute)) {
+                        //Create sum of all scores for attribute
                         for (String s : attributesScoreMap.get(attribute)) {
-                            double valueOf = Double.parseDouble(s);
-                            avgScore += valueOf;
+                            double score;
+                            if (scoreToValueMap.containsKey(s)) {
+                                score = scoreToValueMap.get(s);
+                            } else {
+                                try {
+                                    score = Double.parseDouble(s);
+                                } catch (Exception e) {
+                                    throw new JasperReportException("Capability graph score column contains non numeric or unknown value: " + s, e);
+                                }
+                            }
+                            avgScore += score;
                         }
                     }
-                    //Get average score achieved
+                    //Get average score achieved for this attribute
                     avgScore = avgScore / attributesScoreMap.get(attribute).size();
 
-                    //Set score achieved for this process
+                    //Set score achieved for this attribute
+                    //
                     if (avgScore > 0.85) {
                         if (i == 0) {
                             processLevelAchievedMap.put(process, processLevelAchievedMap.get(process) + 2);
@@ -129,7 +149,7 @@ public class CapabilityBarGraphService extends BaseChartService {
                 }
 
                 Double finalAttributesScore = processLevelAchievedMap.get(process);
-                //All attributes are fully achieved
+                //0 - not achieved, 1 - all defined attributes are largely achieved, 2- all are fully
                 if (finalAttributesScore == 2) {
                     level += 1;
                 } else {
@@ -148,35 +168,31 @@ public class CapabilityBarGraphService extends BaseChartService {
         final JFreeChart chart = ChartFactory.createBarChart(
                 "",                                   // chart title
                 "Process",                  // domain axis label
-                "Capability level",                     // range axis label
-                dataset,                     // data
-                PlotOrientation.VERTICAL,    // the plot orientation
+                "Level",                     // range axis label
+                dataset,                            // data
+                PlotOrientation.VERTICAL,           // the plot orientation
                 false,                        // legend
                 false,                        // tooltips
                 false                        // urls
         );
         this.applyBarGraphTheme(chart);
 
+        //Rotate x axis names to save space
         CategoryPlot plot = (CategoryPlot) chart.getPlot();
         ValueAxis rangeAxis = plot.getRangeAxis();
         rangeAxis.setUpperBound(5);
         rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-
         CategoryAxis categoryAxis = plot.getDomainAxis();
         categoryAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
 
-        parameters.put("Chart", new JCommonDrawableRendererImpl(chart));
-
+        //Add data to parameter and add parameter to design
+        parameters.put("chart" + counter, new JCommonDrawableRendererImpl(chart));
         JRDesignParameter parameter = new JRDesignParameter();
         parameter.setValueClass(Renderable.class);
-        parameter.setName("Chart");
-        try {
-            jasperDesign.addParameter(parameter);
-        } catch (JRException e) {
-            e.printStackTrace();
-        }
+        parameter.setName("chart" + counter);
+        jasperDesign.addParameter(parameter);
 
-
+        //Add image - chart will be displayed in image tag
         JRDesignImage imageElement = new JRDesignImage(jasperDesign);
         imageElement.setX(capabilityBarGraph.getX());
         imageElement.setY(capabilityBarGraph.getY());
@@ -186,7 +202,7 @@ public class CapabilityBarGraphService extends BaseChartService {
         imageElement.setScaleImage(ScaleImageEnum.FILL_FRAME);
         imageElement.setLazy(true);
         JRDesignExpression expression = new JRDesignExpression();
-        expression.setText("$P{Chart}");
+        expression.setText("$P{chart" + counter + "}");
         expression.setValueClass(JRRenderable.class);
         imageElement.setExpression(expression);
 

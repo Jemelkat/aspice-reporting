@@ -4,7 +4,6 @@ import com.aspicereporting.entity.*;
 import com.aspicereporting.entity.items.*;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.exception.InvalidDataException;
-import com.aspicereporting.exception.UnauthorizedAccessException;
 import com.aspicereporting.repository.*;
 import net.sf.jasperreports.engine.JRException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -161,9 +160,9 @@ public class ReportService {
                     throw new EntityNotFoundException("Invalid source column id=" + capTable.getLevelColumn().getId() + " for source id=" + sourceId);
                 }
                 //ENGINEERING VALIDATE
-                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capTable.getEngineeringColumn().getId())).findFirst();
+                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capTable.getCriterionColumn().getId())).findFirst();
                 if (columnExists.isEmpty()) {
-                    throw new EntityNotFoundException("Invalid source column id=" + capTable.getEngineeringColumn().getId() + " for source id=" + sourceId);
+                    throw new EntityNotFoundException("Invalid source column id=" + capTable.getCriterionColumn().getId() + " for source id=" + sourceId);
                 }
                 //SCORE VALIDATE
                 columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capTable.getScoreColumn().getId())).findFirst();

@@ -1,7 +1,6 @@
 package com.aspicereporting.jasper.service;
 
 import com.aspicereporting.entity.SourceColumn;
-import com.aspicereporting.entity.SourceData;
 import com.aspicereporting.entity.items.CapabilityTable;
 import com.aspicereporting.jasper.model.SimpleTableModel;
 import com.aspicereporting.repository.SourceColumnRepository;
@@ -84,13 +83,15 @@ public class CapabilityTableService extends BaseTableService {
                 "$P{" + TABLE_DATA + tableCount + "}"));
         table.setDatasetRun(datasetRun);
 
+        float fontSize = capabilityTable.getFontSize();
+        int rowHeight = (int) (1.8 * fontSize);
         //Add first process column
-        StandardColumn processColumn = createCapabilityColumns(jasperDesign, capabilityTable.getProcessColumn().getWidth(), 20, columnArray.get(0), columnArray.get(0), false);
+        StandardColumn processColumn = createCapabilityColumns(jasperDesign, capabilityTable.getProcessWidth(), rowHeight, fontSize, columnArray.get(0), columnArray.get(0), false);
         StandardColumnGroup processGroup = new StandardColumnGroup();
         processGroup.setWidth(processColumn.getWidth());
         DesignCell processHeader = new DesignCell();
         processHeader.setDefaultStyleProvider(jasperDesign);
-        processHeader.setHeight(20);
+        processHeader.setHeight(rowHeight);
         processGroup.setColumnHeader(processHeader);
         processGroup.addColumn(processColumn);
         table.addColumn(processGroup);
@@ -98,25 +99,26 @@ public class CapabilityTableService extends BaseTableService {
         //Create all columns
         for (String key : levelAttributesMap.keySet()) {
             List<StandardColumn> columnsList = new ArrayList<>();
-            int width = 25;
             for (String columnName : levelAttributesMap.get(key)) {
                 //Add new column
-                columnsList.add(createCapabilityColumns(jasperDesign, width, 20, columnName, columnName + key, true));
+                columnsList.add(createCapabilityColumns(jasperDesign, capabilityTable.getCriterionWidth(), rowHeight, fontSize, columnName, columnName + key, true));
             }
             StandardColumnGroup columnGroup = new StandardColumnGroup();
-            columnGroup.setWidth(columnsList.size() * width);
+            columnGroup.setWidth(columnsList.size() * capabilityTable.getCriterionWidth());
             DesignCell header = new DesignCell();
             header.setDefaultStyleProvider(jasperDesign);
             header.getLineBox().getPen().setLineWidth(1f);
-            header.setHeight(20);
+            header.setHeight(rowHeight);
 
 
             JRDesignStaticText headerElement = new JRDesignStaticText(jasperDesign);
             headerElement.setX(0);
             headerElement.setY(0);
-            headerElement.setWidth(columnsList.size() * width);
-            headerElement.setHeight(20);
+            headerElement.setWidth(columnsList.size() * capabilityTable.getCriterionWidth());
+            headerElement.setHeight(rowHeight);
             headerElement.setText(key);
+            headerElement.setFontSize(fontSize);
+            headerElement.setFontName("DejaVu Serif");
             headerElement.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
             headerElement.setVerticalTextAlign(VerticalTextAlignEnum.MIDDLE);
             header.addElement(headerElement);
@@ -144,11 +146,13 @@ public class CapabilityTableService extends BaseTableService {
         //Sort alphabetically
         Collections.sort(levelNames, new NaturalOrderComparator());
         Collections.sort(processNames, new NaturalOrderComparator());
+        //Get only first N levels - limited by paramater
+        levelNames = levelNames.stream().limit(capabilityTable.getLevelLimit()).collect(Collectors.toList());
 
         //Get all data for process, level, attribute and score columns
         SourceColumn processColumn = sourceColumnRepository.findFirstById(capabilityTable.getProcessColumn().getSourceColumn().getId());
         SourceColumn levelColumn = sourceColumnRepository.findFirstById(capabilityTable.getLevelColumn().getId());
-        SourceColumn attributeColumn = sourceColumnRepository.findFirstById(capabilityTable.getEngineeringColumn().getId());
+        SourceColumn attributeColumn = sourceColumnRepository.findFirstById(capabilityTable.getCriterionColumn().getId());
         SourceColumn scoreColumn = sourceColumnRepository.findFirstById(capabilityTable.getScoreColumn().getId());
 
         //MultiKey map to store value for each process, level and attribute combination - {(process, level, attribute) : value}
@@ -184,7 +188,7 @@ public class CapabilityTableService extends BaseTableService {
         columnArray.add("Process Name");
         for (String key : levelNames) {
             LinkedHashSet<String> criterionsList = levelAttributesMap.get(key);
-            for(var criterion : criterionsList) {
+            for (var criterion : criterionsList) {
                 columnArray.add(criterion + key);
             }
         }
@@ -200,25 +204,17 @@ public class CapabilityTableService extends BaseTableService {
             test[rowIndex][columnIndex] = processName;
             columnIndex++;
 
-            for(var levelKey : levelAttributesMap.keySet()) {
-                for(var criterion :levelAttributesMap.get(levelKey)) {
+            for (var levelKey : levelAttributesMap.keySet()) {
+                for (var criterion : levelAttributesMap.get(levelKey)) {
                     String scoreValue = (String) valuesMap.get(new MultiKey(processName, levelKey, criterion));
                     //If process does not have this criterion measured
-                    if(scoreValue == null) {
+                    if (scoreValue == null) {
                         scoreValue = "";
                     }
                     test[rowIndex][columnIndex] = scoreValue;
                     columnIndex++;
                 }
             }
-//            for (String level : levelNames) {
-//                for (var x : levelAttributesMap.get(level)) {
-//                    String atribute = columnArray.get(columnIndex);
-//                    String scoreValue = (String) valuesMap.get(new MultiKey(processName, level, atribute));
-//                    test[rowIndex][columnIndex] = scoreValue;
-//                    columnIndex++;
-//                }
-//            }
             rowIndex++;
         }
 
@@ -230,7 +226,7 @@ public class CapabilityTableService extends BaseTableService {
         return tableModel;
     }
 
-    protected StandardColumn createCapabilityColumns(JasperDesign jasperDesign, int width, int height, String headerText, String detailExpression, boolean isStyled) throws JRException {
+    protected StandardColumn createCapabilityColumns(JasperDesign jasperDesign, int width, int height, float fontSize, String headerText, String detailExpression, boolean isStyled) throws JRException {
         StandardColumn column = new StandardColumn();
         column.setWidth(width);
 
@@ -246,6 +242,8 @@ public class CapabilityTableService extends BaseTableService {
         headerElement.setWidth(width);
         headerElement.setHeight(height);
         headerElement.setText(headerText);
+        headerElement.setFontSize(fontSize);
+        headerElement.setFontName("DejaVu Serif");
         headerElement.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
         headerElement.setVerticalTextAlign(VerticalTextAlignEnum.MIDDLE);
 
@@ -263,6 +261,8 @@ public class CapabilityTableService extends BaseTableService {
         detailElement.setY(0);
         detailElement.setWidth(width);
         detailElement.setHeight(height);
+        detailElement.setFontSize(fontSize);
+        detailElement.setFontName("DejaVu Serif");
         detailElement.setExpression(new JRDesignExpression("$F{" + detailExpression + "}"));
         detailElement.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
         detailElement.setVerticalTextAlign(VerticalTextAlignEnum.MIDDLE);
@@ -283,8 +283,6 @@ public class CapabilityTableService extends BaseTableService {
     private JRDesignStyle createCapabilityTableStyle(String expression) {
         JRDesignStyle jrDesignStyle = new JRDesignStyle();
         jrDesignStyle.setName(expression + "_" + tablesCounter + "_style");
-        jrDesignStyle.setFontSize((float) 10);
-        jrDesignStyle.setFontName("DejaVu Serif");
         jrDesignStyle.setMode(ModeEnum.OPAQUE);
 
         //F - dark green

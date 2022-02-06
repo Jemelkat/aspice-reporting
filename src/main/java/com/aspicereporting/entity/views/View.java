@@ -10,11 +10,11 @@ public class View {
 
     }
 
-    public static class SimpleTable extends Simple {
+    public static class Table extends Simple {
 
     }
 
-    public static class Detailed extends SimpleTable{
+    public static class Detailed extends Table {
 
     }
     public static class Full extends Detailed {

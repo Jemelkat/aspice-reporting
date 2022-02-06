@@ -30,13 +30,13 @@ public class Source {
     @Column(name = "source_name")
     private String sourceName;
 
-    @JsonView(View.SimpleTable.class)
+    @JsonView(View.Table.class)
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     @Column(name = "source_created")
     @Temporal(TemporalType.TIMESTAMP)
     private Date sourceCreated;
 
-    @JsonView(View.SimpleTable.class)
+    @JsonView(View.Table.class)
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     @Column(name = "source_last_updated")
     @Temporal(TemporalType.TIMESTAMP)

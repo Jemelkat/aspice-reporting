@@ -105,6 +105,7 @@ public class JasperService {
                     JRDesignStaticText jrStaticText = textService.createElement(jasperDesign, textItem, textCounter);
                     //Add created item to report
                     band.addElement(jrStaticText);
+                    textCounter++;
                 } catch (JRException e) {
                     throw new JasperReportException("Error setting the text style of report.", e);
                 }

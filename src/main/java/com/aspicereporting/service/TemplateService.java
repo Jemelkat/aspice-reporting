@@ -28,8 +28,8 @@ public class TemplateService {
     @Autowired
     UserGroupRepository userGroupRepository;
 
-    public List<Template> getAllByUserOrShared(User user) {
-        return templateRepository.findDistinctByTemplateUserOrTemplateGroupsIn(user, user.getUserGroups());
+    public List<Template> getAllByUser(User user) {
+        return templateRepository.findAllByTemplateUser(user);
     }
 
     public Template getTemplateById(Long id, User user) {
@@ -112,43 +112,6 @@ public class TemplateService {
         oldTemplate.getTemplateItems().addAll(newTemplateItems);
 
         return templateRepository.save(oldTemplate);
-    }
-
-    public void shareWithGroups(Long templateId, List<Long> groupIds, User user) {
-        Template template = templateRepository.findByTemplateUserAndId(user, templateId);
-        if (template == null) {
-            throw new EntityNotFoundException("Could not find template with id = " + template.getId());
-        }
-
-        //Get all groups for update
-        List<UserGroup> templateGroupList = userGroupRepository.findAllByIdIn(groupIds);
-
-        //Get all removed groups
-        Set<UserGroup> removedGroups = new HashSet<>(template.getTemplateGroups());
-        removedGroups.removeAll(templateGroupList);
-
-        //Remove removed groups
-        for (UserGroup group : removedGroups) {
-            template.removeGroup(group);
-        }
-        //Add new groups
-        for (UserGroup group : templateGroupList) {
-            template.addGroup(group);
-        }
-
-        templateRepository.save(template);
-    }
-
-    public Set<UserGroup> getGroupsForTemplate(Long templateId, User loggedUser) {
-        Template template = templateRepository.findFirstById(templateId);
-        if (template == null) {
-            throw new EntityNotFoundException("Could not find template with id = " + templateId);
-        }
-        if (template.getTemplateUser().getId() != loggedUser.getId()) {
-            throw new UnauthorizedAccessException("Only the owner of this template can share it.");
-        }
-
-        return template.getTemplateGroups();
     }
 
     public void deleteTemplate(Long templateId, User user) {

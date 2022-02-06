@@ -9,6 +9,7 @@ import com.aspicereporting.repository.*;
 import net.sf.jasperreports.engine.JRException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -33,20 +34,21 @@ public class ReportService {
     }
 
     //Get all owned or shared sources
-    public List<Report> getAllByUserOrShared(User user) {
-        return reportRepository.findDistinctByReportUserOrReportGroupsIn(user, user.getUserGroups());
+    public List<Report> getAllByUser(User user) {
+        return reportRepository.findAllByReportUser(user);
     }
 
     public Report getReportById(Long id, User user) {
         return reportRepository.findByIdAndReportUser(id, user);
     }
 
+    @Transactional
     public Report saveOrEdit(Report updatedReport, User user) {
         Report oldReport;
         Date changeDate = new Date();
         //Update
         if (updatedReport.getId() != null) {
-            oldReport = getReportById(updatedReport.getId(), user);
+            oldReport = reportRepository.findByIdAndReportUser(updatedReport.getId(), user);
             if (oldReport == null) {
                 throw new EntityNotFoundException("Report " + updatedReport.getReportName() + " id=" + updatedReport.getId() + " was not found and cannot be saved.");
             }
@@ -54,7 +56,7 @@ public class ReportService {
 
             //Update report template
             if (updatedReport.getReportTemplate() != null && updatedReport.getReportTemplate().getId() != null) {
-                Template template = templateRepository.findByTemplateUserAndIdOrTemplateGroupsIn(user, updatedReport.getReportTemplate().getId(), user.getUserGroups());
+                Template template = templateRepository.findByTemplateUserAndId(user, updatedReport.getReportTemplate().getId());
                 if (template == null) {
                     throw new EntityNotFoundException("Template id=" + updatedReport.getReportTemplate().getId() + " does not exist or you cannot access this template.");
                 }
@@ -70,7 +72,7 @@ public class ReportService {
             oldReport.setReportCreated(changeDate);
             oldReport.setReportUser(user);
             if (oldReport.getReportTemplate() != null) {
-                Template template = templateRepository.findByTemplateUserAndIdOrTemplateGroupsIn(user, oldReport.getReportTemplate().getId(), user.getUserGroups());
+                Template template = templateRepository.findByTemplateUserAndId(user, oldReport.getReportTemplate().getId());
                 if (template == null) {
                     throw new EntityNotFoundException("Template id=" + oldReport.getReportTemplate().getId() + " does not exist or you cannot access this template.");
                 }
@@ -137,15 +139,6 @@ public class ReportService {
                 if (capTable.getProcessColumn() == null || capTable.getProcessColumn().getSourceColumn() == null) {
                     throw new InvalidDataException("capability table has no process column defined.");
                 }
-                if (capTable.getLevelColumn() == null) {
-                    throw new InvalidDataException("Simple table has no capability level column defined.");
-                }
-                if (capTable.getEngineeringColumn() == null) {
-                    throw new InvalidDataException("Simple table has no engineering column defined.");
-                }
-                if (capTable.getScoreColumn() == null) {
-                    throw new InvalidDataException("Simple table has no score column defined.");
-                }
                 //Validate - source is defined
                 if (capTable.getSource().getId() == null) {
                     throw new InvalidDataException("Simple table has no source defined.");
@@ -178,7 +171,6 @@ public class ReportService {
                     throw new EntityNotFoundException("Invalid source column id=" + capTable.getScoreColumn().getId() + " for source id=" + sourceId);
                 }
 
-                source.addCapabilityTable(capTable);
                 capTable.getProcessColumn().setId(null);
             } else if (reportItem instanceof CapabilityBarGraph capabilityBarGraph) {
                 //Validate if user filled all required fields
@@ -231,42 +223,5 @@ public class ReportService {
             throw new EntityNotFoundException("Could not find report with id =" + reportId);
         }
         reportRepository.delete(report);
-    }
-
-    public void shareWithGroups(Long reportId, List<Long> groupIds, User user) {
-        Report report = reportRepository.findByIdAndReportUser(reportId, user);
-        if (report == null) {
-            throw new EntityNotFoundException("Could not find report with id = " + report.getId());
-        }
-
-        //Get all groups for update
-        List<UserGroup> reportGroupList = userGroupRepository.findAllByIdIn(groupIds);
-
-        //Get all removed groups
-        Set<UserGroup> removedGroups = new HashSet<>(report.getReportGroups());
-        removedGroups.removeAll(reportGroupList);
-
-        //Remove removed groups
-        for (UserGroup group : removedGroups) {
-            report.removeGroup(group);
-        }
-        //Add new groups
-        for (UserGroup group : reportGroupList) {
-            report.addGroup(group);
-        }
-
-        reportRepository.save(report);
-    }
-
-    public Set<UserGroup> getGroupsForReport(Long reportId, User loggedUser) {
-        Report report = reportRepository.findFirstById(reportId);
-        if (report == null) {
-            throw new EntityNotFoundException("Could not find report with id = " + reportId);
-        }
-        if (report.getReportUser().getId() != loggedUser.getId()) {
-            throw new UnauthorizedAccessException("Only the owner of this report can share it.");
-        }
-
-        return report.getReportGroups();
     }
 }

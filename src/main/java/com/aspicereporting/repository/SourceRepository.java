@@ -1,6 +1,5 @@
 package com.aspicereporting.repository;
 
-import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.User;

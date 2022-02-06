@@ -27,19 +27,17 @@ public class Template {
     @NotNull
     private String templateName;
 
-    @JsonView(View.SimpleTable.class)
+    @JsonView(View.Table.class)
     @Column(name = "template_created")
     @Temporal(TemporalType.TIMESTAMP)
-    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private Date templateCreated;
 
-    @JsonView(View.SimpleTable.class)
+    @JsonView(View.Table.class)
     @Column(name = "template_last_updated")
     @Temporal(TemporalType.TIMESTAMP)
-    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private Date templateLastUpdated;
 
-    @JsonView(View.SimpleTable.class)
+    @JsonView(View.Table.class)
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User templateUser;
@@ -51,22 +49,4 @@ public class Template {
     @OneToMany(mappedBy = "reportTemplate", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Report> reports = new ArrayList<>();
-
-    @JsonView(View.SimpleTable.class)
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "template_groups",
-            joinColumns = @JoinColumn(name = "template_id"),
-            inverseJoinColumns = @JoinColumn(name = "group_id"))
-    private Set<UserGroup> templateGroups = new HashSet<>();
-
-
-    public void addGroup(UserGroup group) {
-        this.templateGroups.add(group);
-        group.getTemplates().add(this);
-    }
-
-    public void removeGroup(UserGroup group) {
-        this.templateGroups.remove(group);
-        group.getTemplates().remove(this);
-    }
 }

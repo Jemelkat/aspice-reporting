@@ -1,7 +1,6 @@
 package com.aspicereporting.controller;
 
 import com.aspicereporting.controller.response.MessageResponse;
-import com.aspicereporting.dto.ReportTableDTO;
 import com.aspicereporting.entity.Report;
 import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.UserGroup;
@@ -40,19 +39,9 @@ public class ReportController {
     JasperService jasperService;
 
     @GetMapping(value = "/getAll")
-    public List<ReportTableDTO> getAll(Authentication authentication) {
+    public List<Report> getAll(Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
-        List<Report> reports = reportService.getAllByUserOrShared(loggedUser);
-
-        //Convert Entity to custom DTO
-        return reports.stream().map((s) -> {
-            ReportTableDTO sDTO = modelMapper.map(s, ReportTableDTO.class);
-            if (!s.getReportGroups().isEmpty()) {
-                sDTO.setShared(Boolean.TRUE);
-                sDTO.setSharedBy(s.getReportUser().getId() == loggedUser.getId() ? "You" : s.getReportUser().getUsername());
-            }
-            return sDTO;
-        }).collect(Collectors.toList());
+        return reportService.getAllByUser(loggedUser);
     }
 
     @JsonView(View.Canvas.class)
@@ -68,20 +57,6 @@ public class ReportController {
     public Report getById(@RequestParam Long reportId, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
         return reportService.getReportById(reportId, loggedUser);
-    }
-
-    @PostMapping("/{id}/share")
-    public ResponseEntity<?> shareWithGroups(@PathVariable("id") Long reportId, @RequestBody List<Long> groupIds, Authentication authentication) {
-        User loggedUser = (User) authentication.getPrincipal();
-        reportService.shareWithGroups(reportId, groupIds, loggedUser);
-        return ResponseEntity.ok(new MessageResponse("Report id= " + reportId + " shared."));
-    }
-
-    @JsonView(View.Simple.class)
-    @GetMapping("/{id}/groups")
-    public Set<UserGroup> getGroups(@PathVariable("id") Long reportId, Authentication authentication) {
-        User loggedUser = (User) authentication.getPrincipal();
-        return reportService.getGroupsForReport(reportId, loggedUser);
     }
 
     @DeleteMapping("/delete")

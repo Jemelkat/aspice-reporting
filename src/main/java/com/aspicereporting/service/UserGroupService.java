@@ -59,11 +59,6 @@ public class UserGroupService {
             for (Source s : new HashSet<>(group.getSources())) {
                 s.removeGroup(group);
             }
-            for (Report r : new HashSet<>(group.getReports())) {
-                r.removeGroup(group);
-            }
-
-
             //Delete group
             userGroupRepository.delete(group);
         }, () -> {

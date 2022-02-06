@@ -30,13 +30,11 @@ public class Template {
     @JsonView(View.Table.class)
     @Column(name = "template_created")
     @Temporal(TemporalType.TIMESTAMP)
-    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private Date templateCreated;
 
     @JsonView(View.Table.class)
     @Column(name = "template_last_updated")
     @Temporal(TemporalType.TIMESTAMP)
-    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private Date templateLastUpdated;
 
     @JsonView(View.Table.class)

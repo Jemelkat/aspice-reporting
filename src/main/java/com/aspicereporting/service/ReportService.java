@@ -33,8 +33,8 @@ public class ReportService {
     }
 
     //Get all owned or shared sources
-    public List<Report> getAllByUserOrShared(User user) {
-        return reportRepository.findDistinctByReportUserOrReportGroupsIn(user, user.getUserGroups());
+    public List<Report> getAllByUser(User user) {
+        return reportRepository.findAllByReportUser(user);
     }
 
     public Report getReportById(Long id, User user) {
@@ -231,42 +231,5 @@ public class ReportService {
             throw new EntityNotFoundException("Could not find report with id =" + reportId);
         }
         reportRepository.delete(report);
-    }
-
-    public void shareWithGroups(Long reportId, List<Long> groupIds, User user) {
-        Report report = reportRepository.findByIdAndReportUser(reportId, user);
-        if (report == null) {
-            throw new EntityNotFoundException("Could not find report with id = " + report.getId());
-        }
-
-        //Get all groups for update
-        List<UserGroup> reportGroupList = userGroupRepository.findAllByIdIn(groupIds);
-
-        //Get all removed groups
-        Set<UserGroup> removedGroups = new HashSet<>(report.getReportGroups());
-        removedGroups.removeAll(reportGroupList);
-
-        //Remove removed groups
-        for (UserGroup group : removedGroups) {
-            report.removeGroup(group);
-        }
-        //Add new groups
-        for (UserGroup group : reportGroupList) {
-            report.addGroup(group);
-        }
-
-        reportRepository.save(report);
-    }
-
-    public Set<UserGroup> getGroupsForReport(Long reportId, User loggedUser) {
-        Report report = reportRepository.findFirstById(reportId);
-        if (report == null) {
-            throw new EntityNotFoundException("Could not find report with id = " + reportId);
-        }
-        if (report.getReportUser().getId() != loggedUser.getId()) {
-            throw new UnauthorizedAccessException("Only the owner of this report can share it.");
-        }
-
-        return report.getReportGroups();
     }
 }

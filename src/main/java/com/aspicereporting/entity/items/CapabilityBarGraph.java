@@ -20,6 +20,12 @@ import javax.validation.constraints.NotNull;
 @DiscriminatorValue("CAPABILITY_BAR_GRAPH")
 @JsonView(View.Simple.class)
 public class CapabilityBarGraph extends ReportItem {
+
+    @NotNull(message = "Capability bar graph needs orientation defined.")
+    @Column(length = 20, name = "orientation",nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Orientation orientation;
+
     @NotNull(message = "Capability bar graph needs source defined")
     @ManyToOne
     private Source source;
@@ -61,5 +67,9 @@ public class CapabilityBarGraph extends ReportItem {
         if (this.scoreColumn.getId() == null) {
             throw new InvalidDataException("Capability bar graph has no score column defined.");
         }
+    }
+
+    public enum Orientation {
+        VERTICAL, HORIZONTAL
     }
 }

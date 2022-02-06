@@ -126,7 +126,7 @@ public class JasperService {
             else if (reportItem instanceof CapabilityTable capabilityTable) {
                 try {
                     //Create table element for JR
-                    JRDesignComponentElement JRTableElement = capabilityTableService.createELement(jasperDesign, capabilityTable, tableCounter, parameters);
+                    JRDesignComponentElement JRTableElement = capabilityTableService.createElement(jasperDesign, capabilityTable, tableCounter, parameters);
                     //Add table to JR
                     band.addElement(JRTableElement);
                     tableCounter++;

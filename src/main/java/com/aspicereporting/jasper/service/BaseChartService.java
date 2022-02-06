@@ -14,9 +14,9 @@ public abstract class BaseChartService {
         StandardChartTheme theme = (StandardChartTheme)org.jfree.chart.StandardChartTheme.createJFreeTheme();
 
         theme.setTitlePaint( Color.decode( "#4572a7" ) );
-        theme.setExtraLargeFont( new Font(fontName,Font.PLAIN, 16) ); //title
-        theme.setLargeFont( new Font(fontName,Font.BOLD, 15)); //axis-title
-        theme.setRegularFont( new Font(fontName,Font.PLAIN, 11));
+        theme.setExtraLargeFont( new Font(fontName,Font.PLAIN, 12) ); //title
+        theme.setLargeFont( new Font(fontName,Font.BOLD, 10)); //axis-title
+        theme.setRegularFont( new Font(fontName,Font.PLAIN, 8));
         theme.setRangeGridlinePaint( Color.decode("#C0C0C0"));
         theme.setPlotBackgroundPaint( Color.white );
         theme.setChartBackgroundPaint( Color.white );

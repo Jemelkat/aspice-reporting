@@ -9,6 +9,7 @@ import com.aspicereporting.repository.*;
 import net.sf.jasperreports.engine.JRException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -41,12 +42,13 @@ public class ReportService {
         return reportRepository.findByIdAndReportUser(id, user);
     }
 
+    @Transactional
     public Report saveOrEdit(Report updatedReport, User user) {
         Report oldReport;
         Date changeDate = new Date();
         //Update
         if (updatedReport.getId() != null) {
-            oldReport = getReportById(updatedReport.getId(), user);
+            oldReport = reportRepository.findByIdAndReportUser(updatedReport.getId(), user);
             if (oldReport == null) {
                 throw new EntityNotFoundException("Report " + updatedReport.getReportName() + " id=" + updatedReport.getId() + " was not found and cannot be saved.");
             }
@@ -137,15 +139,6 @@ public class ReportService {
                 if (capTable.getProcessColumn() == null || capTable.getProcessColumn().getSourceColumn() == null) {
                     throw new InvalidDataException("capability table has no process column defined.");
                 }
-                if (capTable.getLevelColumn() == null) {
-                    throw new InvalidDataException("Simple table has no capability level column defined.");
-                }
-                if (capTable.getEngineeringColumn() == null) {
-                    throw new InvalidDataException("Simple table has no engineering column defined.");
-                }
-                if (capTable.getScoreColumn() == null) {
-                    throw new InvalidDataException("Simple table has no score column defined.");
-                }
                 //Validate - source is defined
                 if (capTable.getSource().getId() == null) {
                     throw new InvalidDataException("Simple table has no source defined.");
@@ -178,7 +171,6 @@ public class ReportService {
                     throw new EntityNotFoundException("Invalid source column id=" + capTable.getScoreColumn().getId() + " for source id=" + sourceId);
                 }
 
-                source.addCapabilityTable(capTable);
                 capTable.getProcessColumn().setId(null);
             } else if (reportItem instanceof CapabilityBarGraph capabilityBarGraph) {
                 //Validate if user filled all required fields

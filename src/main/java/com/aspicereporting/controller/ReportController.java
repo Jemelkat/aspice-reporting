@@ -38,6 +38,7 @@ public class ReportController {
     @Autowired
     JasperService jasperService;
 
+    @JsonView(View.Table.class)
     @GetMapping(value = "/getAll")
     public List<Report> getAll(Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();

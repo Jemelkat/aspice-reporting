@@ -36,7 +36,7 @@ public class SourceColumn {
     private List<SourceData> sourceData = new ArrayList<>();
 
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "source_id", nullable = false)
     private Source source;
 

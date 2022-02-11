@@ -15,6 +15,11 @@ import javax.validation.constraints.NotNull;
 @DiscriminatorValue("CAPABILITY_TABLE")
 @JsonView(View.Simple.class)
 public class CapabilityTable extends ReportItem {
+    private int fontSize;
+    private int processWidth;
+    private int criterionWidth;
+    private int levelLimit;
+
     @NotNull(message = "Capability table needs source defined")
     @ManyToOne
     private Source source;
@@ -31,8 +36,8 @@ public class CapabilityTable extends ReportItem {
 
     @NotNull(message = "Capability table needs criterion column defined")
     @ManyToOne
-    @JoinColumn(name="engineering_column_id")
-    private SourceColumn engineeringColumn;
+    @JoinColumn(name="criterion_column_id")
+    private SourceColumn criterionColumn;
 
     @NotNull(message = "Capability table needs score column defined")
     @ManyToOne

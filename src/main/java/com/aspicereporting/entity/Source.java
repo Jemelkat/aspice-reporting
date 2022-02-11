@@ -81,7 +81,7 @@ public class Source {
             table.setSource(null);
             table.getProcessColumn().setSourceColumn(null);
             table.setProcessColumn(null);
-            table.setEngineeringColumn(null);
+            table.setCriterionColumn(null);
             table.setLevelColumn(null);
             table.setScoreColumn(null);
         }

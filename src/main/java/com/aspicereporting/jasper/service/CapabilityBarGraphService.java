@@ -93,6 +93,7 @@ public class CapabilityBarGraphService extends BaseChartService {
         }
 
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        int maxLevel = 0;
         for (var process : processNames) {
             int level = 0;
             boolean isPreviousLevelAchieved = true;
@@ -161,6 +162,9 @@ public class CapabilityBarGraphService extends BaseChartService {
                     isPreviousLevelAchieved = false;
                 }
             }
+            if (maxLevel < level) {
+                maxLevel = level;
+            }
             dataset.addValue(level, "", process);
         }
 
@@ -170,7 +174,7 @@ public class CapabilityBarGraphService extends BaseChartService {
                 "Process",                  // domain axis label
                 "Level",                     // range axis label
                 dataset,                            // data
-                PlotOrientation.VERTICAL,           // the plot orientation
+                capabilityBarGraph.getOrientation().equals(CapabilityBarGraph.Orientation.VERTICAL) ? PlotOrientation.VERTICAL : PlotOrientation.HORIZONTAL,           // the plot orientation
                 false,                        // legend
                 false,                        // tooltips
                 false                        // urls
@@ -180,10 +184,12 @@ public class CapabilityBarGraphService extends BaseChartService {
         //Rotate x axis names to save space
         CategoryPlot plot = (CategoryPlot) chart.getPlot();
         ValueAxis rangeAxis = plot.getRangeAxis();
-        rangeAxis.setUpperBound(5);
+        rangeAxis.setUpperBound(maxLevel < 5 ? maxLevel + 1 : maxLevel);
         rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-        CategoryAxis categoryAxis = plot.getDomainAxis();
-        categoryAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
+        if (capabilityBarGraph.getOrientation().equals(CapabilityBarGraph.Orientation.VERTICAL)) {
+            CategoryAxis categoryAxis = plot.getDomainAxis();
+            categoryAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
+        }
 
         //Add data to parameter and add parameter to design
         parameters.put("chart" + counter, new JCommonDrawableRendererImpl(chart));

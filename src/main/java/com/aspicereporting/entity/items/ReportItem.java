@@ -1,5 +1,6 @@
 package com.aspicereporting.entity.items;
 
+import com.aspicereporting.entity.Dashboard;
 import com.aspicereporting.entity.Report;
 import com.aspicereporting.entity.Template;
 import com.aspicereporting.entity.views.View;
@@ -61,6 +62,11 @@ public abstract class ReportItem implements Comparable {
     @JoinColumn(name = "template_id", referencedColumnName = "template_id")
     @JsonIgnore
     private Template template;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "dashboard_id", referencedColumnName = "dashboard_id")
+    @JsonIgnore
+    private Dashboard dashboard;
 
     public enum EItemType {
         TEXT, SIMPLE_TABLE, CAPABILITY_TABLE, CAPABILITY_BAR_GRAPH;

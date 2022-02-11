@@ -64,6 +64,10 @@ public class User {
     @OneToMany(mappedBy="templateUser", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<Template> templates = new HashSet<>();
 
+    @JsonIgnore
+    @OneToOne(mappedBy="dashboardUser", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Dashboard dashboard;
+
     public User(String username, String email, String password) {
         this.username = username;
         this.email = email;

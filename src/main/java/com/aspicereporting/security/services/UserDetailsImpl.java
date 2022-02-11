@@ -24,7 +24,7 @@ public class UserDetailsImpl extends User implements UserDetails {
     }
 
     public UserDetailsImpl(User user,  Collection<? extends GrantedAuthority> authorities) {
-        super(user.getId(), user.getUsername(),user.getEmail(),user.getPassword(),user.getRoles(),user.getUserGroups(),user.getSources(),user.getReports(),user.getTemplates());
+        super(user.getId(), user.getUsername(),user.getEmail(),user.getPassword(),user.getRoles(),user.getUserGroups(),user.getSources(),user.getReports(),user.getTemplates(), user.getDashboard());
         this.authorities = authorities;
     }
 
@@ -33,10 +33,7 @@ public class UserDetailsImpl extends User implements UserDetails {
                 .map(role -> new SimpleGrantedAuthority(role.getName().name()))
                 .collect(Collectors.toList());
 
-        //Initialize lazy loaded objects to prevent issues with persistence bag
-//        Hibernate.initialize(user.getSources());
-//        Hibernate.initialize(user.getReports());
-//        Hibernate.initialize(user.getTemplates());
+        //Initialize lazy loaded usergroups to prevent issues with persistence bag
         Hibernate.initialize(user.getUserGroups());
 
         UserDetailsImpl u =  new UserDetailsImpl(user, authorities);

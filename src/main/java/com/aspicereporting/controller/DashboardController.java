@@ -22,7 +22,7 @@ public class DashboardController {
 
     @JsonView(View.Canvas.class)
     @PostMapping("/save")
-    public Dashboard save(@RequestBody @Valid Dashboard dashboard, Authentication authentication) {
+    public Dashboard save(@RequestBody Dashboard dashboard, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
         return dashboardService.saveDashboard(dashboard, loggedUser);
     }

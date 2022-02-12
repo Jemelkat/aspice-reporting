@@ -64,7 +64,7 @@ public class DashboardService {
             }
 
             //Validate report item if all related sources etc. can be accessed by this user
-            itemValidationService.validateItem(reportItem, user);
+            itemValidationService.validateItem(reportItem, true, user);
             //Bidirectional relationship
             reportItem.setDashboard(savedDashboard);
             newDashboardItems.add(reportItem);
@@ -84,6 +84,11 @@ public class DashboardService {
         if(dashboard == null) {
             throw new EntityNotFoundException("You don't have any saved dashboard.");
         }
+        //Check if dashboard has only valid items
+        if (!containsValidItems(dashboard)) {
+            throw new InvalidDataException("Dashboard accepts only CAPABILITY BAR GRAPH.");
+        }
+
         Optional<ReportItem> existingItem = Optional.empty();
         existingItem = dashboard.getDashboardItems().stream()
                 .filter(i -> i.getId().equals(itemId))
@@ -93,6 +98,9 @@ public class DashboardService {
         }
 
         ReportItem reportItem = existingItem.get();
+        //Validate report item if all related sources etc. can be accessed by this user - required for generation
+        itemValidationService.validateItem(reportItem, false, user);
+
         LinkedHashMap<String, Integer> map;
         if(reportItem instanceof CapabilityBarGraph capabilityBarGraph) {
             map =  capabilityBarGraphService.getData(capabilityBarGraph);

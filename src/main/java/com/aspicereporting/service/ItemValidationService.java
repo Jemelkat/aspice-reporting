@@ -17,7 +17,7 @@ public class ItemValidationService {
     @Autowired
     SourceRepository sourceRepository;
 
-    public void validateItem(ReportItem reportItem, User user) {
+    public void validateItem(ReportItem reportItem, boolean allowUndefinedData, User user) {
         if (reportItem instanceof TextItem textItem) {
             //No validation
         } else if (reportItem instanceof TableItem tableItem) {
@@ -25,7 +25,9 @@ public class ItemValidationService {
         } else if (reportItem instanceof CapabilityTable capabilityTable) {
             validateCapabilityTable(capabilityTable, user);
         } else if (reportItem instanceof CapabilityBarGraph capabilityBarGraph) {
-            validateCapabilityBarGraph(capabilityBarGraph, user);
+            if(!allowUndefinedData) {
+                validateCapabilityBarGraph(capabilityBarGraph, user);
+            }
         } else {
             throw new InvalidDataException("Report contains unknown item type: " + reportItem.getType());
         }
@@ -100,13 +102,14 @@ public class ItemValidationService {
     }
 
     private void validateCapabilityBarGraph(CapabilityBarGraph capabilityBarGraph, User user) {
+        //Validate - if source and all id of columns are defined
         capabilityBarGraph.validate();
 
         Long sourceId = capabilityBarGraph.getSource().getId();
         //Validate - user can use this source id
         Source source = sourceRepository.findByIdAndUserOrSourceGroupsIn(sourceId, user, user.getUserGroups());
         if (source == null) {
-            throw new EntityNotFoundException("You dont have access to this source id = " + sourceId);
+            throw new EntityNotFoundException("Source id= " + sourceId +" does not exist");
         }
         //PROCESS VALIDATE
         Optional<SourceColumn> columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capabilityBarGraph.getProcessColumn().getId())).findFirst();

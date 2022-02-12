@@ -107,7 +107,7 @@ public class ReportService {
             }
 
             //Validate report item if all related sources etc. can be accessed by this user
-            itemValidationService.validateItem(reportItem, user);
+            itemValidationService.validateItem(reportItem,false, user);
 
             reportItem.setReport(oldReport);
             reportItem.setTemplate(null);

@@ -11,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.LinkedHashMap;
 
 @CrossOrigin
 @RestController
@@ -31,5 +32,11 @@ public class DashboardController {
     public Dashboard getById(Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
         return dashboardService.getDashboardByUser(loggedUser);
+    }
+
+    @GetMapping("/data")
+    public LinkedHashMap<String, Integer> getItemData(@RequestParam Long itemId, Authentication authentication) {
+        User loggedUser = (User) authentication.getPrincipal();
+        return dashboardService.getDashboardItemData(itemId, loggedUser);
     }
 }

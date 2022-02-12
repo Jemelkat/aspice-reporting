@@ -10,12 +10,14 @@ import com.aspicereporting.entity.items.TableItem;
 import com.aspicereporting.entity.items.TextItem;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.exception.InvalidDataException;
+import com.aspicereporting.jasper.service.CapabilityBarGraphService;
 import com.aspicereporting.repository.DashboardRepository;
 import com.aspicereporting.repository.SourceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,6 +29,8 @@ public class DashboardService {
     SourceRepository sourceRepository;
     @Autowired
     ItemValidationService itemValidationService;
+    @Autowired
+    CapabilityBarGraphService capabilityBarGraphService;
 
     public Dashboard saveDashboard(Dashboard updatedDashboard, User user) {
         Dashboard savedDashboard = dashboardRepository.findByDashboardUser(user);
@@ -73,6 +77,29 @@ public class DashboardService {
 
     public Dashboard getDashboardByUser(User user) {
         return dashboardRepository.findByDashboardUser(user);
+    }
+
+    public LinkedHashMap<String, Integer> getDashboardItemData(Long itemId, User user) {
+        Dashboard dashboard = dashboardRepository.findByDashboardUser(user);
+        if(dashboard == null) {
+            throw new EntityNotFoundException("You don't have any saved dashboard.");
+        }
+        Optional<ReportItem> existingItem = Optional.empty();
+        existingItem = dashboard.getDashboardItems().stream()
+                .filter(i -> i.getId().equals(itemId))
+                .findAny();
+        if(existingItem.isEmpty()) {
+            throw new EntityNotFoundException("You don't have this dashboard item saved.");
+        }
+
+        ReportItem reportItem = existingItem.get();
+        LinkedHashMap<String, Integer> map;
+        if(reportItem instanceof CapabilityBarGraph capabilityBarGraph) {
+            map =  capabilityBarGraphService.getData(capabilityBarGraph);
+        } else {
+            throw new InvalidDataException("Invalid item type provided :" + reportItem.getType().toString());
+        }
+        return map;
     }
 
     private boolean containsValidItems(Dashboard dashboard) {

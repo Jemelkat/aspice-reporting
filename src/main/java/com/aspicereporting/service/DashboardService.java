@@ -25,29 +25,30 @@ public class DashboardService {
     DashboardRepository dashboardRepository;
     @Autowired
     SourceRepository sourceRepository;
+    @Autowired
+    ItemValidationService itemValidationService;
 
     public Dashboard saveDashboard(Dashboard updatedDashboard, User user) {
         Dashboard savedDashboard = dashboardRepository.findByDashboardUser(user);
-        //CREATE
+        //CREATE NEW
         if (savedDashboard == null) {
             savedDashboard = updatedDashboard;
-            if (!containsValidItems(savedDashboard)) {
-                throw new InvalidDataException("Dashboard accepts only CAPABILITY BAR GRAPH.");
-            }
-
             savedDashboard.setId(null);
             savedDashboard.setDashboardUser(user);
             for (ReportItem reportItem : savedDashboard.getDashboardItems()) {
                 reportItem.setId(null);
             }
-            //UPDATE
-        } else {
-            if (!containsValidItems(savedDashboard)) {
-                throw new InvalidDataException("Dashboard accepts only CAPABILITY BAR GRAPH.");
-            }
+        }
+
+        //Check if dashboard has only valid items
+        if (!containsValidItems(savedDashboard)) {
+            throw new InvalidDataException("Dashboard accepts only CAPABILITY BAR GRAPH.");
+        }
+
+        List<ReportItem> newDashboardItems = new ArrayList<>();
+        for (ReportItem reportItem : updatedDashboard.getDashboardItems()) {
             //Configure item IDs - if they exist use same ID - hibernate will MERGE
-            List<ReportItem> newDashboardItems = new ArrayList<>();
-            for (ReportItem reportItem : updatedDashboard.getDashboardItems()) {
+            if (reportItem.getId() != null) {
                 Optional<ReportItem> existingItem = Optional.empty();
                 existingItem = savedDashboard.getDashboardItems().stream()
                         .filter(i -> i.getId().equals(reportItem.getId()))
@@ -56,47 +57,16 @@ public class DashboardService {
                 if (existingItem.isEmpty()) {
                     reportItem.setId(null);
                 }
-
-                if (reportItem instanceof CapabilityBarGraph capabilityBarGraph) {
-                    //Validate if user filled all required fields
-                    capabilityBarGraph.validate();
-
-                    Long sourceId = capabilityBarGraph.getSource().getId();
-                    //Validate - user can use this source id
-                    Source source = sourceRepository.findByIdAndUserOrSourceGroupsIn(sourceId, user, user.getUserGroups());
-                    if (source == null) {
-                        throw new EntityNotFoundException("You dont have access to this source id = " + sourceId);
-                    }
-                    //PROCESS VALIDATE
-                    Optional<SourceColumn> columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capabilityBarGraph.getProcessColumn().getId())).findFirst();
-                    if (columnExists.isEmpty()) {
-                        throw new EntityNotFoundException("Invalid source column id=" + capabilityBarGraph.getProcessColumn().getId() + " for source id=" + sourceId);
-                    }
-                    //LEVEL VALIDATE
-                    columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capabilityBarGraph.getLevelColumn().getId())).findFirst();
-                    if (columnExists.isEmpty()) {
-                        throw new EntityNotFoundException("Invalid source column id=" + capabilityBarGraph.getLevelColumn().getId() + " for source id=" + sourceId);
-                    }
-                    //ATTRIBUTE VALIDATE
-                    columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capabilityBarGraph.getAttributeColumn().getId())).findFirst();
-                    if (columnExists.isEmpty()) {
-                        throw new EntityNotFoundException("Invalid source column id=" + capabilityBarGraph.getAttributeColumn().getId() + " for source id=" + sourceId);
-                    }
-                    //SCORE VALIDATE
-                    columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capabilityBarGraph.getScoreColumn().getId())).findFirst();
-                    if (columnExists.isEmpty()) {
-                        throw new EntityNotFoundException("Invalid source column id=" + capabilityBarGraph.getScoreColumn().getId() + " for source id=" + sourceId);
-                    }
-
-                    source.addCapabilityGraph(capabilityBarGraph);
-                }
-
-                reportItem.setDashboard(savedDashboard);
-                newDashboardItems.add(reportItem);
             }
-            savedDashboard.getDashboardItems().clear();
-            savedDashboard.getDashboardItems().addAll(newDashboardItems);
+
+            //Validate report item if all related sources etc. can be accessed by this user
+            itemValidationService.validateItem(reportItem, user);
+            //Bidirectional relationship
+            reportItem.setDashboard(savedDashboard);
+            newDashboardItems.add(reportItem);
         }
+        savedDashboard.getDashboardItems().clear();
+        savedDashboard.getDashboardItems().addAll(newDashboardItems);
 
         return dashboardRepository.save(savedDashboard);
     }

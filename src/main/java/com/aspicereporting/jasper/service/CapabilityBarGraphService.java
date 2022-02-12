@@ -1,6 +1,10 @@
 package com.aspicereporting.jasper.service;
 
+import com.aspicereporting.entity.Source;
+import com.aspicereporting.entity.SourceColumn;
+import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.items.CapabilityBarGraph;
+import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.exception.JasperReportException;
 import com.aspicereporting.repository.SourceColumnRepository;
@@ -50,6 +54,66 @@ public class CapabilityBarGraphService extends BaseChartService {
     );
 
     public JRDesignImage createElement(JasperDesign jasperDesign, CapabilityBarGraph capabilityBarGraph, Integer counter, Map<String, Object> parameters) throws JRException {
+        LinkedHashMap<String, Integer> graphData = getData(capabilityBarGraph);
+
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        int maxLevel = 0;
+        for(var process: graphData.keySet()) {
+            Integer level = graphData.get(process);
+            if(level > maxLevel) {
+                maxLevel = level;
+            }
+            dataset.addValue(level, "", process);
+        }
+
+        final JFreeChart chart = ChartFactory.createBarChart(
+                "",                                   // chart title
+                "Process",                  // domain axis label
+                "Level",                     // range axis label
+                dataset,                            // data
+                capabilityBarGraph.getOrientation().equals(CapabilityBarGraph.Orientation.VERTICAL) ? PlotOrientation.VERTICAL : PlotOrientation.HORIZONTAL,           // the plot orientation
+                false,                        // legend
+                false,                        // tooltips
+                false                        // urls
+        );
+        this.applyBarGraphTheme(chart);
+
+        //Rotate x axis names to save space
+        CategoryPlot plot = (CategoryPlot) chart.getPlot();
+        ValueAxis rangeAxis = plot.getRangeAxis();
+        rangeAxis.setUpperBound(maxLevel < 5 ? maxLevel + 1 : maxLevel);
+        rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+        if (capabilityBarGraph.getOrientation().equals(CapabilityBarGraph.Orientation.VERTICAL)) {
+            CategoryAxis categoryAxis = plot.getDomainAxis();
+            categoryAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
+        }
+
+        //Add data to parameter and add parameter to design
+        parameters.put("chart" + counter, new JCommonDrawableRendererImpl(chart));
+        JRDesignParameter parameter = new JRDesignParameter();
+        parameter.setValueClass(Renderable.class);
+        parameter.setName("chart" + counter);
+        jasperDesign.addParameter(parameter);
+
+        //Add image - chart will be displayed in image tag
+        JRDesignImage imageElement = new JRDesignImage(jasperDesign);
+        imageElement.setX(capabilityBarGraph.getX());
+        imageElement.setY(capabilityBarGraph.getY());
+        imageElement.setWidth(capabilityBarGraph.getWidth());
+        imageElement.setHeight(capabilityBarGraph.getHeight());
+        imageElement.setPositionType(PositionTypeEnum.FLOAT);
+        imageElement.setScaleImage(ScaleImageEnum.FILL_FRAME);
+        imageElement.setLazy(true);
+        JRDesignExpression expression = new JRDesignExpression();
+        expression.setText("$P{chart" + counter + "}");
+        expression.setValueClass(JRRenderable.class);
+        imageElement.setExpression(expression);
+
+        return imageElement;
+    }
+
+    public LinkedHashMap<String, Integer> getData(CapabilityBarGraph capabilityBarGraph) {
+        LinkedHashMap<String, Integer> graphData = new LinkedHashMap<>();
         //Get all unique processes and levels
         List<String> processNames = sourceRepository.findDistinctByColumnId(capabilityBarGraph.getProcessColumn().getId());
         List<String> levelNames = sourceRepository.findDistinctByColumnId(capabilityBarGraph.getLevelColumn().getId());
@@ -92,8 +156,6 @@ public class CapabilityBarGraphService extends BaseChartService {
             processLevelAchievedMap.put(process, 0D);
         }
 
-        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        int maxLevel = 0;
         for (var process : processNames) {
             int level = 0;
             boolean isPreviousLevelAchieved = true;
@@ -162,56 +224,9 @@ public class CapabilityBarGraphService extends BaseChartService {
                     isPreviousLevelAchieved = false;
                 }
             }
-            if (maxLevel < level) {
-                maxLevel = level;
-            }
-            dataset.addValue(level, "", process);
+            graphData.put(process, level);
         }
 
-
-        final JFreeChart chart = ChartFactory.createBarChart(
-                "",                                   // chart title
-                "Process",                  // domain axis label
-                "Level",                     // range axis label
-                dataset,                            // data
-                capabilityBarGraph.getOrientation().equals(CapabilityBarGraph.Orientation.VERTICAL) ? PlotOrientation.VERTICAL : PlotOrientation.HORIZONTAL,           // the plot orientation
-                false,                        // legend
-                false,                        // tooltips
-                false                        // urls
-        );
-        this.applyBarGraphTheme(chart);
-
-        //Rotate x axis names to save space
-        CategoryPlot plot = (CategoryPlot) chart.getPlot();
-        ValueAxis rangeAxis = plot.getRangeAxis();
-        rangeAxis.setUpperBound(maxLevel < 5 ? maxLevel + 1 : maxLevel);
-        rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-        if (capabilityBarGraph.getOrientation().equals(CapabilityBarGraph.Orientation.VERTICAL)) {
-            CategoryAxis categoryAxis = plot.getDomainAxis();
-            categoryAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
-        }
-
-        //Add data to parameter and add parameter to design
-        parameters.put("chart" + counter, new JCommonDrawableRendererImpl(chart));
-        JRDesignParameter parameter = new JRDesignParameter();
-        parameter.setValueClass(Renderable.class);
-        parameter.setName("chart" + counter);
-        jasperDesign.addParameter(parameter);
-
-        //Add image - chart will be displayed in image tag
-        JRDesignImage imageElement = new JRDesignImage(jasperDesign);
-        imageElement.setX(capabilityBarGraph.getX());
-        imageElement.setY(capabilityBarGraph.getY());
-        imageElement.setWidth(capabilityBarGraph.getWidth());
-        imageElement.setHeight(capabilityBarGraph.getHeight());
-        imageElement.setPositionType(PositionTypeEnum.FLOAT);
-        imageElement.setScaleImage(ScaleImageEnum.FILL_FRAME);
-        imageElement.setLazy(true);
-        JRDesignExpression expression = new JRDesignExpression();
-        expression.setText("$P{chart" + counter + "}");
-        expression.setValueClass(JRRenderable.class);
-        imageElement.setExpression(expression);
-
-        return imageElement;
+        return graphData;
     }
 }

@@ -1,9 +1,6 @@
 package com.aspicereporting.entity;
 
-import com.aspicereporting.entity.items.CapabilityBarGraph;
-import com.aspicereporting.entity.items.CapabilityTable;
-import com.aspicereporting.entity.items.TableColumn;
-import com.aspicereporting.entity.items.TableItem;
+import com.aspicereporting.entity.items.*;
 import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -63,6 +60,10 @@ public class Source {
     @JsonIgnore
     @OneToMany(mappedBy = "source", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     private List<CapabilityBarGraph> capabilityBarGraphs = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "source", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    private List<LevelPieGraph> levelPieGraphs = new ArrayList<>();
 
     @JsonIgnore
     @ManyToOne(optional = false)
@@ -125,5 +126,12 @@ public class Source {
         this.capabilityBarGraphs.add(capabilityBarGraph);
         capabilityBarGraph.setSource(this);
     }
+
+    public void addLevelPieGraph(LevelPieGraph levelPieGraph) {
+        this.levelPieGraphs.add(levelPieGraph);
+        levelPieGraph.setSource(this);
+    }
+
+
 
 }

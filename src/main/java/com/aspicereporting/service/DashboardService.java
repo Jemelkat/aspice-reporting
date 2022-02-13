@@ -4,13 +4,11 @@ import com.aspicereporting.entity.Dashboard;
 import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.User;
-import com.aspicereporting.entity.items.CapabilityBarGraph;
-import com.aspicereporting.entity.items.ReportItem;
-import com.aspicereporting.entity.items.TableItem;
-import com.aspicereporting.entity.items.TextItem;
+import com.aspicereporting.entity.items.*;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.jasper.service.CapabilityBarGraphService;
+import com.aspicereporting.jasper.service.LevelPieGraphService;
 import com.aspicereporting.repository.DashboardRepository;
 import com.aspicereporting.repository.SourceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +29,8 @@ public class DashboardService {
     ItemValidationService itemValidationService;
     @Autowired
     CapabilityBarGraphService capabilityBarGraphService;
+    @Autowired
+    LevelPieGraphService levelPieGraphService;
 
     public Dashboard saveDashboard(Dashboard updatedDashboard, User user) {
         Dashboard savedDashboard = dashboardRepository.findByDashboardUser(user);
@@ -46,7 +46,7 @@ public class DashboardService {
 
         //Check if dashboard has only valid items
         if (!containsValidItems(savedDashboard)) {
-            throw new InvalidDataException("Dashboard accepts only CAPABILITY BAR GRAPH.");
+            throw new InvalidDataException("Dashboard accepts only bar or pie graph.");
         }
 
         List<ReportItem> newDashboardItems = new ArrayList<>();
@@ -81,7 +81,7 @@ public class DashboardService {
 
     public LinkedHashMap<String, Integer> getDashboardItemData(Long itemId, User user) {
         Dashboard dashboard = dashboardRepository.findByDashboardUser(user);
-        if(dashboard == null) {
+        if (dashboard == null) {
             throw new EntityNotFoundException("You don't have any saved dashboard.");
         }
         //Check if dashboard has only valid items
@@ -93,7 +93,7 @@ public class DashboardService {
         existingItem = dashboard.getDashboardItems().stream()
                 .filter(i -> i.getId().equals(itemId))
                 .findAny();
-        if(existingItem.isEmpty()) {
+        if (existingItem.isEmpty()) {
             throw new EntityNotFoundException("You don't have this dashboard item saved.");
         }
 
@@ -102,8 +102,10 @@ public class DashboardService {
         itemValidationService.validateItem(reportItem, false, user);
 
         LinkedHashMap<String, Integer> map;
-        if(reportItem instanceof CapabilityBarGraph capabilityBarGraph) {
-            map =  capabilityBarGraphService.getData(capabilityBarGraph);
+        if (reportItem instanceof CapabilityBarGraph capabilityBarGraph) {
+            map = capabilityBarGraphService.getData(capabilityBarGraph);
+        } else if (reportItem instanceof LevelPieGraph levelPieGraph) {
+            map = levelPieGraphService.getData(levelPieGraph);
         } else {
             throw new InvalidDataException("Invalid item type provided :" + reportItem.getType().toString());
         }
@@ -113,6 +115,7 @@ public class DashboardService {
     private boolean containsValidItems(Dashboard dashboard) {
         for (ReportItem item : dashboard.getDashboardItems()) {
             switch (item.getType()) {
+                case LEVEL_PIE_GRAPH:
                 case CAPABILITY_BAR_GRAPH:
                     break;
                 default:

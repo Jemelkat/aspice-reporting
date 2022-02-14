@@ -6,12 +6,42 @@ import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.exception.JasperReportException;
 import com.aspicereporting.repository.SourceRepository;
 import com.aspicereporting.utils.NaturalOrderComparator;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JRRenderable;
+import net.sf.jasperreports.engine.design.JRDesignExpression;
+import net.sf.jasperreports.engine.design.JRDesignImage;
+import net.sf.jasperreports.engine.design.JRDesignParameter;
+import net.sf.jasperreports.engine.design.JasperDesign;
+import net.sf.jasperreports.engine.type.PositionTypeEnum;
+import net.sf.jasperreports.engine.type.ScaleImageEnum;
+import net.sf.jasperreports.renderers.JCommonDrawableRendererImpl;
+import net.sf.jasperreports.renderers.Renderable;
 import org.apache.commons.collections4.keyvalue.MultiKey;
 import org.apache.commons.collections4.map.MultiKeyMap;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.StandardChartTheme;
+import org.jfree.chart.axis.CategoryAxis;
+import org.jfree.chart.axis.CategoryLabelPositions;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.labels.PieSectionLabelGenerator;
+import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.PiePlot;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.renderer.category.StandardBarPainter;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.general.DefaultPieDataset;
+import org.jfree.ui.RectangleInsets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.awt.*;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,14 +65,62 @@ public class LevelPieGraphService {
     );
 
 
+    public JRDesignImage createElement(JasperDesign jasperDesign, LevelPieGraph levelPieGraph, Integer counter, Map<String, Object> parameters) throws JRException {
+        LinkedHashMap<String, Integer> graphData = getData(levelPieGraph);
+
+        DefaultPieDataset dataset = new DefaultPieDataset();
+        for (var level : graphData.keySet()) {
+            Integer count = graphData.get(level);
+            dataset.setValue(level, count);
+        }
+
+        final JFreeChart chart = ChartFactory.createPieChart(
+                "Pie Chart",
+                dataset,
+                true,
+                true,
+                false
+        );
+
+        PiePlot plot = (PiePlot) chart.getPlot();
+        plot.setSimpleLabels(true);
+
+        PieSectionLabelGenerator gen = new StandardPieSectionLabelGenerator(
+                "{1} ({2})", NumberFormat.getInstance(), NumberFormat.getPercentInstance());
+        plot.setLabelGenerator(gen);
+
+        //Add data to parameter and add parameter to design
+        parameters.put("chart" + counter, new JCommonDrawableRendererImpl(chart));
+        JRDesignParameter parameter = new JRDesignParameter();
+        parameter.setValueClass(Renderable.class);
+        parameter.setName("chart" + counter);
+        jasperDesign.addParameter(parameter);
+
+        //Add image - chart will be displayed in image tag
+        JRDesignImage imageElement = new JRDesignImage(jasperDesign);
+        imageElement.setX(levelPieGraph.getX());
+        imageElement.setY(levelPieGraph.getY());
+        imageElement.setWidth(levelPieGraph.getWidth());
+        imageElement.setHeight(levelPieGraph.getHeight());
+        imageElement.setPositionType(PositionTypeEnum.FLOAT);
+        imageElement.setScaleImage(ScaleImageEnum.FILL_FRAME);
+        imageElement.setLazy(true);
+        JRDesignExpression expression = new JRDesignExpression();
+        expression.setText("$P{chart" + counter + "}");
+        expression.setValueClass(JRRenderable.class);
+        imageElement.setExpression(expression);
+
+        return imageElement;
+    }
+
     public LinkedHashMap<String, Integer> getData(LevelPieGraph levelPieGraph) {
         LinkedHashMap<String, Integer> levelCounts = new LinkedHashMap<>();
-        levelCounts.put("0",0);
-        levelCounts.put("1",0);
-        levelCounts.put("2",0);
-        levelCounts.put("3",0);
-        levelCounts.put("4",0);
-        levelCounts.put("5",0);
+        levelCounts.put("0", 0);
+        levelCounts.put("1", 0);
+        levelCounts.put("2", 0);
+        levelCounts.put("3", 0);
+        levelCounts.put("4", 0);
+        levelCounts.put("5", 0);
 
         //Get all unique processes and levels
         List<String> processNames = sourceRepository.findDistinctByColumnId(levelPieGraph.getProcessColumn().getId());
@@ -154,21 +232,29 @@ public class LevelPieGraphService {
                     isPreviousLevelAchieved = false;
                 }
             }
-            if(level > 5) {
+            if (level > 5) {
                 throw new InvalidDataException("Pie graph has maximum level 5. Please use check your source.");
             }
 
             levelCounts.put(level.toString(), levelCounts.get(level.toString()) + 1);
         }
 
-        for(var key : new LinkedHashMap<>(levelCounts).keySet()) {
+        for (var key : new LinkedHashMap<>(levelCounts).keySet()) {
             Integer count = levelCounts.get(key);
-            if(count == 0) {
+            if (count == 0) {
                 levelCounts.remove(key);
             } else {
                 levelCounts.remove(key);
-                levelCounts.put("Level "+ key, count);
+                levelCounts.put("Level " + key, count);
             }
+        }
+
+        List<Map.Entry<String, Integer>> entries = new ArrayList<>(levelCounts.entrySet());
+        Collections.sort(entries, Map.Entry.comparingByValue(Comparator.reverseOrder()));
+
+        levelCounts.clear();
+        for (Map.Entry<String, Integer> e : entries) {
+            levelCounts.put(e.getKey(), e.getValue());
         }
 
         return levelCounts;

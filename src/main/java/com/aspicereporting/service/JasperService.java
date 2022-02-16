@@ -3,10 +3,7 @@ package com.aspicereporting.service;
 import com.aspicereporting.entity.Report;
 import com.aspicereporting.entity.items.*;
 import com.aspicereporting.exception.JasperReportException;
-import com.aspicereporting.jasper.service.CapabilityBarGraphService;
-import com.aspicereporting.jasper.service.CapabilityTableService;
-import com.aspicereporting.jasper.service.SimpleTableService;
-import com.aspicereporting.jasper.service.TextService;
+import com.aspicereporting.jasper.service.*;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.design.*;
 import net.sf.jasperreports.engine.export.JRPdfExporter;
@@ -34,6 +31,8 @@ public class JasperService {
     TextService textService;
     @Autowired
     CapabilityBarGraphService capabilityBarGraphService;
+    @Autowired
+    LevelPieGraphService levelPieGraphService;
 
     //Parameters with data - used to fill report
     private Map<String, Object> parameters = new HashMap();
@@ -134,7 +133,7 @@ public class JasperService {
                     throw new JasperReportException("Error creating the capability table item for report", e);
                 }
             }
-            /*GRAPH ITEM*/
+            /*CAPABILITY BAR GRAPH*/
             else if (reportItem instanceof CapabilityBarGraph capabilityBarGraph) {
                 try {
                     JRDesignImage element = capabilityBarGraphService.createElement(jasperDesign, capabilityBarGraph, graphCounter, parameters);
@@ -142,6 +141,16 @@ public class JasperService {
                     graphCounter++;
                 } catch (JRException e) {
                     throw new JasperReportException("Error creating the capability graph item for report", e);
+                }
+            }
+            /*LEVEL PIE GRAPH*/
+            else if (reportItem instanceof LevelPieGraph levelPieGraph) {
+                try {
+                    JRDesignImage element = levelPieGraphService.createElement(jasperDesign, levelPieGraph, graphCounter, parameters);
+                    band.addElement(element);
+                    graphCounter++;
+                } catch (JRException e) {
+                    throw new JasperReportException("Error creating the level pie graph item for report", e);
                 }
             } else {
                 throw new JasperReportException("Unknown report item type: " + reportItem.getType());

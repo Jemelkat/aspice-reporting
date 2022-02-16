@@ -71,7 +71,7 @@ public class CapabilityBarGraphService extends BaseChartService {
                 "Process",                  // domain axis label
                 "Level",                     // range axis label
                 dataset,                            // data
-                capabilityBarGraph.getOrientation().equals(CapabilityBarGraph.Orientation.VERTICAL) ? PlotOrientation.VERTICAL : PlotOrientation.HORIZONTAL,           // the plot orientation
+                capabilityBarGraph.getOrientation().equals(CapabilityBarGraph.Orientation.VERTICAL) ? PlotOrientation.HORIZONTAL : PlotOrientation.VERTICAL,           // the plot orientation
                 false,                        // legend
                 false,                        // tooltips
                 false                        // urls
@@ -83,7 +83,7 @@ public class CapabilityBarGraphService extends BaseChartService {
         ValueAxis rangeAxis = plot.getRangeAxis();
         rangeAxis.setUpperBound(maxLevel < 5 ? maxLevel + 1 : maxLevel);
         rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-        if (capabilityBarGraph.getOrientation().equals(CapabilityBarGraph.Orientation.VERTICAL)) {
+        if (capabilityBarGraph.getOrientation().equals(CapabilityBarGraph.Orientation.HORIZONTAL)) {
             CategoryAxis categoryAxis = plot.getDomainAxis();
             categoryAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
         }

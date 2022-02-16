@@ -25,9 +25,11 @@ import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.labels.PieSectionLabelGenerator;
 import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
 import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.jfree.chart.plot.PiePlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.StandardBarPainter;
@@ -45,18 +47,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class LevelPieGraphService {
+public class LevelPieGraphService extends BaseChartService {
     @Autowired
     SourceRepository sourceRepository;
 
-    Map<String, Double> scoreToValueMap = Map.ofEntries(
+    private static Map<String, Double> scoreToValueMap = Map.ofEntries(
             new AbstractMap.SimpleEntry<>("N", 0D),
             new AbstractMap.SimpleEntry<>("P", 0.33D),
             new AbstractMap.SimpleEntry<>("L", 0.66D),
             new AbstractMap.SimpleEntry<>("F", 1D)
     );
 
-    Map<Integer, ArrayList<String>> processAttributesMap = Map.ofEntries(
+    private static Map<Integer, ArrayList<String>> processAttributesMap = Map.ofEntries(
             new AbstractMap.SimpleEntry<>(1, new ArrayList<>(Arrays.asList("PA1.1"))),
             new AbstractMap.SimpleEntry<>(2, new ArrayList<>(Arrays.asList("PA2.1", "PA2.2"))),
             new AbstractMap.SimpleEntry<>(3, new ArrayList<>(Arrays.asList("PA3.1", "PA3.2"))),
@@ -64,6 +66,14 @@ public class LevelPieGraphService {
             new AbstractMap.SimpleEntry<>(5, new ArrayList<>(Arrays.asList("PA5.1", "PA5.2")))
     );
 
+    private static Paint[] pieColors = new Paint[]{
+            Color.decode("#4572a7"),
+            Color.decode("#008fbe"),
+            Color.decode("#00aab7"),
+            Color.decode("#00c092"),
+            Color.decode("#70cf5c"),
+            Color.decode("#d6d327")
+    };
 
     public JRDesignImage createElement(JasperDesign jasperDesign, LevelPieGraph levelPieGraph, Integer counter, Map<String, Object> parameters) throws JRException {
         LinkedHashMap<String, Integer> graphData = getData(levelPieGraph);
@@ -75,7 +85,7 @@ public class LevelPieGraphService {
         }
 
         final JFreeChart chart = ChartFactory.createPieChart(
-                "Pie Chart",
+                null,
                 dataset,
                 true,
                 true,
@@ -83,12 +93,28 @@ public class LevelPieGraphService {
         );
 
         PiePlot plot = (PiePlot) chart.getPlot();
-        plot.setSimpleLabels(true);
-
+        plot.setBackgroundPaint(Color.white);
+        plot.setOutlinePaint(null);
+        plot.setShadowPaint(null);
+        //Label
         PieSectionLabelGenerator gen = new StandardPieSectionLabelGenerator(
                 "{1} ({2})", NumberFormat.getInstance(), NumberFormat.getPercentInstance());
+        plot.setSimpleLabels(true);
         plot.setLabelGenerator(gen);
+        plot.setLabelBackgroundPaint(Color.white);
+        plot.setLabelShadowPaint(null);
+        plot.setLabelOutlinePaint(null);
+        //TODO SCALE TEXT
+        //plot.setLabelFont(new Font("test", Font.PLAIN, 5));
+        //Legend
+        plot.setLegendItemShape(new Rectangle(0,0,10,10));
+        chart.getLegend().setFrame(BlockBorder.NONE);
 
+        for (int i = 0; i < dataset.getItemCount(); i++) {
+            String key = (String) dataset.getKey(i);
+            plot.setSectionPaint(key, pieColors[i]);
+            plot.setSectionOutlinePaint(key,Color.white);
+        }
         //Add data to parameter and add parameter to design
         parameters.put("chart" + counter, new JCommonDrawableRendererImpl(chart));
         JRDesignParameter parameter = new JRDesignParameter();

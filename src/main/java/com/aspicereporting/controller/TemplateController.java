@@ -28,13 +28,19 @@ public class TemplateController {
     @PostMapping("/save")
     public Template createOrEditTemplate(@RequestBody Template template, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
-        //Edit old or create new template
         return templateService.saveOrEditTemplate(template, loggedUser);
     }
 
     @JsonView(View.Table.class)
     @GetMapping("/getAll")
     public List<Template> getAll(Authentication authentication) {
+        User loggedUser = (User) authentication.getPrincipal();
+        return templateService.getAllByUser(loggedUser);
+    }
+
+    @JsonView(View.Simple.class)
+    @GetMapping("/allSimple")
+    public List<Template> getAllSimple(Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
         return templateService.getAllByUser(loggedUser);
     }

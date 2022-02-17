@@ -45,6 +45,13 @@ public class ReportController {
         return reportService.getAllByUser(loggedUser);
     }
 
+    @JsonView(View.Simple.class)
+    @GetMapping(value = "/allSimple")
+    public List<Report> getAllSimple(Authentication authentication) {
+        User loggedUser = (User) authentication.getPrincipal();
+        return reportService.getAllByUser(loggedUser);
+    }
+
     @JsonView(View.Canvas.class)
     @PostMapping("/save")
     public Report createOrEditReport(@RequestBody @Valid Report report, Authentication authentication) {

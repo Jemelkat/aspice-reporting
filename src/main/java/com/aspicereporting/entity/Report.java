@@ -45,6 +45,7 @@ public class Report {
     @Valid
     private List<ReportItem> reportItems = new ArrayList<>();
 
+    @JsonView(View.Table.class)
     @ManyToOne
     @JoinColumn(name = "template_id")
     private Template reportTemplate;

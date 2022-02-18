@@ -136,8 +136,8 @@ public class CapabilityTableService extends BaseTableService {
 
     private SimpleTableModel createTableModel(CapabilityTable capabilityTable, Map<String, LinkedHashSet<String>> levelAttributesMap) {
         //Get all unique processes and levels
-        List<String> processNames = sourceRepository.findDistinctByColumnId(capabilityTable.getProcessColumn().getSourceColumn().getId());
-        List<String> levelNames = sourceRepository.findDistinctByColumnId(capabilityTable.getLevelColumn().getId());
+        List<String> processNames = sourceRepository.findDistinctColumnValuesForColumn(capabilityTable.getProcessColumn().getSourceColumn().getId());
+        List<String> levelNames = sourceRepository.findDistinctColumnValuesForColumn(capabilityTable.getLevelColumn().getId());
 
         //Remove empty levels "" and processes ""
         levelNames = levelNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());

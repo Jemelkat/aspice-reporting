@@ -5,6 +5,7 @@ import com.aspicereporting.dto.SourceTableDTO;
 import com.aspicereporting.entity.*;
 import com.aspicereporting.entity.views.View;
 import com.aspicereporting.service.SourceService;
+import com.aspicereporting.utils.NaturalOrderComparator;
 import com.fasterxml.jackson.annotation.JsonView;
 import net.sf.jasperreports.engine.JRException;
 import org.modelmapper.ModelMapper;
@@ -21,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import java.io.ByteArrayOutputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -112,5 +114,13 @@ public class SourceController {
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(resource);
+    }
+
+    @GetMapping("/{sourceId}/values")
+    public List<String> getDistinctColumnValues(@PathVariable("sourceId") Long sourceId, @RequestParam("columnId") Long columnId, Authentication authentication) throws JRException {
+        User loggedUser = (User) authentication.getPrincipal();
+        List<String> values = sourceService.getDistinctValuesForColumn(sourceId, columnId, loggedUser);
+        Collections.sort(values, new NaturalOrderComparator());
+        return values;
     }
 }

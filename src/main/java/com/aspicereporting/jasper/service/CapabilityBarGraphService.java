@@ -1,10 +1,6 @@
 package com.aspicereporting.jasper.service;
 
-import com.aspicereporting.entity.Source;
-import com.aspicereporting.entity.SourceColumn;
-import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.items.CapabilityBarGraph;
-import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.exception.JasperReportException;
 import com.aspicereporting.repository.SourceColumnRepository;
@@ -12,7 +8,10 @@ import com.aspicereporting.repository.SourceRepository;
 import com.aspicereporting.utils.NaturalOrderComparator;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRRenderable;
-import net.sf.jasperreports.engine.design.*;
+import net.sf.jasperreports.engine.design.JRDesignExpression;
+import net.sf.jasperreports.engine.design.JRDesignImage;
+import net.sf.jasperreports.engine.design.JRDesignParameter;
+import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.type.PositionTypeEnum;
 import net.sf.jasperreports.engine.type.ScaleImageEnum;
 import net.sf.jasperreports.renderers.JCommonDrawableRendererImpl;
@@ -21,7 +20,10 @@ import org.apache.commons.collections4.keyvalue.MultiKey;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.*;
+import org.jfree.chart.axis.CategoryAxis;
+import org.jfree.chart.axis.CategoryLabelPositions;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
@@ -115,11 +117,15 @@ public class CapabilityBarGraphService extends BaseChartService {
     public LinkedHashMap<String, Integer> getData(CapabilityBarGraph capabilityBarGraph) {
         LinkedHashMap<String, Integer> graphData = new LinkedHashMap<>();
         //Get all unique processes and levels
-        List<String> processNames = sourceRepository.findDistinctByColumnId(capabilityBarGraph.getProcessColumn().getId());
-        List<String> levelNames = sourceRepository.findDistinctByColumnId(capabilityBarGraph.getLevelColumn().getId());
+        List<String> processNames = sourceRepository.findDistinctColumnValuesForColumn(capabilityBarGraph.getProcessColumn().getId());
+        List<String> levelNames = sourceRepository.findDistinctColumnValuesForColumn(capabilityBarGraph.getLevelColumn().getId());
         //Remove empty levels "" and processes ""
         levelNames = levelNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
         processNames = processNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
+        //Apply process filter
+        if(!capabilityBarGraph.getProcessFilter().isEmpty()) {
+            processNames = processNames.stream().filter(process -> capabilityBarGraph.getProcessFilter().contains(process)).collect(Collectors.toList());
+        }
 
         if (levelNames.size() > 5) {
             throw new InvalidDataException("Source: \"" + capabilityBarGraph.getSource().getSourceName() + "\" has more than 5 capability levels defined");

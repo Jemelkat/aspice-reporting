@@ -1,6 +1,5 @@
 package com.aspicereporting.jasper.service;
 
-import com.aspicereporting.entity.items.CapabilityBarGraph;
 import com.aspicereporting.entity.items.LevelPieGraph;
 import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.exception.JasperReportException;
@@ -20,27 +19,15 @@ import org.apache.commons.collections4.keyvalue.MultiKey;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.StandardChartTheme;
-import org.jfree.chart.axis.CategoryAxis;
-import org.jfree.chart.axis.CategoryLabelPositions;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.labels.PieSectionLabelGenerator;
 import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
-import org.jfree.chart.plot.CategoryPlot;
-import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.jfree.chart.plot.PiePlot;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.renderer.category.StandardBarPainter;
-import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.DefaultPieDataset;
-import org.jfree.ui.RectangleInsets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.List;
@@ -149,8 +136,8 @@ public class LevelPieGraphService extends BaseChartService {
         levelCounts.put("5", 0);
 
         //Get all unique processes and levels
-        List<String> processNames = sourceRepository.findDistinctByColumnId(levelPieGraph.getProcessColumn().getId());
-        List<String> levelNames = sourceRepository.findDistinctByColumnId(levelPieGraph.getLevelColumn().getId());
+        List<String> processNames = sourceRepository.findDistinctColumnValuesForColumn(levelPieGraph.getProcessColumn().getId());
+        List<String> levelNames = sourceRepository.findDistinctColumnValuesForColumn(levelPieGraph.getLevelColumn().getId());
         //Remove empty levels "" and processes ""
         levelNames = levelNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
         processNames = processNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());

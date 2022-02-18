@@ -40,6 +40,6 @@ public abstract class BaseChartService {
         rend.setShadowXOffset( 2 );
         rend.setShadowYOffset( 0 );
         rend.setShadowPaint( Color.decode( "#C0C0C0"));
-        rend.setMaximumBarWidth(0.1);
+        rend.setMaximumBarWidth(1);
     }
 }

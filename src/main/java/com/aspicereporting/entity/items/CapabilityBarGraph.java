@@ -5,13 +5,18 @@ import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.views.View;
 import com.aspicereporting.exception.InvalidDataException;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.vladmihalcea.hibernate.type.array.ListArrayType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -19,6 +24,10 @@ import javax.validation.constraints.NotNull;
 @Entity
 @DiscriminatorValue("CAPABILITY_BAR_GRAPH")
 @JsonView(View.Simple.class)
+@TypeDef(
+        name = "list-array",
+        typeClass = ListArrayType.class
+)
 public class CapabilityBarGraph extends ReportItem {
 
     @NotNull(message = "Capability bar graph needs orientation defined.")
@@ -49,6 +58,13 @@ public class CapabilityBarGraph extends ReportItem {
     @ManyToOne
     @JoinColumn(name = "score_column_id", referencedColumnName = "source_column_id")
     private SourceColumn scoreColumn;
+
+    @Type(type = "list-array")
+    @Column(
+            name = "process_filter",
+            columnDefinition = "text[]"
+    )
+    private List<String> processFilter = new ArrayList<>();
 
     public void validate() {
 

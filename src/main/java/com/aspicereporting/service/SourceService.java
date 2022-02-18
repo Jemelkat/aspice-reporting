@@ -6,22 +6,16 @@ import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.exception.UnauthorizedAccessException;
 import com.aspicereporting.repository.SourceRepository;
 import com.aspicereporting.repository.UserGroupRepository;
-import com.opencsv.CSVParser;
-import com.opencsv.CSVParserBuilder;
-import com.opencsv.CSVReader;
-import com.opencsv.CSVReaderBuilder;
 import com.opencsv.exceptions.CsvValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import com.aspicereporting.utils.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class SourceService {
@@ -114,6 +108,18 @@ public class SourceService {
             throw new EntityNotFoundException("Could not find data for source id=" + sourceId);
         }
         return source.getSourceColumns();
+    }
+
+    public List<String> getDistinctValuesForColumn(Long sourceId, Long columnId, User user) {
+        Source source = sourceRepository.findByIdAndUserOrSourceGroupsIn(sourceId, user, user.getUserGroups());
+        if (source == null) {
+            throw new EntityNotFoundException("Could not find data for source id=" + sourceId);
+        }
+        if (!source.getSourceColumns().stream().anyMatch(sourceColumn -> sourceColumn.getId().equals(columnId))) {
+            throw new EntityNotFoundException("Source id="+sourceId +" has no column id="+columnId);
+        }
+        List<String> columValues = sourceRepository.findDistinctColumnValuesForColumn(columnId);
+        return columValues.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
     }
 
     public ByteArrayOutputStream generateCSV(Long sourceId, User user) {

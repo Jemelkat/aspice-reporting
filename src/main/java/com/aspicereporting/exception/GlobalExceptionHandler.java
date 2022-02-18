@@ -69,12 +69,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     private void logException(Exception ex) {
-        if (ex.getCause() != null) {
-            logger.error(ex.getCause().toString());
-        } else {
-            logger.error(ex.getMessage());
-        }
+        logger.error("Exception: ", ex);
     }
-
-
 }

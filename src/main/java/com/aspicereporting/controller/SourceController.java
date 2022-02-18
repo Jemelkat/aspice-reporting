@@ -2,16 +2,17 @@ package com.aspicereporting.controller;
 
 import com.aspicereporting.controller.response.MessageResponse;
 import com.aspicereporting.dto.SourceTableDTO;
-import com.aspicereporting.entity.SourceColumn;
-import com.aspicereporting.entity.UserGroup;
-import com.aspicereporting.entity.Source;
-import com.aspicereporting.entity.User;
+import com.aspicereporting.entity.*;
 import com.aspicereporting.entity.views.View;
 import com.aspicereporting.service.SourceService;
 import com.fasterxml.jackson.annotation.JsonView;
+import net.sf.jasperreports.engine.JRException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.repository.query.Param;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -97,5 +99,18 @@ public class SourceController {
         User loggedUser = (User) authentication.getPrincipal();
         sourceService.shareWithGroups(sourceId, groupIds, loggedUser);
         return ResponseEntity.ok(new MessageResponse("Source id=" + sourceId + " shared."));
+    }
+
+    @GetMapping("/{id}/download")
+    public ResponseEntity<?> generate(@PathVariable("id") Long sourceId, Authentication authentication) throws JRException {
+        User loggedUser = (User) authentication.getPrincipal();
+        ByteArrayOutputStream out = sourceService.generateCSV(sourceId, loggedUser);
+        ByteArrayResource resource = new ByteArrayResource(out.toByteArray());
+
+        HttpHeaders headers = new HttpHeaders(); headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + "file" + ".csv");
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(resource);
     }
 }

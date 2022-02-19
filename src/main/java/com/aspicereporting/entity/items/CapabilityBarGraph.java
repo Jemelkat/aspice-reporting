@@ -39,6 +39,10 @@ public class CapabilityBarGraph extends ReportItem {
     @ManyToOne
     private Source source;
 
+    @ManyToOne
+    @JoinColumn(name = "assessor_column_id", referencedColumnName = "source_column_id")
+    private SourceColumn assessorColumn;
+
     @NotNull(message = "Capability bar graph needs process column defined")
     @ManyToOne
     @JoinColumn(name = "process_column_id", referencedColumnName = "source_column_id")
@@ -66,8 +70,15 @@ public class CapabilityBarGraph extends ReportItem {
     )
     private List<String> processFilter = new ArrayList<>();
 
-    public void validate() {
+    @Type(type = "list-array")
+    @Column(
+            name = "assessor_filter",
+            columnDefinition = "text[]"
+    )
+    private List<String> assessorFilter = new ArrayList<>();
 
+
+    public void validate() {
         if (this.source.getId() == null) {
             throw new InvalidDataException("Capability bar graph has no source defined.");
         }
@@ -82,6 +93,9 @@ public class CapabilityBarGraph extends ReportItem {
         }
         if (this.scoreColumn.getId() == null) {
             throw new InvalidDataException("Capability bar graph has no score column defined.");
+        }
+        if (this.getAssessorFilter().size() > 0 && this.assessorColumn.getId() == null) {
+            throw new InvalidDataException("Assessor column for filter is not defined.");
         }
     }
 

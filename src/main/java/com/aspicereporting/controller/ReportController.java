@@ -1,5 +1,6 @@
 package com.aspicereporting.controller;
 
+import com.aspicereporting.controller.response.ErrorResponse;
 import com.aspicereporting.controller.response.MessageResponse;
 import com.aspicereporting.entity.Report;
 import com.aspicereporting.entity.User;
@@ -13,13 +14,16 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
 import java.io.ByteArrayOutputStream;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -54,7 +58,7 @@ public class ReportController {
 
     @JsonView(View.Canvas.class)
     @PostMapping("/save")
-    public Report createOrEditReport(@RequestBody @Valid Report report, Authentication authentication) {
+    public Report createOrEditReport(@RequestBody Report report, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
         //Edit old or create new template
         return reportService.saveOrEdit(report, loggedUser);
@@ -79,10 +83,11 @@ public class ReportController {
         User loggedUser = (User) authentication.getPrincipal();
         Report report = reportService.getReportById(reportId, loggedUser);
         //Get report PDF as byte array stream
-        ByteArrayOutputStream out = jasperService.generateReport(report);
-        ByteArrayResource resource = new ByteArrayResource(out.toByteArray());
+        ByteArrayOutputStream out = jasperService.generateReport(report, loggedUser);
 
-        HttpHeaders headers = new HttpHeaders(); headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + report.getReportName() + ".pdf");
+        ByteArrayResource resource = new ByteArrayResource(out.toByteArray());
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + report.getReportName() + ".pdf");
         return ResponseEntity.ok()
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)

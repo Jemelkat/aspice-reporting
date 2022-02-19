@@ -13,6 +13,7 @@ import com.aspicereporting.repository.DashboardRepository;
 import com.aspicereporting.repository.SourceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -86,7 +87,7 @@ public class DashboardService {
         }
         //Check if dashboard has only valid items
         if (!containsValidItems(dashboard)) {
-            throw new InvalidDataException("Dashboard accepts only CAPABILITY BAR GRAPH.");
+            throw new InvalidDataException("Dashboard accepts only CAPABILITY BAR GRAPH or PIE GRAPH.");
         }
 
         Optional<ReportItem> existingItem = Optional.empty();
@@ -97,9 +98,10 @@ public class DashboardService {
             throw new EntityNotFoundException("You don't have this dashboard item saved.");
         }
 
+
         ReportItem reportItem = existingItem.get();
         //Validate report item if all related sources etc. can be accessed by this user - required for generation
-        itemValidationService.validateItem(reportItem, false, user);
+        itemValidationService.validateItemWithValid(reportItem, false, user);
 
         LinkedHashMap<String, Integer> map;
         if (reportItem instanceof CapabilityBarGraph capabilityBarGraph) {

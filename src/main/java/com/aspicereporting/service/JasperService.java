@@ -1,6 +1,7 @@
 package com.aspicereporting.service;
 
 import com.aspicereporting.entity.Report;
+import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.items.*;
 import com.aspicereporting.exception.JasperReportException;
 import com.aspicereporting.jasper.service.*;
@@ -33,11 +34,19 @@ public class JasperService {
     CapabilityBarGraphService capabilityBarGraphService;
     @Autowired
     LevelPieGraphService levelPieGraphService;
+    @Autowired
+    ItemValidationService itemValidationService;
+
 
     //Parameters with data - used to fill report
     private Map<String, Object> parameters = new HashMap();
 
-    public ByteArrayOutputStream generateReport(Report report) {
+    public ByteArrayOutputStream generateReport(Report report, User user) {
+        //Validate report items
+        for(ReportItem reportItem : report.getReportItems()) {
+            itemValidationService.validateItemWithValid(reportItem, false, user);
+        }
+
         //Get JasperDesign
         JasperDesign jasperDesign = getJasperDesign(report);
         //Compile JasperDesign

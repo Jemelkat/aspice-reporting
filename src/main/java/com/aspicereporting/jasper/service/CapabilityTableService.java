@@ -136,7 +136,7 @@ public class CapabilityTableService extends BaseTableService {
 
     private SimpleTableModel createTableModel(CapabilityTable capabilityTable, Map<String, LinkedHashSet<String>> levelAttributesMap) {
         //Get all unique processes and levels
-        List<String> processNames = sourceRepository.findDistinctColumnValuesForColumn(capabilityTable.getProcessColumn().getSourceColumn().getId());
+        List<String> processNames = sourceRepository.findDistinctColumnValuesForColumn(capabilityTable.getProcessColumn().getId());
         List<String> levelNames = sourceRepository.findDistinctColumnValuesForColumn(capabilityTable.getLevelColumn().getId());
 
         //Remove empty levels "" and processes ""
@@ -150,7 +150,7 @@ public class CapabilityTableService extends BaseTableService {
         levelNames = levelNames.stream().limit(capabilityTable.getLevelLimit()).collect(Collectors.toList());
 
         //Get all data for process, level, attribute and score columns
-        SourceColumn processColumn = sourceColumnRepository.findFirstById(capabilityTable.getProcessColumn().getSourceColumn().getId());
+        SourceColumn processColumn = sourceColumnRepository.findFirstById(capabilityTable.getProcessColumn().getId());
         SourceColumn levelColumn = sourceColumnRepository.findFirstById(capabilityTable.getLevelColumn().getId());
         SourceColumn attributeColumn = sourceColumnRepository.findFirstById(capabilityTable.getCriterionColumn().getId());
         SourceColumn scoreColumn = sourceColumnRepository.findFirstById(capabilityTable.getScoreColumn().getId());

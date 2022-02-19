@@ -80,7 +80,6 @@ public class Source {
         }
         for (CapabilityTable table : capabilityTables) {
             table.setSource(null);
-            table.getProcessColumn().setSourceColumn(null);
             table.setProcessColumn(null);
             table.setCriterionColumn(null);
             table.setLevelColumn(null);

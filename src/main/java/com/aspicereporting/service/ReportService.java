@@ -27,7 +27,7 @@ public class ReportService {
 
     public void generateReport(Long reportId, User user) throws JRException {
         Report report = reportRepository.findByIdAndReportUser(reportId, user);
-        jasperService.generateReport(report);
+        jasperService.generateReport(report, user);
     }
 
     //Get all owned or shared sources
@@ -107,7 +107,7 @@ public class ReportService {
             }
 
             //Validate report item if all related sources etc. can be accessed by this user
-            itemValidationService.validateItem(reportItem,false, user);
+            itemValidationService.validateItem(reportItem,true, user);
 
             reportItem.setReport(oldReport);
             reportItem.setTemplate(null);

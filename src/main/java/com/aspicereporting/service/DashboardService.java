@@ -11,14 +11,14 @@ import com.aspicereporting.jasper.service.CapabilityBarGraphService;
 import com.aspicereporting.jasper.service.LevelPieGraphService;
 import com.aspicereporting.repository.DashboardRepository;
 import com.aspicereporting.repository.SourceRepository;
+import com.aspicereporting.utils.NaturalOrderComparator;
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class DashboardService {
@@ -80,7 +80,7 @@ public class DashboardService {
         return dashboardRepository.findByDashboardUser(user);
     }
 
-    public LinkedHashMap<String, Integer> getDashboardItemData(Long itemId, User user) {
+    public List<Map<String, String>> getDashboardItemData(Long itemId, User user) {
         Dashboard dashboard = dashboardRepository.findByDashboardUser(user);
         if (dashboard == null) {
             throw new EntityNotFoundException("You don't have any saved dashboard.");
@@ -103,15 +103,30 @@ public class DashboardService {
         //Validate report item if all related sources etc. can be accessed by this user - required for generation
         itemValidationService.validateItemWithValid(reportItem, false, user);
 
-        LinkedHashMap<String, Integer> map;
+
+        List<Map<String, String>> result = new ArrayList<>();
         if (reportItem instanceof CapabilityBarGraph capabilityBarGraph) {
-            map = capabilityBarGraphService.getData(capabilityBarGraph);
+            /*Returns list of map items
+             * [{process: "name", assessor: "name", level: 0}, ...]
+             * */
+            LinkedHashMap<String, Map<String, Integer>> map = capabilityBarGraphService.getData(capabilityBarGraph);
+            for(var process : map.keySet()){
+                for(var assessor : map.get(process).keySet()) {
+                    result.add(Map.of("process", process, "assessor", assessor, "level", map.get(process).get(assessor).toString()));
+                }
+            }
         } else if (reportItem instanceof LevelPieGraph levelPieGraph) {
-            map = levelPieGraphService.getData(levelPieGraph);
+            /*Returns list of map items
+             * [{level: 0, assessor: "name", count: 5}, ...]
+             * */
+            LinkedHashMap<String, Integer> map = levelPieGraphService.getData(levelPieGraph);
+            for(var level : map.keySet()) {
+                result.add(Map.of("level", level, "count", map.get(level).toString()));
+            }
         } else {
             throw new InvalidDataException("Invalid item type provided :" + reportItem.getType().toString());
         }
-        return map;
+        return result;
     }
 
     private boolean containsValidItems(Dashboard dashboard) {

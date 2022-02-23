@@ -25,6 +25,13 @@ public class CapabilityTable extends ReportItem {
     @ManyToOne
     private Source source;
 
+    @NotNull(message = "Capability table needs assessor column defined")
+    @ManyToOne
+    @JoinColumn(name = "assessor_column_id", referencedColumnName = "source_column_id")
+    private SourceColumn assessorColumn;
+
+    private String assessorFilter;
+
     @NotNull(message = "Capability table needs process column defined")
     @ManyToOne
     @JoinColumn(name="process_column_id")

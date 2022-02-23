@@ -56,17 +56,20 @@ public class CapabilityBarGraphService extends BaseChartService {
     );
 
     public JRDesignImage createElement(JasperDesign jasperDesign, CapabilityBarGraph capabilityBarGraph, Integer counter, Map<String, Object> parameters) throws JRException {
-        LinkedHashMap<String, Integer> graphData = getData(capabilityBarGraph);
+        LinkedHashMap<String, Map<String, Integer>> graphData = getData(capabilityBarGraph);
 
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         int maxLevel = 0;
-        for(var process: graphData.keySet()) {
-            Integer level = graphData.get(process);
-            if(level > maxLevel) {
-                maxLevel = level;
+        for (var process : graphData.keySet()) {
+            for(var assessor : graphData.get(process).keySet()) {
+                Integer level = graphData.get(process).get(assessor);
+                if (level > maxLevel) {
+                    maxLevel = level;
+                }
+                dataset.addValue(level, assessor, process);
             }
-            dataset.addValue(level, "", process);
         }
+
 
         final JFreeChart chart = ChartFactory.createBarChart(
                 "",                                   // chart title
@@ -74,7 +77,7 @@ public class CapabilityBarGraphService extends BaseChartService {
                 "Level",                     // range axis label
                 dataset,                            // data
                 capabilityBarGraph.getOrientation().equals(CapabilityBarGraph.Orientation.VERTICAL) ? PlotOrientation.HORIZONTAL : PlotOrientation.VERTICAL,           // the plot orientation
-                false,                        // legend
+                true,                        // legend
                 false,                        // tooltips
                 false                        // urls
         );
@@ -114,17 +117,23 @@ public class CapabilityBarGraphService extends BaseChartService {
         return imageElement;
     }
 
-    public LinkedHashMap<String, Integer> getData(CapabilityBarGraph capabilityBarGraph) {
-        LinkedHashMap<String, Integer> graphData = new LinkedHashMap<>();
+    public LinkedHashMap<String, Map<String, Integer>> getData(CapabilityBarGraph capabilityBarGraph) {
         //Get all unique processes and levels
         List<String> processNames = sourceRepository.findDistinctColumnValuesForColumn(capabilityBarGraph.getProcessColumn().getId());
         List<String> levelNames = sourceRepository.findDistinctColumnValuesForColumn(capabilityBarGraph.getLevelColumn().getId());
+        List<String> assessorNames = sourceRepository.findDistinctColumnValuesForColumn(capabilityBarGraph.getAssessorColumn().getId());
         //Remove empty levels "" and processes ""
         levelNames = levelNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
         processNames = processNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
+        assessorNames = assessorNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
+
         //Apply process filter
-        if(!capabilityBarGraph.getProcessFilter().isEmpty()) {
+        if (!capabilityBarGraph.getProcessFilter().isEmpty()) {
             processNames = processNames.stream().filter(process -> capabilityBarGraph.getProcessFilter().contains(process)).collect(Collectors.toList());
+        }
+        //Apply assessor filter
+        if (!capabilityBarGraph.getAssessorFilter().isEmpty()) {
+            assessorNames = assessorNames.stream().filter(assessor -> capabilityBarGraph.getAssessorFilter().contains(assessor)).collect(Collectors.toList());
         }
 
         if (levelNames.size() > 5) {
@@ -142,8 +151,14 @@ public class CapabilityBarGraphService extends BaseChartService {
             String levelValue = capabilityBarGraph.getLevelColumn().getSourceData().get(i).getValue();
             String attributeValue = capabilityBarGraph.getAttributeColumn().getSourceData().get(i).getValue().toUpperCase().replaceAll("\\s", "");
             String scoreValue = capabilityBarGraph.getScoreColumn().getSourceData().get(i).getValue();
+            String assessorValue = capabilityBarGraph.getAssessorColumn().getSourceData().get(i).getValue();
 
-            MultiKey key = new MultiKey(processValue, levelValue);
+            //Filter by assessor and process
+            if (!assessorNames.contains(assessorValue) || (!processNames.contains(processValue))) {
+                continue;
+            }
+
+            MultiKey key = new MultiKey(processValue, levelValue, assessorValue);
             if (valuesMap.containsKey(key)) {
                 Map<String, ArrayList<String>> map = (Map<String, ArrayList<String>>) valuesMap.get(key);
                 if (map.containsKey(attributeValue)) {
@@ -156,83 +171,96 @@ public class CapabilityBarGraphService extends BaseChartService {
             }
         }
 
-        //Prepare default level for each process
-        HashMap<String, Double> processLevelAchievedMap = new HashMap<>();
+        //Prepare default level for each process and assessor
+        LinkedHashMap<String, Map<String, Integer>> processLevelMap = new LinkedHashMap<>();
+        MultiKeyMap<String, Integer> processLevelAchievedMap = new MultiKeyMap();
         for (String process : processNames) {
-            processLevelAchievedMap.put(process, 0D);
-        }
-
-        for (var process : processNames) {
-            int level = 0;
-            boolean isPreviousLevelAchieved = true;
-
-            for (int i = 0; i < levelNames.size(); i++) {
-                //If previous level is not fully achieved move to another process
-                if (!isPreviousLevelAchieved) {
-                    break;
-                }
-
-                MultiKey multikey = new MultiKey(process, levelNames.get(i));
-                //Process does not have this level defined - we don't have to increment level achieved
-                if (!valuesMap.containsKey(multikey)) {
-                    break;
-                }
-                //Get all scores for (process, level) key
-                Map<String, ArrayList<String>> attributesScoreMap = (Map<String, ArrayList<String>>) valuesMap.get(multikey);
-                for (String attribute : processAttributesMap.get(i + 1)) {
-                    double avgScore = 0;
-                    if (attributesScoreMap.containsKey(attribute)) {
-                        //Create sum of all scores for attribute
-                        for (String s : attributesScoreMap.get(attribute)) {
-                            double score;
-                            if (scoreToValueMap.containsKey(s)) {
-                                score = scoreToValueMap.get(s);
-                            } else {
-                                try {
-                                    score = Double.parseDouble(s);
-                                } catch (Exception e) {
-                                    throw new JasperReportException("Capability graph score column contains non numeric or unknown value: " + s, e);
-                                }
-                            }
-                            avgScore += score;
-                        }
-                    }
-                    //Get average score achieved for this attribute
-                    avgScore = avgScore / attributesScoreMap.get(attribute).size();
-
-                    //Set score achieved for this attribute
-                    //
-                    if (avgScore > 0.85) {
-                        if (i == 0) {
-                            processLevelAchievedMap.put(process, processLevelAchievedMap.get(process) + 2);
-                        } else {
-                            processLevelAchievedMap.put(process, processLevelAchievedMap.get(process) + 1);
-                        }
-                    } else if (avgScore > 0.5) {
-                        if (i == 0) {
-                            processLevelAchievedMap.put(process, processLevelAchievedMap.get(process) + 1);
-                        } else {
-                            processLevelAchievedMap.put(process, processLevelAchievedMap.get(process) + 0.5);
-                        }
-                    }
-                }
-
-                Double finalAttributesScore = processLevelAchievedMap.get(process);
-                //0 - not achieved, 1 - all defined attributes are largely achieved, 2- all are fully
-                if (finalAttributesScore == 2) {
-                    level += 1;
+            for (String assessor : assessorNames) {
+                processLevelAchievedMap.put(process, assessor, 0);
+                if (processLevelMap.containsKey(process)) {
+                    Map<String,Integer> assessorMap = processLevelMap.get(process);
+                    assessorMap.put(assessor, 0);
+                    processLevelMap.put(process, assessorMap);
                 } else {
-                    //All attributes are at least largely achieved
-                    if (finalAttributesScore >= 1) {
-                        level += 1;
-                    }
-                    //We need to have all attributes fully to continue
-                    isPreviousLevelAchieved = false;
+                    processLevelMap.put(process, new HashMap<>(Map.of(assessor, 0)));
                 }
             }
-            graphData.put(process, level);
         }
 
-        return graphData;
+        for (var assessor : assessorNames) {
+            for (var process : processNames) {
+                int level = 0;
+                boolean isPreviousLevelAchieved = true;
+
+                for (int i = 0; i < levelNames.size(); i++) {
+                    double levelValue = 0;
+                    //If previous level is not fully achieved move to another process
+                    if (!isPreviousLevelAchieved) {
+                        break;
+                    }
+
+                    MultiKey multikey = new MultiKey(process, levelNames.get(i), assessor);
+                    //Process does not have this level defined - we don't have to increment level achieved
+                    if (!valuesMap.containsKey(multikey)) {
+                        break;
+                    }
+                    //Get all scores for (process, level, assessor) key
+                    Map<String, ArrayList<String>> attributesScoreMap = (Map<String, ArrayList<String>>) valuesMap.get(multikey);
+                    for (String attribute : processAttributesMap.get(i + 1)) {
+                        double avgScore = 0;
+                        if (attributesScoreMap.containsKey(attribute)) {
+                            //Create sum of all scores for attribute
+                            for (String s : attributesScoreMap.get(attribute)) {
+                                double score;
+                                if (scoreToValueMap.containsKey(s)) {
+                                    score = scoreToValueMap.get(s);
+                                } else {
+                                    try {
+                                        score = Double.parseDouble(s);
+                                    } catch (Exception e) {
+                                        throw new JasperReportException("Capability graph score column contains non numeric or unknown value: " + s, e);
+                                    }
+                                }
+                                avgScore += score;
+                            }
+                        }
+                        //Get average score achieved for this attribute
+                        avgScore = avgScore / attributesScoreMap.get(attribute).size();
+
+                        //Set score achieved for this attribute
+                        if (avgScore > 0.85) {
+                            if (i == 0) {
+                                levelValue += 2;
+                            } else {
+                                levelValue += 1;
+                            }
+                        } else if (avgScore > 0.5) {
+                            if (i == 0) {
+                                levelValue += 1;
+                            } else {
+                                levelValue += 0.5;
+                            }
+                        }
+                    }
+
+                    //0 - not achieved, 1 - all defined attributes are largely achieved, 2- all are fully
+                    if (levelValue == 2) {
+                        level += 1;
+                    } else {
+                        //All attributes are at least largely achieved
+                        if (levelValue >= 1) {
+                            level += 1;
+                        }
+                        //We need to have all attributes fully to continue
+                        isPreviousLevelAchieved = false;
+                    }
+                }
+
+                Map<String, Integer> assessorLevelMap = processLevelMap.get(process);
+                assessorLevelMap.put(assessor, level);
+                processLevelMap.put(process,assessorLevelMap);
+            }
+        }
+        return processLevelMap;
     }
 }

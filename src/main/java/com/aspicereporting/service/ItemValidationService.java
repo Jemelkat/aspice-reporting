@@ -80,7 +80,7 @@ public class ItemValidationService {
                     }
                 } else {
                     if (!allowUndefinedData) {
-                        throw new InvalidDataException("Simple table needs level column defined.");
+                        throw  new InvalidDataException("Simple table needs all columns defined.");
                     }
                 }
                 tableColumn.setId(null);

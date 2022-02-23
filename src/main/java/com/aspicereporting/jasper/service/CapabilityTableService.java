@@ -2,6 +2,7 @@ package com.aspicereporting.jasper.service;
 
 import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.items.CapabilityTable;
+import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.jasper.model.SimpleTableModel;
 import com.aspicereporting.repository.SourceColumnRepository;
 import com.aspicereporting.repository.SourceRepository;
@@ -138,10 +139,24 @@ public class CapabilityTableService extends BaseTableService {
         //Get all unique processes and levels
         List<String> processNames = sourceRepository.findDistinctColumnValuesForColumn(capabilityTable.getProcessColumn().getId());
         List<String> levelNames = sourceRepository.findDistinctColumnValuesForColumn(capabilityTable.getLevelColumn().getId());
+        List<String> assessorNames = sourceRepository.findDistinctColumnValuesForColumn(capabilityTable.getAssessorColumn().getId());
 
         //Remove empty levels "" and processes ""
         levelNames = levelNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
         processNames = processNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
+        assessorNames = assessorNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
+
+        //Apply assessor filter
+        if (capabilityTable.getAssessorFilter() != null && !capabilityTable.getAssessorFilter().equals("")) {
+            assessorNames = assessorNames.stream().filter(assessor -> assessor.equals(capabilityTable.getAssessorFilter())).collect(Collectors.toList());
+        } else {
+            if (assessorNames.isEmpty()) {
+                throw new InvalidDataException("There are no assessors defined in column " + capabilityTable.getAssessorColumn().getColumnName());
+            }else {
+                //If no assessor is defined - we will use first assessor found
+                assessorNames.subList(1, assessorNames.size()).clear();
+            }
+        }
 
         //Sort alphabetically
         Collections.sort(levelNames, new NaturalOrderComparator());
@@ -167,6 +182,12 @@ public class CapabilityTableService extends BaseTableService {
             for (int i = 0; i < attributeColumn.getSourceData().size(); i++) {
                 String levelValue = levelColumn.getSourceData().get(i).getValue();
                 String attributeValue = attributeColumn.getSourceData().get(i).getValue();
+                String assessorValue = capabilityTable.getAssessorColumn().getSourceData().get(i).getValue();
+
+                //Filter by assessor and process
+                if (!assessorNames.contains(assessorValue)) {
+                    continue;
+                }
 
                 if (levelValue.equals(level)) {
                     //Add attributes to map

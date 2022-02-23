@@ -39,6 +39,7 @@ public class CapabilityBarGraph extends ReportItem {
     @ManyToOne
     private Source source;
 
+    @NotNull(message = "Level pie graph needs assessor column defined")
     @ManyToOne
     @JoinColumn(name = "assessor_column_id", referencedColumnName = "source_column_id")
     private SourceColumn assessorColumn;
@@ -82,8 +83,11 @@ public class CapabilityBarGraph extends ReportItem {
         if (this.source.getId() == null) {
             throw new InvalidDataException("Capability bar graph has no source defined.");
         }
+        if (this.assessorColumn.getId() == null) {
+            throw new InvalidDataException("Capability bar graph has no assessor column defined.");
+        }
         if (this.processColumn.getId() == null) {
-            throw new InvalidDataException("Capability bar graph has no process defined.");
+            throw new InvalidDataException("Capability bar graph has no process column defined.");
         }
         if (this.levelColumn.getId() == null) {
             throw new InvalidDataException("Capability bar graph has no capability level column defined.");
@@ -93,9 +97,6 @@ public class CapabilityBarGraph extends ReportItem {
         }
         if (this.scoreColumn.getId() == null) {
             throw new InvalidDataException("Capability bar graph has no score column defined.");
-        }
-        if (this.getAssessorFilter().size() > 0 && this.assessorColumn.getId() == null) {
-            throw new InvalidDataException("Assessor column for filter is not defined.");
         }
     }
 

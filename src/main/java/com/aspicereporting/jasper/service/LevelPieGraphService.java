@@ -94,13 +94,13 @@ public class LevelPieGraphService extends BaseChartService {
         //TODO SCALE TEXT
         //plot.setLabelFont(new Font("test", Font.PLAIN, 5));
         //Legend
-        plot.setLegendItemShape(new Rectangle(0,0,10,10));
+        plot.setLegendItemShape(new Rectangle(0, 0, 10, 10));
         chart.getLegend().setFrame(BlockBorder.NONE);
 
         for (int i = 0; i < dataset.getItemCount(); i++) {
             String key = (String) dataset.getKey(i);
             plot.setSectionPaint(key, pieColors[i]);
-            plot.setSectionOutlinePaint(key,Color.white);
+            plot.setSectionOutlinePaint(key, Color.white);
         }
         //Add data to parameter and add parameter to design
         parameters.put("chart" + counter, new JCommonDrawableRendererImpl(chart));
@@ -138,9 +138,23 @@ public class LevelPieGraphService extends BaseChartService {
         //Get all unique processes and levels
         List<String> processNames = sourceRepository.findDistinctColumnValuesForColumn(levelPieGraph.getProcessColumn().getId());
         List<String> levelNames = sourceRepository.findDistinctColumnValuesForColumn(levelPieGraph.getLevelColumn().getId());
+        List<String> assessorNames = sourceRepository.findDistinctColumnValuesForColumn(levelPieGraph.getAssessorColumn().getId());
         //Remove empty levels "" and processes ""
         levelNames = levelNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
         processNames = processNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
+        assessorNames = assessorNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
+
+        //Apply assessor filter
+        if (!levelPieGraph.getAssessorFilter().isEmpty() && !levelPieGraph.getAssessorFilter().equals("")) {
+            assessorNames = assessorNames.stream().filter(assessor -> assessor.equals(levelPieGraph.getAssessorFilter())).collect(Collectors.toList());
+        } else {
+            if (assessorNames.isEmpty()) {
+                throw new InvalidDataException("There are no assessors defined in column " + levelPieGraph.getAssessorColumn().getColumnName());
+            }else {
+                //If no assessor is defined - we will use first assessor found
+                assessorNames.subList(1, assessorNames.size()).clear();
+            }
+        }
 
         if (levelNames.size() > 5) {
             throw new InvalidDataException("Source: \"" + levelPieGraph.getSource().getSourceName() + "\" has more than 5 capability levels defined");
@@ -157,6 +171,12 @@ public class LevelPieGraphService extends BaseChartService {
             String levelValue = levelPieGraph.getLevelColumn().getSourceData().get(i).getValue();
             String attributeValue = levelPieGraph.getAttributeColumn().getSourceData().get(i).getValue().toUpperCase().replaceAll("\\s", "");
             String scoreValue = levelPieGraph.getScoreColumn().getSourceData().get(i).getValue();
+            String assessorValue = levelPieGraph.getAssessorColumn().getSourceData().get(i).getValue();
+
+            //Filter by assessor
+            if (!assessorNames.contains(assessorValue)) {
+                continue;
+            }
 
             MultiKey key = new MultiKey(processValue, levelValue);
             if (valuesMap.containsKey(key)) {

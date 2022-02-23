@@ -32,7 +32,7 @@ public class SimpleTableService extends BaseTableService{
         tableSubdataset.setName(TABLE_DATASET + tableCount);
 
         //Creates required fields
-        List<String> columnArrray = new ArrayList<>();
+        List<String> columnArray = new ArrayList<>();
         int rows = 0;
         int columns = 0;
         for (TableColumn tableColumn : tableItem.getTableColumns()) {
@@ -44,7 +44,7 @@ public class SimpleTableService extends BaseTableService{
             tableSubdataset.addField(field);
 
             //Creates column names array
-            columnArrray.add(sourceColumn.getColumnName());
+            columnArray.add(sourceColumn.getColumnName());
             if (rows == 0 && columns == 0) {
                 rows = sourceColumn.getSourceData().size();
                 columns = tableItem.getTableColumns().size();
@@ -63,7 +63,7 @@ public class SimpleTableService extends BaseTableService{
 
         //Creates data bean
         SimpleTableModel tableModel = new SimpleTableModel(rows, columns);
-        tableModel.setColumnNames(columnArrray.toArray(new String[0]));
+        tableModel.setColumnNames(columnArray.toArray(new String[0]));
         tableModel.setData(test);
 
         //Adds data bean to parameters

@@ -40,21 +40,6 @@ public class CapabilityBarGraphService extends BaseChartService {
     @Autowired
     SourceColumnRepository sourceColumnRepository;
 
-    Map<String, Double> scoreToValueMap = Map.ofEntries(
-            new AbstractMap.SimpleEntry<>("N", 0D),
-            new AbstractMap.SimpleEntry<>("P", 0.33D),
-            new AbstractMap.SimpleEntry<>("L", 0.66D),
-            new AbstractMap.SimpleEntry<>("F", 1D)
-    );
-
-    Map<Integer, ArrayList<String>> processAttributesMap = Map.ofEntries(
-            new AbstractMap.SimpleEntry<>(1, new ArrayList<>(Arrays.asList("PA1.1"))),
-            new AbstractMap.SimpleEntry<>(2, new ArrayList<>(Arrays.asList("PA2.1", "PA2.2"))),
-            new AbstractMap.SimpleEntry<>(3, new ArrayList<>(Arrays.asList("PA3.1", "PA3.2"))),
-            new AbstractMap.SimpleEntry<>(4, new ArrayList<>(Arrays.asList("PA4.1", "PA4.2"))),
-            new AbstractMap.SimpleEntry<>(5, new ArrayList<>(Arrays.asList("PA5.1", "PA5.2")))
-    );
-
     public JRDesignImage createElement(JasperDesign jasperDesign, CapabilityBarGraph capabilityBarGraph, Integer counter, Map<String, Object> parameters) throws JRException {
         LinkedHashMap<String, Map<String, Integer>> graphData = getData(capabilityBarGraph);
 
@@ -94,10 +79,10 @@ public class CapabilityBarGraphService extends BaseChartService {
         }
 
         //Add data to parameter and add parameter to design
-        parameters.put("chart" + counter, new JCommonDrawableRendererImpl(chart));
+        parameters.put(CHART + counter, new JCommonDrawableRendererImpl(chart));
         JRDesignParameter parameter = new JRDesignParameter();
         parameter.setValueClass(Renderable.class);
-        parameter.setName("chart" + counter);
+        parameter.setName(CHART + counter);
         jasperDesign.addParameter(parameter);
 
         //Add image - chart will be displayed in image tag
@@ -110,7 +95,7 @@ public class CapabilityBarGraphService extends BaseChartService {
         imageElement.setScaleImage(ScaleImageEnum.FILL_FRAME);
         imageElement.setLazy(true);
         JRDesignExpression expression = new JRDesignExpression();
-        expression.setText("$P{chart" + counter + "}");
+        expression.setText("$P{" + CHART + counter + "}");
         expression.setValueClass(JRRenderable.class);
         imageElement.setExpression(expression);
 

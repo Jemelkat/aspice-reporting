@@ -7,9 +7,30 @@ import org.jfree.chart.renderer.category.StandardBarPainter;
 import org.jfree.ui.RectangleInsets;
 
 import java.awt.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Map;
 
 public abstract class BaseChartService {
-    public void applyBarGraphTheme(JFreeChart chart) {
+    protected static final String CHART = "chart";
+
+    protected static Map<String, Double> scoreToValueMap = Map.ofEntries(
+            new AbstractMap.SimpleEntry<>("N", 0D),
+            new AbstractMap.SimpleEntry<>("P", 0.33D),
+            new AbstractMap.SimpleEntry<>("L", 0.66D),
+            new AbstractMap.SimpleEntry<>("F", 1D)
+    );
+
+    protected static Map<Integer, ArrayList<String>> processAttributesMap = Map.ofEntries(
+            new AbstractMap.SimpleEntry<>(1, new ArrayList<>(Arrays.asList("PA1.1"))),
+            new AbstractMap.SimpleEntry<>(2, new ArrayList<>(Arrays.asList("PA2.1", "PA2.2"))),
+            new AbstractMap.SimpleEntry<>(3, new ArrayList<>(Arrays.asList("PA3.1", "PA3.2"))),
+            new AbstractMap.SimpleEntry<>(4, new ArrayList<>(Arrays.asList("PA4.1", "PA4.2"))),
+            new AbstractMap.SimpleEntry<>(5, new ArrayList<>(Arrays.asList("PA5.1", "PA5.2")))
+    );
+
+    protected void applyBarGraphTheme(JFreeChart chart) {
         String fontName = "Lucida Sans";
         StandardChartTheme theme = (StandardChartTheme)org.jfree.chart.StandardChartTheme.createJFreeTheme();
 

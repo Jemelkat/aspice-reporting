@@ -8,12 +8,12 @@ import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Type;
 
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -25,6 +25,13 @@ public class LevelPieGraph extends ReportItem{
     @NotNull(message = "Level pie graph needs source defined")
     @ManyToOne
     private Source source;
+
+    @NotNull(message = "Level pie graph needs assessor column defined")
+    @ManyToOne
+    @JoinColumn(name = "assessor_column_id", referencedColumnName = "source_column_id")
+    private SourceColumn assessorColumn;
+
+    private String assessorFilter;
 
     @NotNull(message = "Level pie graph needs process column defined")
     @ManyToOne
@@ -49,6 +56,9 @@ public class LevelPieGraph extends ReportItem{
     public void validate() {
         if (this.source.getId() == null) {
             throw new InvalidDataException("Capability bar graph has no source defined.");
+        }
+        if (this.assessorColumn.getId() == null) {
+            throw new InvalidDataException("Capability bar graph has no assessor column defined.");
         }
         if (this.processColumn.getId() == null) {
             throw new InvalidDataException("Capability bar graph has no process defined.");

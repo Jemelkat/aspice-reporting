@@ -6,21 +6,16 @@ import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.exception.UnauthorizedAccessException;
 import com.aspicereporting.repository.SourceRepository;
 import com.aspicereporting.repository.UserGroupRepository;
-import com.opencsv.CSVParser;
-import com.opencsv.CSVParserBuilder;
-import com.opencsv.CSVReader;
-import com.opencsv.CSVReaderBuilder;
 import com.opencsv.exceptions.CsvValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import com.aspicereporting.utils.*;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class SourceService {
@@ -82,40 +77,6 @@ public class SourceService {
         return source.getSourceGroups();
     }
 
-    private List<SourceColumn> parseFileToColumnsList(MultipartFile file, Source source) {
-        List<SourceColumn> sourceColumns = new ArrayList<>();
-        Character delimiter = null;
-        try {
-            delimiter = CsvFileUtils.detectDelimiter(file.getInputStream());
-
-            CSVParser parser = new CSVParserBuilder().withSeparator(delimiter).build();
-            CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(file.getInputStream())).withCSVParser(parser).build();
-            String[] rowData = null;
-
-            //Read data header
-            if ((rowData = csvReader.readNext()) != null) {
-                for (var data : rowData) {
-                    SourceColumn sourceColumn = new SourceColumn(data);
-                    sourceColumn.setSource(source);
-                    sourceColumns.add(sourceColumn);
-                }
-            } else {
-                throw new SourceFileException("File does not contain data.");
-            }
-
-            //Read data values for headers
-            while ((rowData = csvReader.readNext()) != null) {
-                for (int i = 0; i < sourceColumns.size(); i++) {
-                    sourceColumns.get(i).addSourceData(new SourceData(rowData[i]));
-                }
-            }
-
-        } catch (IOException | CsvValidationException e) {
-            throw new SourceFileException("There was error processing CSV file.", e);
-        }
-        return sourceColumns;
-    }
-
     //Share selected source with selected groups
     public void shareWithGroups(Long sourceId, List<Long> groupIds, User user) {
         Source source = sourceRepository.findByIdAndUser(sourceId, user);
@@ -147,5 +108,25 @@ public class SourceService {
             throw new EntityNotFoundException("Could not find data for source id=" + sourceId);
         }
         return source.getSourceColumns();
+    }
+
+    public List<String> getDistinctValuesForColumn(Long sourceId, Long columnId, User user) {
+        Source source = sourceRepository.findByIdAndUserOrSourceGroupsIn(sourceId, user, user.getUserGroups());
+        if (source == null) {
+            throw new EntityNotFoundException("Could not find data for source id=" + sourceId);
+        }
+        if (!source.getSourceColumns().stream().anyMatch(sourceColumn -> sourceColumn.getId().equals(columnId))) {
+            throw new EntityNotFoundException("Source id="+sourceId +" has no column id="+columnId);
+        }
+        List<String> columValues = sourceRepository.findDistinctColumnValuesForColumn(columnId);
+        return columValues.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
+    }
+
+    public ByteArrayOutputStream generateCSV(Long sourceId, User user) {
+        Source source = sourceRepository.findByIdAndUserOrSourceGroupsIn(sourceId, user, user.getUserGroups());
+        if (source == null) {
+            throw new EntityNotFoundException("Could not find source with id = " + sourceId);
+        }
+        return fileParsingService.parseSourceToCSV(source);
     }
 }

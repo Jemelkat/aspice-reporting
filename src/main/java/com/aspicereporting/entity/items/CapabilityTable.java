@@ -2,6 +2,7 @@ package com.aspicereporting.entity.items;
 import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.views.View;
+import com.aspicereporting.exception.InvalidDataException;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,10 +25,17 @@ public class CapabilityTable extends ReportItem {
     @ManyToOne
     private Source source;
 
+    @NotNull(message = "Capability table needs assessor column defined")
+    @ManyToOne
+    @JoinColumn(name = "assessor_column_id", referencedColumnName = "source_column_id")
+    private SourceColumn assessorColumn;
+
+    private String assessorFilter;
+
     @NotNull(message = "Capability table needs process column defined")
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name="process_column_id")
-    private TableColumn processColumn;
+    private SourceColumn processColumn;
 
     @NotNull(message = "Capability table needs level column defined")
     @ManyToOne
@@ -43,4 +51,25 @@ public class CapabilityTable extends ReportItem {
     @ManyToOne
     @JoinColumn(name="score_column_id")
     private SourceColumn scoreColumn;
+
+    public void validate() {
+        if (this.source.getId() == null) {
+            throw new InvalidDataException("Capability table has no source defined.");
+        }
+        if (this.assessorColumn.getId() == null) {
+            throw new InvalidDataException("Capability table has no assessor column defined.");
+        }
+        if (this.getProcessColumn() == null) {
+            throw new InvalidDataException("Capability table has no process column defined.");
+        }
+        if (this.levelColumn.getId() == null) {
+            throw new InvalidDataException("Capability table has no capability level column defined.");
+        }
+        if (this.criterionColumn.getId() == null) {
+            throw new InvalidDataException("Capability table has no criterion column defined.");
+        }
+        if (this.scoreColumn.getId() == null) {
+            throw new InvalidDataException("Capability table has no score column defined.");
+        }
+    }
 }

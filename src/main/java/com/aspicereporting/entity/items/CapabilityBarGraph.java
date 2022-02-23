@@ -5,13 +5,18 @@ import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.views.View;
 import com.aspicereporting.exception.InvalidDataException;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.vladmihalcea.hibernate.type.array.ListArrayType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -19,6 +24,10 @@ import javax.validation.constraints.NotNull;
 @Entity
 @DiscriminatorValue("CAPABILITY_BAR_GRAPH")
 @JsonView(View.Simple.class)
+@TypeDef(
+        name = "list-array",
+        typeClass = ListArrayType.class
+)
 public class CapabilityBarGraph extends ReportItem {
 
     @NotNull(message = "Capability bar graph needs orientation defined.")
@@ -29,6 +38,11 @@ public class CapabilityBarGraph extends ReportItem {
     @NotNull(message = "Capability bar graph needs source defined")
     @ManyToOne
     private Source source;
+
+    @NotNull(message = "Level pie graph needs assessor column defined")
+    @ManyToOne
+    @JoinColumn(name = "assessor_column_id", referencedColumnName = "source_column_id")
+    private SourceColumn assessorColumn;
 
     @NotNull(message = "Capability bar graph needs process column defined")
     @ManyToOne
@@ -50,13 +64,30 @@ public class CapabilityBarGraph extends ReportItem {
     @JoinColumn(name = "score_column_id", referencedColumnName = "source_column_id")
     private SourceColumn scoreColumn;
 
-    public void validate() {
+    @Type(type = "list-array")
+    @Column(
+            name = "process_filter",
+            columnDefinition = "text[]"
+    )
+    private List<String> processFilter = new ArrayList<>();
 
+    @Type(type = "list-array")
+    @Column(
+            name = "assessor_filter",
+            columnDefinition = "text[]"
+    )
+    private List<String> assessorFilter = new ArrayList<>();
+
+
+    public void validate() {
         if (this.source.getId() == null) {
             throw new InvalidDataException("Capability bar graph has no source defined.");
         }
+        if (this.assessorColumn.getId() == null) {
+            throw new InvalidDataException("Capability bar graph has no assessor column defined.");
+        }
         if (this.processColumn.getId() == null) {
-            throw new InvalidDataException("Capability bar graph has no process defined.");
+            throw new InvalidDataException("Capability bar graph has no process column defined.");
         }
         if (this.levelColumn.getId() == null) {
             throw new InvalidDataException("Capability bar graph has no capability level column defined.");

@@ -1,6 +1,5 @@
 package com.aspicereporting.jasper.service;
 
-import com.aspicereporting.entity.items.CapabilityBarGraph;
 import com.aspicereporting.entity.items.LevelPieGraph;
 import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.exception.JasperReportException;
@@ -20,27 +19,15 @@ import org.apache.commons.collections4.keyvalue.MultiKey;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.StandardChartTheme;
-import org.jfree.chart.axis.CategoryAxis;
-import org.jfree.chart.axis.CategoryLabelPositions;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.labels.PieSectionLabelGenerator;
 import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
-import org.jfree.chart.plot.CategoryPlot;
-import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.jfree.chart.plot.PiePlot;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.renderer.category.StandardBarPainter;
-import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.DefaultPieDataset;
-import org.jfree.ui.RectangleInsets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.List;
@@ -50,21 +37,6 @@ import java.util.stream.Collectors;
 public class LevelPieGraphService extends BaseChartService {
     @Autowired
     SourceRepository sourceRepository;
-
-    private static Map<String, Double> scoreToValueMap = Map.ofEntries(
-            new AbstractMap.SimpleEntry<>("N", 0D),
-            new AbstractMap.SimpleEntry<>("P", 0.33D),
-            new AbstractMap.SimpleEntry<>("L", 0.66D),
-            new AbstractMap.SimpleEntry<>("F", 1D)
-    );
-
-    private static Map<Integer, ArrayList<String>> processAttributesMap = Map.ofEntries(
-            new AbstractMap.SimpleEntry<>(1, new ArrayList<>(Arrays.asList("PA1.1"))),
-            new AbstractMap.SimpleEntry<>(2, new ArrayList<>(Arrays.asList("PA2.1", "PA2.2"))),
-            new AbstractMap.SimpleEntry<>(3, new ArrayList<>(Arrays.asList("PA3.1", "PA3.2"))),
-            new AbstractMap.SimpleEntry<>(4, new ArrayList<>(Arrays.asList("PA4.1", "PA4.2"))),
-            new AbstractMap.SimpleEntry<>(5, new ArrayList<>(Arrays.asList("PA5.1", "PA5.2")))
-    );
 
     private static Paint[] pieColors = new Paint[]{
             Color.decode("#4572a7"),
@@ -107,13 +79,13 @@ public class LevelPieGraphService extends BaseChartService {
         //TODO SCALE TEXT
         //plot.setLabelFont(new Font("test", Font.PLAIN, 5));
         //Legend
-        plot.setLegendItemShape(new Rectangle(0,0,10,10));
+        plot.setLegendItemShape(new Rectangle(0, 0, 10, 10));
         chart.getLegend().setFrame(BlockBorder.NONE);
 
         for (int i = 0; i < dataset.getItemCount(); i++) {
             String key = (String) dataset.getKey(i);
             plot.setSectionPaint(key, pieColors[i]);
-            plot.setSectionOutlinePaint(key,Color.white);
+            plot.setSectionOutlinePaint(key, Color.white);
         }
         //Add data to parameter and add parameter to design
         parameters.put("chart" + counter, new JCommonDrawableRendererImpl(chart));
@@ -149,11 +121,25 @@ public class LevelPieGraphService extends BaseChartService {
         levelCounts.put("5", 0);
 
         //Get all unique processes and levels
-        List<String> processNames = sourceRepository.findDistinctByColumnId(levelPieGraph.getProcessColumn().getId());
-        List<String> levelNames = sourceRepository.findDistinctByColumnId(levelPieGraph.getLevelColumn().getId());
+        List<String> processNames = sourceRepository.findDistinctColumnValuesForColumn(levelPieGraph.getProcessColumn().getId());
+        List<String> levelNames = sourceRepository.findDistinctColumnValuesForColumn(levelPieGraph.getLevelColumn().getId());
+        List<String> assessorNames = sourceRepository.findDistinctColumnValuesForColumn(levelPieGraph.getAssessorColumn().getId());
         //Remove empty levels "" and processes ""
         levelNames = levelNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
         processNames = processNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
+        assessorNames = assessorNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
+
+        //Apply assessor filter
+        if (!levelPieGraph.getAssessorFilter().isEmpty() && !levelPieGraph.getAssessorFilter().equals("")) {
+            assessorNames = assessorNames.stream().filter(assessor -> assessor.equals(levelPieGraph.getAssessorFilter())).collect(Collectors.toList());
+        } else {
+            if (assessorNames.isEmpty()) {
+                throw new InvalidDataException("There are no assessors defined in column " + levelPieGraph.getAssessorColumn().getColumnName());
+            }else {
+                //If no assessor is defined - we will use first assessor found
+                assessorNames.subList(1, assessorNames.size()).clear();
+            }
+        }
 
         if (levelNames.size() > 5) {
             throw new InvalidDataException("Source: \"" + levelPieGraph.getSource().getSourceName() + "\" has more than 5 capability levels defined");
@@ -170,6 +156,12 @@ public class LevelPieGraphService extends BaseChartService {
             String levelValue = levelPieGraph.getLevelColumn().getSourceData().get(i).getValue();
             String attributeValue = levelPieGraph.getAttributeColumn().getSourceData().get(i).getValue().toUpperCase().replaceAll("\\s", "");
             String scoreValue = levelPieGraph.getScoreColumn().getSourceData().get(i).getValue();
+            String assessorValue = levelPieGraph.getAssessorColumn().getSourceData().get(i).getValue();
+
+            //Filter by assessor
+            if (!assessorNames.contains(assessorValue)) {
+                continue;
+            }
 
             MultiKey key = new MultiKey(processValue, levelValue);
             if (valuesMap.containsKey(key)) {

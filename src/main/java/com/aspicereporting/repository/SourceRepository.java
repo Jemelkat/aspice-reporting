@@ -21,5 +21,5 @@ public interface SourceRepository extends CrudRepository<Source, Long> {
     Source findByIdAndUserOrSourceGroupsIn(@Param("sourceId") Long sourceId, @Param("user") User user, @Param("userGroups") Set<UserGroup> userGroups);
 
     @Query("Select distinct sd.value from SourceColumn sc join SourceData sd on sc.id=sd.sourceColumn.id where sc.id=?1")
-    List<String> findDistinctByColumnId(Long id);
+    List<String> findDistinctColumnValuesForColumn(Long id);
 }

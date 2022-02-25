@@ -1,7 +1,7 @@
 package com.aspicereporting.controller;
 
-import com.aspicereporting.controller.request.LoginRequest;
-import com.aspicereporting.controller.request.SignupRequest;
+import com.aspicereporting.dto.LoginDTO;
+import com.aspicereporting.dto.SignupDTO;
 import com.aspicereporting.controller.response.JwtResponse;
 import com.aspicereporting.controller.response.MessageResponse;
 import com.aspicereporting.entity.Role;
@@ -47,10 +47,10 @@ public class AuthController {
     JwtUtils jwtUtils;
 
     @PostMapping("/signin")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginDTO loginDTO) {
 
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+                new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateJwtToken(authentication);
@@ -68,23 +68,23 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
-        if (userRepository.existsByUsername(signUpRequest.getUsername())) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody SignupDTO signUpDTO) {
+        if (userRepository.existsByUsername(signUpDTO.getUsername())) {
             return ResponseEntity
                     .badRequest()
                     .body(new MessageResponse("Username is already taken."));
         }
 
-        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+        if (userRepository.existsByEmail(signUpDTO.getEmail())) {
             return ResponseEntity
                     .badRequest()
                     .body(new MessageResponse("Email is already taken."));
         }
 
         // Create new user's account
-        User user = new User(signUpRequest.getUsername(),
-                signUpRequest.getEmail(),
-                encoder.encode(signUpRequest.getPassword()));
+        User user = new User(signUpDTO.getUsername(),
+                signUpDTO.getEmail(),
+                encoder.encode(signUpDTO.getPassword()));
 
         Set<Role> roles = new HashSet<>();
         Role userRole = roleRepository.findByName(Role.ERole.ROLE_USER)

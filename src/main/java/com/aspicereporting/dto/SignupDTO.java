@@ -1,4 +1,4 @@
-package com.aspicereporting.controller.request;
+package com.aspicereporting.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,7 +11,7 @@ import javax.validation.constraints.Size;
 @Getter
 @Setter
 @NoArgsConstructor
-public class SignupRequest {
+public class SignupDTO {
     @NotBlank
     @Size(min = 3, max = 20)
     private String username;

@@ -31,11 +31,13 @@ public class Report {
     private String reportName;
 
     @JsonView(View.Table.class)
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     @Column(name = "report_created")
     @Temporal(TemporalType.TIMESTAMP)
     private Date reportCreated;
 
     @JsonView(View.Table.class)
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     @Column(name = "report_last_updated")
     @Temporal(TemporalType.TIMESTAMP)
     private Date reportLastUpdated;

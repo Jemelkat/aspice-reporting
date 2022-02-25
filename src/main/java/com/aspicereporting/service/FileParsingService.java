@@ -4,6 +4,7 @@ import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.SourceData;
 import com.aspicereporting.exception.SourceFileException;
+import com.aspicereporting.utils.CsvFileUtils;
 import com.opencsv.*;
 import com.opencsv.exceptions.CsvValidationException;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -20,7 +21,7 @@ import java.util.List;
 @Service
 public class FileParsingService {
     public Source parseCSVFile(MultipartFile file) throws CsvValidationException, IOException {
-        CSVParser parser = new CSVParserBuilder().withSeparator(',').build();
+        CSVParser parser = new CSVParserBuilder().withSeparator(CsvFileUtils.detectDelimiter(file.getInputStream())).build();
         CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(file.getInputStream())).withCSVParser(parser).build();
         assert csvReader != null;
         String[] fileRow = csvReader.readNext();

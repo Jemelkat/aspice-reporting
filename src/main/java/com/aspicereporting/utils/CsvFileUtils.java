@@ -16,7 +16,7 @@ public final class CsvFileUtils {
         String headerLine = null;
         try {
             headerLine = reader.readLine();
-            is.reset();
+            //is.reset();
         } catch (IOException e) {
             e.printStackTrace();
         }

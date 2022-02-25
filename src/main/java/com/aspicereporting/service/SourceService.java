@@ -34,6 +34,8 @@ public class SourceService {
         try {
             if (fileName.toLowerCase().endsWith(".csv")) {
                 source = fileParsingService.parseCSVFile(file);
+            } else if (fileName.toLowerCase().endsWith(".xlsx") || fileName.toLowerCase().endsWith(".xls")) {
+                source = fileParsingService.parseExcelFile(file);
             }
         } catch (CsvValidationException | IOException e) {
             throw new SourceFileException("Cannot read uploaded file.", e);
@@ -42,9 +44,6 @@ public class SourceService {
         source.setSourceName(file.getOriginalFilename());
         source.setUser(user);
         source.setSourceCreated(new Date());
-
-        //Parse csv to objects
-        //source.setSourceColumns(parseFileToColumnsList(file, source));
 
         sourceRepository.save(source);
     }

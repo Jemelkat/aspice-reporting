@@ -6,11 +6,15 @@ import com.aspicereporting.entity.SourceData;
 import com.aspicereporting.exception.SourceFileException;
 import com.opencsv.*;
 import com.opencsv.exceptions.CsvValidationException;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 @Service
@@ -21,6 +25,7 @@ public class FileParsingService {
         assert csvReader != null;
         String[] fileRow = csvReader.readNext();
 
+        //TODO change to == null
         if (fileRow.length == 0) {
             throw new SourceFileException("Source has no columns defined.");
         }
@@ -47,6 +52,40 @@ public class FileParsingService {
         return source;
     }
 
+    public Source parseExcelFile(MultipartFile file) throws IOException {
+        Workbook workbook = WorkbookFactory.create(file.getInputStream());
+        Sheet sheet = workbook.getSheetAt(0);
+        Source source = new Source();
+
+        Iterator<Row> fileIterator = sheet.iterator();
+        if(!fileIterator.hasNext()) {
+            throw new SourceFileException("Source file has no data.");
+        }
+        //Create columns from first row - header rows
+        List<SourceColumn> sourceColumns = new ArrayList<>();
+        Row headerRow = fileIterator.next();
+        for(Cell cell : headerRow) {
+            SourceColumn sourceColumn = new SourceColumn();
+            sourceColumn.setColumnName(cell.getStringCellValue());
+            sourceColumn.setSource(source);
+            sourceColumns.add(sourceColumn);
+        }
+
+        //Add data to each row
+        while (fileIterator.hasNext()) {
+            Row row = fileIterator.next();
+            for(int i=0; i<sourceColumns.size(); i++) {
+                SourceData data = new SourceData();
+                data.setValue(row.getCell(i, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).getStringCellValue());
+                data.setSourceColumn(sourceColumns.get(i));
+                sourceColumns.get(i).addSourceData(data);
+            }
+        }
+
+        source.setSourceColumns(sourceColumns);
+        return source;
+    }
+
     public ByteArrayOutputStream parseSourceToCSV(Source source) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {
@@ -67,10 +106,10 @@ public class FileParsingService {
 
             //Write column names
             List<String> row = new ArrayList<>();
-            for(var column : source.getSourceColumns()) {
+            for (var column : source.getSourceColumns()) {
                 row.add(column.getColumnName());
             }
-            if(!row.isEmpty()) {
+            if (!row.isEmpty()) {
                 csvWriter.writeNext(row.toArray(new String[0]));
             }
 

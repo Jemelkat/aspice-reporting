@@ -25,9 +25,8 @@ public class FileParsingService {
         assert csvReader != null;
         String[] fileRow = csvReader.readNext();
 
-        //TODO change to == null
-        if (fileRow.length == 0) {
-            throw new SourceFileException("Source has no columns defined.");
+        if (fileRow == null) {
+            throw new SourceFileException("Source file has no data.");
         }
 
         //Create new source with columns

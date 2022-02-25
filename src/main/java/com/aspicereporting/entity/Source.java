@@ -80,6 +80,7 @@ public class Source {
         }
         for (CapabilityTable table : capabilityTables) {
             table.setSource(null);
+            table.setAssessorColumn(null);
             table.setProcessColumn(null);
             table.setCriterionColumn(null);
             table.setLevelColumn(null);
@@ -87,6 +88,15 @@ public class Source {
         }
         for (CapabilityBarGraph graph : capabilityBarGraphs) {
             graph.setSource(null);
+            graph.setAssessorColumn(null);
+            graph.setProcessColumn(null);
+            graph.setLevelColumn(null);
+            graph.setAttributeColumn(null);
+            graph.setScoreColumn(null);
+        }
+        for (LevelPieGraph graph : levelPieGraphs) {
+            graph.setSource(null);
+            graph.setAssessorColumn(null);
             graph.setProcessColumn(null);
             graph.setLevelColumn(null);
             graph.setAttributeColumn(null);

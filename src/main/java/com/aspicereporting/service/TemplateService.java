@@ -56,8 +56,9 @@ public class TemplateService {
             oldTemplate.setTemplateUser(user);
         }
 
-        //Update name and last changed time
+        //Update name and orientation
         oldTemplate.setTemplateName(updatedTemplate.getTemplateName());
+        oldTemplate.setOrientation(updatedTemplate.getOrientation());
 
         //Configure item IDs - if they exist use same ID - hibernate will MERGE
         List<ReportItem> newTemplateItems = new ArrayList<>();

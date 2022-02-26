@@ -1,5 +1,6 @@
 package com.aspicereporting.entity;
 
+import com.aspicereporting.entity.enums.Orientation;
 import com.aspicereporting.entity.items.ReportItem;
 import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -12,6 +13,7 @@ import lombok.Setter;
 import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.*;
 
 @JsonView(View.Simple.class)
@@ -25,6 +27,11 @@ public class Report {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "report_id")
     private Long id;
+
+    @NotNull(message = "Report needs orientation defined.")
+    @Column(length = 20, name = "orientation",nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Orientation orientation;
 
     @Column(length = 50, name = "report_name")
     @NotBlank(message = "Report name is required.")

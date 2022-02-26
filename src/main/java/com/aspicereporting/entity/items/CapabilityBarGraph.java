@@ -2,6 +2,7 @@ package com.aspicereporting.entity.items;
 
 import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.SourceColumn;
+import com.aspicereporting.entity.enums.Orientation;
 import com.aspicereporting.entity.views.View;
 import com.aspicereporting.exception.InvalidDataException;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -98,9 +99,5 @@ public class CapabilityBarGraph extends ReportItem {
         if (this.scoreColumn.getId() == null) {
             throw new InvalidDataException("Capability bar graph has no score column defined.");
         }
-    }
-
-    public enum Orientation {
-        VERTICAL, HORIZONTAL
     }
 }

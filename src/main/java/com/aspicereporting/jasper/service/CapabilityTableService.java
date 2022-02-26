@@ -161,8 +161,19 @@ public class CapabilityTableService extends BaseTableService {
         //Sort alphabetically
         Collections.sort(levelNames, new NaturalOrderComparator());
         Collections.sort(processNames, new NaturalOrderComparator());
-        //Get only first N levels - limited by paramater
-        levelNames = levelNames.stream().limit(capabilityTable.getLevelLimit()).collect(Collectors.toList());
+
+        if(capabilityTable.getSpecificLevel() != null) {
+            //Get only specific level - chosen by parameter
+            if(levelNames.size() >= capabilityTable.getSpecificLevel()) {
+                levelNames = Arrays.asList(levelNames.get(capabilityTable.getSpecificLevel()-1));
+            }
+            else {
+                levelNames.clear();
+            }
+        } else {
+            //Get only first N levels - limited by parameter
+            levelNames = levelNames.stream().limit(capabilityTable.getLevelLimit()).collect(Collectors.toList());
+        }
 
         //Get all data for process, level, attribute and score columns
         SourceColumn processColumn = sourceColumnRepository.findFirstById(capabilityTable.getProcessColumn().getId());
@@ -174,7 +185,6 @@ public class CapabilityTableService extends BaseTableService {
         MultiKeyMap valuesMap = new MultiKeyMap();
 
         //Get all possible attributes for level and store them in Map
-        //TODO: make only one iteration - check if exist in hashmap and then add
         for (String level : levelNames) {
             List<String> attributesForLevel = new ArrayList<>();
 

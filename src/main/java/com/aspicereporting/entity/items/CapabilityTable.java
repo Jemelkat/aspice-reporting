@@ -20,6 +20,7 @@ public class CapabilityTable extends ReportItem {
     private int processWidth;
     private int criterionWidth;
     private int levelLimit;
+    private Integer specificLevel;
 
     @NotNull(message = "Capability table needs source defined")
     @ManyToOne

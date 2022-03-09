@@ -55,22 +55,22 @@ public class LevelPieGraph extends ReportItem{
 
     public void validate() {
         if (this.source.getId() == null) {
-            throw new InvalidDataException("Capability bar graph has no source defined.");
+            throw new InvalidDataException("Level pie graph has no source defined.");
         }
         if (this.assessorColumn.getId() == null) {
-            throw new InvalidDataException("Capability bar graph has no assessor column defined.");
+            throw new InvalidDataException("Level pie graph has no assessor column defined.");
         }
         if (this.processColumn.getId() == null) {
-            throw new InvalidDataException("Capability bar graph has no process defined.");
+            throw new InvalidDataException("Level pie graph has no process defined.");
         }
         if (this.levelColumn.getId() == null) {
-            throw new InvalidDataException("Capability bar graph has no capability level column defined.");
+            throw new InvalidDataException("Level pie graph has no capability level column defined.");
         }
         if (this.attributeColumn.getId() == null) {
-            throw new InvalidDataException("Capability bar graph has no capability level column defined.");
+            throw new InvalidDataException("Level pie graph has no capability level column defined.");
         }
         if (this.scoreColumn.getId() == null) {
-            throw new InvalidDataException("Capability bar graph has no score column defined.");
+            throw new InvalidDataException("Level pie graph has no score column defined.");
         }
     }
 }

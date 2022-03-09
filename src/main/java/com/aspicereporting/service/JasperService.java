@@ -2,6 +2,7 @@ package com.aspicereporting.service;
 
 import com.aspicereporting.entity.Report;
 import com.aspicereporting.entity.User;
+import com.aspicereporting.entity.enums.Orientation;
 import com.aspicereporting.entity.items.*;
 import com.aspicereporting.exception.JasperReportException;
 import com.aspicereporting.jasper.service.*;
@@ -173,8 +174,14 @@ public class JasperService {
     private JasperDesign initializeJasperDesign(Report report) {
         JasperDesign jasperDesign = new JasperDesign();
         jasperDesign.setName(report.getReportName());
-        jasperDesign.setPageWidth(794);
-        jasperDesign.setPageHeight(1123);
+        if(report.getOrientation().equals(Orientation.VERTICAL)) {
+            jasperDesign.setPageWidth(794);
+            jasperDesign.setPageHeight(1123);
+        }
+        else {
+            jasperDesign.setPageWidth(1123);
+            jasperDesign.setPageHeight(794);
+        }
         jasperDesign.setLeftMargin(0);
         jasperDesign.setRightMargin(0);
         jasperDesign.setTopMargin(0);

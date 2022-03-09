@@ -76,8 +76,9 @@ public class ReportService {
             }
         }
 
-        //Update name and Template
+        //Update name and Orientation
         oldReport.setReportName(updatedReport.getReportName());
+        oldReport.setOrientation(updatedReport.getOrientation());
 
         //Configure item IDs - if they exist use same ID - hibernate will MERGE
         List<ReportItem> newTemplateItems = new ArrayList<>();

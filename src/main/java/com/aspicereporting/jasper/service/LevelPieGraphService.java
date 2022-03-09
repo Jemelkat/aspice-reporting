@@ -130,7 +130,7 @@ public class LevelPieGraphService extends BaseChartService {
         assessorNames = assessorNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
 
         //Apply assessor filter
-        if (!levelPieGraph.getAssessorFilter().isEmpty() && !levelPieGraph.getAssessorFilter().equals("")) {
+        if (levelPieGraph.getAssessorFilter() != null && !levelPieGraph.getAssessorFilter().isBlank()) {
             assessorNames = assessorNames.stream().filter(assessor -> assessor.equals(levelPieGraph.getAssessorFilter())).collect(Collectors.toList());
         } else {
             if (assessorNames.isEmpty()) {

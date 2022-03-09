@@ -1,5 +1,6 @@
 package com.aspicereporting.entity;
 
+import com.aspicereporting.entity.enums.Orientation;
 import com.aspicereporting.entity.items.ReportItem;
 import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.*;
@@ -26,6 +27,11 @@ public class Template {
     @Column(length = 50, name = "template_name")
     @NotNull
     private String templateName;
+
+    @NotNull(message = "Template needs orientation defined.")
+    @Column(length = 20, name = "orientation",nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Orientation orientation;
 
     @JsonView(View.Table.class)
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")

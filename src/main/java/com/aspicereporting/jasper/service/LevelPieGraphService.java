@@ -249,6 +249,8 @@ public class LevelPieGraphService extends BaseChartService {
                     //We need to have all attributes fully to continue
                     isPreviousLevelAchieved = false;
                 }
+                //Reset level achieved check value
+                processLevelAchievedMap.put(process, 0D);
             }
             if (level > 5) {
                 throw new InvalidDataException("Pie graph has maximum level 5. Please use check your source.");

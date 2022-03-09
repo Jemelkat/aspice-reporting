@@ -40,7 +40,7 @@ public class CapabilityBarGraph extends ReportItem {
     @ManyToOne
     private Source source;
 
-    @NotNull(message = "Level pie graph needs assessor column defined")
+    @NotNull(message = "Capability bar graph needs assessor column defined")
     @ManyToOne
     @JoinColumn(name = "assessor_column_id", referencedColumnName = "source_column_id")
     private SourceColumn assessorColumn;

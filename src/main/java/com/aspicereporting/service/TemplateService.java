@@ -3,18 +3,13 @@ package com.aspicereporting.service;
 import com.aspicereporting.entity.*;
 import com.aspicereporting.entity.items.*;
 import com.aspicereporting.exception.EntityNotFoundException;
-import com.aspicereporting.exception.InvalidDataException;
-import com.aspicereporting.exception.UnauthorizedAccessException;
 import com.aspicereporting.repository.SourceRepository;
 import com.aspicereporting.repository.TemplateRepository;
 import com.aspicereporting.repository.UserGroupRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.Table;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class TemplateService {
@@ -27,6 +22,9 @@ public class TemplateService {
 
     @Autowired
     UserGroupRepository userGroupRepository;
+
+    @Autowired
+    ItemValidationService itemValidationService;
 
     public List<Template> getAllByUser(User user) {
         return templateRepository.findAllByTemplateUser(user);
@@ -62,22 +60,22 @@ public class TemplateService {
 
         //Configure item IDs - if they exist use same ID - hibernate will MERGE
         List<ReportItem> newTemplateItems = new ArrayList<>();
-        for (ReportItem reportItem : updatedTemplate.getTemplateItems()) {
+        for (ReportItem templateItem : updatedTemplate.getTemplateItems()) {
             Optional<ReportItem> existingItem = Optional.empty();
             if (oldTemplate.getId() != null) {
                 existingItem = oldTemplate.getTemplateItems().stream()
-                        .filter(i -> i.getId().equals(reportItem.getId()))
+                        .filter(i -> i.getId().equals(templateItem.getId()))
                         .findAny();
             }
             //If item with this ID does not exist - we will create new record in DB
             if (existingItem.isEmpty()) {
-                reportItem.setId(null);
+                templateItem.setId(null);
             }
 
             //Configure and reconstruct relationship items IDs
-            if (reportItem instanceof TextItem textItem) {
+            if (templateItem instanceof TextItem textItem) {
                 //If this item ID was not found or its instance is not TextItem
-                if (reportItem.getId() == null || !(existingItem.get() instanceof TextItem)) {
+                if (templateItem.getId() == null || !(existingItem.get() instanceof TextItem)) {
                     textItem.getTextStyle().setId(null);
                 } else {
                     //Use existing textStyle ID
@@ -85,29 +83,14 @@ public class TemplateService {
                 }
                 //Bidirectional
                 textItem.getTextStyle().setTextItem(textItem);
-            } else if (reportItem instanceof TableItem tableItem) {
-                //Validate - all source columns need to be the same
-                Long sourceId = tableItem.getSource().getId();
-                //Validate - user can use this source id
-                Source source = sourceRepository.findByIdAndUserOrSourceGroupsIn(sourceId, user, user.getUserGroups());
-                if (source == null) {
-                    throw new EntityNotFoundException("You dont have any source with id=" + sourceId);
-                }
-
-                //Table columns are reinserted every time - not updated
-                tableItem.getTableColumns().forEach(tableColumn -> {
-                    //Validate if column exists in source
-                    Optional<SourceColumn> columnExists = source.getSourceColumns().stream().filter((c) -> c.getId() == tableColumn.getSourceColumn().getId()).findFirst();
-                    if (columnExists.isEmpty()) {
-                        throw new EntityNotFoundException("Invalid source column id=" + tableColumn.getSourceColumn().getId() + " for source id=" + sourceId);
-                    }
-                    tableColumn.setId(null);
-                    //Bidirectional
-                    //tableColumn.setSimpleTable(tableItem);
-                });
             }
-            reportItem.setTemplate(oldTemplate);
-            newTemplateItems.add(reportItem);
+
+            //Validate template item if all related sources etc. can be accessed by this user
+            itemValidationService.validateItem(templateItem,true, user);
+
+            templateItem.setTemplate(oldTemplate);
+            templateItem.setReport(null);
+            newTemplateItems.add(templateItem);
         }
         oldTemplate.getTemplateItems().clear();
         oldTemplate.getTemplateItems().addAll(newTemplateItems);

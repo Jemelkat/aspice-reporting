@@ -9,6 +9,7 @@ import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.jasper.service.CapabilityBarGraphService;
 import com.aspicereporting.jasper.service.LevelPieGraphService;
+import com.aspicereporting.jasper.service.SourceLevelBarGraphService;
 import com.aspicereporting.repository.DashboardRepository;
 import com.aspicereporting.repository.SourceRepository;
 import com.aspicereporting.utils.NaturalOrderComparator;
@@ -30,6 +31,8 @@ public class DashboardService {
     ItemValidationService itemValidationService;
     @Autowired
     CapabilityBarGraphService capabilityBarGraphService;
+    @Autowired
+    SourceLevelBarGraphService sourceLevelBarGraphService;
     @Autowired
     LevelPieGraphService levelPieGraphService;
 
@@ -116,12 +119,15 @@ public class DashboardService {
                 }
             }
         } else if (reportItem instanceof LevelPieGraph levelPieGraph) {
-            /*Returns list of map items
-             * [{level: 0, assessor: "name", count: 5}, ...]
-             * */
             LinkedHashMap<String, Integer> map = levelPieGraphService.getData(levelPieGraph);
             for(var level : map.keySet()) {
                 result.add(Map.of("level", level, "count", map.get(level).toString()));
+            }
+        } else if (reportItem instanceof SourceLevelBarGraph sourceLevelBarGraph) {
+            LinkedHashMap<String, Map<String, Integer>> map = sourceLevelBarGraphService.getData(sourceLevelBarGraph);
+            for(var level : map.keySet()) {
+                //result.add(Map.of("level", level, "count", map.get(level).toString()));
+                System.out.println(level);
             }
         } else {
             throw new InvalidDataException("Invalid item type provided :" + reportItem.getType().toString());
@@ -134,6 +140,7 @@ public class DashboardService {
             switch (item.getType()) {
                 case LEVEL_PIE_GRAPH:
                 case CAPABILITY_BAR_GRAPH:
+                case SOURCE_LEVEL_BAR_GRAPH:
                     break;
                 default:
                     return false;

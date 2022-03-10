@@ -163,7 +163,7 @@ public class JasperService {
                     throw new JasperReportException("Error creating the level pie graph item for report", e);
                 }
             } else {
-                throw new JasperReportException("Unknown report item type: " + reportItem.getType());
+                throw new JasperReportException("Unsupported report item type: " + reportItem.getType());
             }
             //Create required datasources and fields
         }

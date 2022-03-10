@@ -2,6 +2,7 @@ package com.aspicereporting.entity.items;
 
 import com.aspicereporting.entity.Dashboard;
 import com.aspicereporting.entity.Report;
+import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.Template;
 import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -25,6 +26,7 @@ import javax.validation.constraints.NotNull;
         @JsonSubTypes.Type(value = TableItem.class, name = "SIMPLE_TABLE"),
         @JsonSubTypes.Type(value = CapabilityTable.class, name = "CAPABILITY_TABLE"),
         @JsonSubTypes.Type(value = CapabilityBarGraph.class, name = "CAPABILITY_BAR_GRAPH"),
+        @JsonSubTypes.Type(value = SourceLevelBarGraph.class, name = "SOURCE_LEVEL_BAR_GRAPH"),
         @JsonSubTypes.Type(value = LevelPieGraph.class, name = "LEVEL_PIE_GRAPH"),
 
 })
@@ -71,7 +73,7 @@ public abstract class ReportItem implements Comparable {
     private Dashboard dashboard;
 
     public enum EItemType {
-        TEXT, SIMPLE_TABLE, CAPABILITY_TABLE, CAPABILITY_BAR_GRAPH, LEVEL_PIE_GRAPH;
+        TEXT, SIMPLE_TABLE, CAPABILITY_TABLE, CAPABILITY_BAR_GRAPH, LEVEL_PIE_GRAPH, SOURCE_LEVEL_BAR_GRAPH;
     }
 
     @Override

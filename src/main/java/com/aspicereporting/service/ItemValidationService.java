@@ -12,7 +12,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Validated
@@ -33,6 +37,8 @@ public class ItemValidationService {
             validateCapabilityTable(capabilityTable, user, allowUndefinedData);
         } else if (reportItem instanceof CapabilityBarGraph capabilityBarGraph) {
             validateCapabilityBarGraph(capabilityBarGraph, user, allowUndefinedData);
+        } else if (reportItem instanceof SourceLevelBarGraph sourceLevelBarGraph) {
+            validateSourceLevelGraph(sourceLevelBarGraph, user, allowUndefinedData);
         } else if (reportItem instanceof LevelPieGraph levelPieGraph) {
             validateLevelPieGraph(levelPieGraph, user, allowUndefinedData);
         } else {
@@ -80,7 +86,7 @@ public class ItemValidationService {
                     }
                 } else {
                     if (!allowUndefinedData) {
-                        throw  new InvalidDataException("Simple table needs all columns defined.");
+                        throw new InvalidDataException("Simple table needs all columns defined.");
                     }
                 }
                 tableColumn.setId(null);
@@ -162,6 +168,36 @@ public class ItemValidationService {
                 }
             }
             source.addCapabilityTable(capabilityTable);
+        }
+    }
+
+    private void validateSourceLevelGraph(SourceLevelBarGraph sourceLevelBarGraph, User user, boolean allowUndefinedData) {
+        if (!allowUndefinedData) {
+            //Validate - if source and all id of columns are defined
+            sourceLevelBarGraph.validate();
+        }
+
+        if(sourceLevelBarGraph.getSources().isEmpty()) {
+            if (allowUndefinedData) {
+                sourceLevelBarGraph.setAssessorColumn(null);
+                sourceLevelBarGraph.setProcessColumn(null);
+                sourceLevelBarGraph.setAttributeColumn(null);
+                sourceLevelBarGraph.setScoreColumn(null);
+            }
+            else {
+                throw new InvalidDataException("Source level bar graph needs sources defined.");
+            }
+        } else {
+            //Validate if user can access the sources
+            List<Source> sources = sourceRepository.findByIdInAndUserOrSourceGroupsIn(sourceLevelBarGraph.getSources().stream().map(s -> s.getId()).collect(Collectors.toSet()),user, user.getUserGroups());
+            if(sources.size() != sourceLevelBarGraph.getSources().size()) {
+                throw new InvalidDataException("Source level bar graph has inaccessible source defined.");
+            }
+            //TODO validate if column names are in atleast one source
+
+            for(Source source : sources) {
+                source.getSourceLevelBarGraphs().add(sourceLevelBarGraph);
+            }
         }
     }
 

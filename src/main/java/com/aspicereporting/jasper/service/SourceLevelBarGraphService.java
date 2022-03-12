@@ -2,14 +2,34 @@ package com.aspicereporting.jasper.service;
 
 import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.SourceColumn;
+import com.aspicereporting.entity.enums.Orientation;
 import com.aspicereporting.entity.items.CapabilityBarGraph;
 import com.aspicereporting.entity.items.SourceLevelBarGraph;
 import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.exception.JasperReportException;
 import com.aspicereporting.repository.SourceRepository;
 import com.aspicereporting.utils.NaturalOrderComparator;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JRRenderable;
+import net.sf.jasperreports.engine.design.JRDesignExpression;
+import net.sf.jasperreports.engine.design.JRDesignImage;
+import net.sf.jasperreports.engine.design.JRDesignParameter;
+import net.sf.jasperreports.engine.design.JasperDesign;
+import net.sf.jasperreports.engine.type.PositionTypeEnum;
+import net.sf.jasperreports.engine.type.ScaleImageEnum;
+import net.sf.jasperreports.renderers.JCommonDrawableRendererImpl;
+import net.sf.jasperreports.renderers.Renderable;
 import org.apache.commons.collections4.keyvalue.MultiKey;
 import org.apache.commons.collections4.map.MultiKeyMap;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.CategoryAxis;
+import org.jfree.chart.axis.CategoryLabelPositions;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.category.DefaultCategoryDataset;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +40,68 @@ import java.util.*;
 public class SourceLevelBarGraphService extends BaseChartService {
     @Autowired
     SourceRepository sourceRepository;
+
+    public JRDesignImage createElement(JasperDesign jasperDesign, SourceLevelBarGraph sourceLevelBarGraph, Integer counter, Map<String, Object> parameters) throws JRException {
+        LinkedHashMap<String, Map<String, Integer>> graphData = getData(sourceLevelBarGraph);
+
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        int maxLevel = 0;
+        for (var process : graphData.keySet()) {
+            for(var assessor : graphData.get(process).keySet()) {
+                Integer level = graphData.get(process).get(assessor);
+                if (level > maxLevel) {
+                    maxLevel = level;
+                }
+                dataset.addValue(level, process, assessor);
+            }
+        }
+
+
+        final JFreeChart chart = ChartFactory.createBarChart(
+                "",                                   // chart title
+                "Process",                  // domain axis label
+                "Level",                     // range axis label
+                dataset,                            // data
+                sourceLevelBarGraph.getOrientation().equals(Orientation.VERTICAL) ? PlotOrientation.HORIZONTAL : PlotOrientation.VERTICAL,           // the plot orientation
+                true,                        // legend
+                false,                        // tooltips
+                false                        // urls
+        );
+        this.applyBarGraphTheme(chart);
+
+        //Rotate x axis names to save space
+        CategoryPlot plot = (CategoryPlot) chart.getPlot();
+        ValueAxis rangeAxis = plot.getRangeAxis();
+        rangeAxis.setUpperBound(maxLevel < 5 ? maxLevel + 1 : maxLevel);
+        rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+        if (sourceLevelBarGraph.getOrientation().equals(Orientation.HORIZONTAL)) {
+            CategoryAxis categoryAxis = plot.getDomainAxis();
+            categoryAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
+        }
+
+        //Add data to parameter and add parameter to design
+        parameters.put(CHART + counter, new JCommonDrawableRendererImpl(chart));
+        JRDesignParameter parameter = new JRDesignParameter();
+        parameter.setValueClass(Renderable.class);
+        parameter.setName(CHART + counter);
+        jasperDesign.addParameter(parameter);
+
+        //Add image - chart will be displayed in image tag
+        JRDesignImage imageElement = new JRDesignImage(jasperDesign);
+        imageElement.setX(sourceLevelBarGraph.getX());
+        imageElement.setY(sourceLevelBarGraph.getY());
+        imageElement.setWidth(sourceLevelBarGraph.getWidth());
+        imageElement.setHeight(sourceLevelBarGraph.getHeight());
+        imageElement.setPositionType(PositionTypeEnum.FLOAT);
+        imageElement.setScaleImage(ScaleImageEnum.FILL_FRAME);
+        imageElement.setLazy(true);
+        JRDesignExpression expression = new JRDesignExpression();
+        expression.setText("$P{" + CHART + counter + "}");
+        expression.setValueClass(JRRenderable.class);
+        imageElement.setExpression(expression);
+
+        return imageElement;
+    }
 
     public LinkedHashMap<String, Map<String, Integer>> getData(SourceLevelBarGraph sourceLevelBarGraph) {
         //Result data in format {sourceName: {process1: level, process2: level}, sourceName2: ...}

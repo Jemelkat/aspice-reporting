@@ -13,6 +13,7 @@ import org.apache.commons.collections4.map.MultiKeyMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Service
@@ -23,7 +24,8 @@ public class SourceLevelBarGraphService extends BaseChartService {
     public LinkedHashMap<String, Map<String, Integer>> getData(SourceLevelBarGraph sourceLevelBarGraph) {
         //Result data in format {sourceName: {process1: level, process2: level}, sourceName2: ...}
         LinkedHashMap<String, Map<String, Integer>> dataMap = new LinkedHashMap<>();
-
+        //Will store all processes and set level to 0 to sources that did not have this process defined
+        Set<String> allProcessSet = new LinkedHashSet<>();
         for (Source source : sourceLevelBarGraph.getSources()) {
             SourceColumn processColumn = getSourceColumnByName(source, sourceLevelBarGraph.getProcessColumn());
             SourceColumn attributeColumn = getSourceColumnByName(source, sourceLevelBarGraph.getAttributeColumn());
@@ -31,6 +33,7 @@ public class SourceLevelBarGraphService extends BaseChartService {
 
             //Get all process names sorted
             List<String> processNames = sourceRepository.findDistinctColumnValuesForColumn(processColumn.getId());
+            allProcessSet.addAll(processNames);
             Collections.sort(processNames, new NaturalOrderComparator());
 
             //Get all related data to map for easier lookup
@@ -115,6 +118,15 @@ public class SourceLevelBarGraphService extends BaseChartService {
         }
 
         //TODO fill all missing processes for each source - keep set of all processes then check against it
+        ArrayList<String> allProcessList = new ArrayList<>(allProcessSet);
+        Collections.sort(allProcessList, new NaturalOrderComparator());
+        for(String process : allProcessList) {
+            for(var dataKey : dataMap.keySet()) {
+                if(!dataMap.get(dataKey).containsKey(process)) {
+                    dataMap.get(dataKey).put(process, 0);
+                }
+            }
+        }
         return dataMap;
     }
 

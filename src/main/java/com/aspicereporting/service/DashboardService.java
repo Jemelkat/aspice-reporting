@@ -13,6 +13,7 @@ import com.aspicereporting.jasper.service.SourceLevelBarGraphService;
 import com.aspicereporting.repository.DashboardRepository;
 import com.aspicereporting.repository.SourceRepository;
 import com.aspicereporting.utils.NaturalOrderComparator;
+import org.apache.commons.collections4.map.LinkedMap;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -125,9 +126,18 @@ public class DashboardService {
             }
         } else if (reportItem instanceof SourceLevelBarGraph sourceLevelBarGraph) {
             LinkedHashMap<String, Map<String, Integer>> map = sourceLevelBarGraphService.getData(sourceLevelBarGraph);
-            for(var level : map.keySet()) {
-                //result.add(Map.of("level", level, "count", map.get(level).toString()));
-                System.out.println(level);
+
+            if(!map.isEmpty()) {
+                map.values().stream().findFirst().ifPresent(processMap -> {
+                    for(var process: processMap.keySet()) {
+                        Map<String, String> resultMap = new LinkedHashMap<>();
+                        resultMap.put("process", process);
+                        for(var source : map.keySet()) {
+                            resultMap.put(source, map.get(source).get(process).toString());
+                        }
+                        result.add(resultMap);
+                    }
+                });
             }
         } else {
             throw new InvalidDataException("Invalid item type provided :" + reportItem.getType().toString());

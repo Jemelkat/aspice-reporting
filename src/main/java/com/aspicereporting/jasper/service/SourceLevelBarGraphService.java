@@ -35,6 +35,8 @@ import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class SourceLevelBarGraphService extends BaseChartService {
@@ -108,22 +110,58 @@ public class SourceLevelBarGraphService extends BaseChartService {
         LinkedHashMap<String, Map<String, Integer>> dataMap = new LinkedHashMap<>();
         //Will store all processes and set level to 0 to sources that did not have this process defined
         Set<String> allProcessSet = new LinkedHashSet<>();
+        //Get all process filters
+        List<String> processNames = sourceLevelBarGraph.getProcessFilter();
+        Collections.sort(processNames, new NaturalOrderComparator());
+
+        //Precompile regex pattern or use first assessor found as assessor
+        Pattern assessorPattern = Pattern.compile(sourceLevelBarGraph.getAssessorFilter()!=null ? sourceLevelBarGraph.getAssessorFilter().trim():"");
+        Matcher assessorMatcher = assessorPattern.matcher("");
+        String firstAssessor = null;
+
         for (Source source : sourceLevelBarGraph.getSources()) {
+            SourceColumn assessorColumn = getSourceColumnByName(source, sourceLevelBarGraph.getAssessorColumn());
             SourceColumn processColumn = getSourceColumnByName(source, sourceLevelBarGraph.getProcessColumn());
             SourceColumn attributeColumn = getSourceColumnByName(source, sourceLevelBarGraph.getAttributeColumn());
             SourceColumn scoreColumn = getSourceColumnByName(source, sourceLevelBarGraph.getScoreColumn());
 
-            //Get all process names sorted
-            List<String> processNames = sourceRepository.findDistinctColumnValuesForColumn(processColumn.getId());
-            allProcessSet.addAll(processNames);
-            Collections.sort(processNames, new NaturalOrderComparator());
+            //Get all process names sorted - only if not defined in filter
+            if(sourceLevelBarGraph.getProcessFilter().isEmpty()) {
+                List<String> currentProcessNames = sourceRepository.findDistinctColumnValuesForColumn(processColumn.getId());
+                allProcessSet.addAll(currentProcessNames);
+                processNames.addAll(currentProcessNames);
+                Collections.sort(processNames, new NaturalOrderComparator());
+            }
+
+            //Get first assessor if assessor filter is not defined
+            if(firstAssessor==null && (sourceLevelBarGraph.getAssessorFilter() == null || sourceLevelBarGraph.getAssessorFilter().trim().isEmpty())) {
+                List<String> assessorNames = sourceRepository.findDistinctColumnValuesForColumn(assessorColumn.getId());
+                if(!assessorNames.isEmpty()) {
+                    firstAssessor = assessorNames.get(0).trim();
+                } else {
+                    throw new InvalidDataException("Source: " +source.getSourceName() + " has no assessors defined.");
+                }
+            }
 
             //Get all related data to map for easier lookup
             MultiKeyMap sourceDataMap = new MultiKeyMap();
             for (int i = 0; i < scoreColumn.getSourceData().size(); i++) {
-                String process = processColumn.getSourceData().get(i).getValue();
-                String attribute = attributeColumn.getSourceData().get(i).getValue();
-                String score = scoreColumn.getSourceData().get(i).getValue();
+                String process = processColumn.getSourceData().get(i).getValue().trim();
+                String attribute = attributeColumn.getSourceData().get(i).getValue().trim();
+                String score = scoreColumn.getSourceData().get(i).getValue().trim();
+                String assessor = assessorColumn.getSourceData().get(i).getValue().trim();
+
+                //Filter by assessor filter or first assessor found in first source file
+                if(firstAssessor == null) {
+                    assessorMatcher.reset(assessor);
+                    if(!assessorMatcher.matches()) {
+                        continue;
+                    }
+                } else {
+                    if(!firstAssessor.equals(assessor)) {
+                        continue;
+                    }
+                }
 
                 //TODO add performance criterion to detect duplicate data
                 MultiKey key = new MultiKey(process, attribute);

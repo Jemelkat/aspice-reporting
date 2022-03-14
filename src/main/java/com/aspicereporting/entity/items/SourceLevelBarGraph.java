@@ -34,14 +34,22 @@ public class SourceLevelBarGraph extends ReportItem {
     private Orientation orientation;
     @NotEmpty(message = "Sources level bar graph needs assessor column defined.")
     private String assessorColumn;
+    private String assessorFilter;
     @NotEmpty(message = "Sources level bar graph needs process column defined.")
     private String processColumn;
+    @Type(type = "list-array")
+    @Column(
+            name = "process_filter",
+            columnDefinition = "text[]"
+    )
+    private List<String> processFilter = new ArrayList<>();
     @NotEmpty(message = "Sources level bar graph needs attribute column defined.")
     private String attributeColumn;
     @NotEmpty(message = "Sources level bar graph needs score column defined.")
     private String scoreColumn;
 
 
+    @NotEmpty(message = "Sources level bar graph needs sources.")
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "bar_graph_sources",
             joinColumns = @JoinColumn(name = "report_item_id"),

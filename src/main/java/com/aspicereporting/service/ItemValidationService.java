@@ -180,7 +180,7 @@ public class ItemValidationService {
                 //Clear all other columns if source is not defined
                 capabilityBarGraph.setProcessColumn(null);
                 capabilityBarGraph.setAttributeColumn(null);
-                capabilityBarGraph.setLevelColumn(null);
+                capabilityBarGraph.setCriterionColumn(null);
                 capabilityBarGraph.setScoreColumn(null);
                 capabilityBarGraph.setAssessorColumn(null);
                 capabilityBarGraph.getProcessFilter().clear();
@@ -207,10 +207,10 @@ public class ItemValidationService {
                 }
             }
             //LEVEL VALIDATE
-            if (capabilityBarGraph.getLevelColumn() != null) {
-                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capabilityBarGraph.getLevelColumn().getId())).findFirst();
+            if (capabilityBarGraph.getCriterionColumn() != null) {
+                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capabilityBarGraph.getCriterionColumn().getId())).findFirst();
                 if (columnExists.isEmpty()) {
-                    throw new EntityNotFoundException("Invalid source column id=" + capabilityBarGraph.getLevelColumn().getId() + " for source id=" + sourceId);
+                    throw new EntityNotFoundException("Invalid source column id=" + capabilityBarGraph.getCriterionColumn().getId() + " for source id=" + sourceId);
                 }
             } else {
                 if (!allowUndefinedData) {

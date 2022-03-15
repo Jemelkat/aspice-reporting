@@ -65,6 +65,11 @@ public class CapabilityBarGraph extends ReportItem {
     @JoinColumn(name = "score_column_id", referencedColumnName = "source_column_id")
     private SourceColumn scoreColumn;
 
+    @NotNull(message = "Capability bar graph needs score agregate function defined.")
+    @Column(length = 20, name = "score_function",nullable = false)
+    @Enumerated(EnumType.STRING)
+    private EFunction scoreFunction;
+
     @Type(type = "list-array")
     @Column(
             name = "process_filter",

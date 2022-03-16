@@ -44,17 +44,12 @@ public class LevelBarGraphService extends BaseChartService {
         LinkedHashMap<String, Map<String, Integer>> graphData = getData(levelBarGraph);
 
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        int maxLevel = 0;
         for (var process : graphData.keySet()) {
             for(var assessor : graphData.get(process).keySet()) {
                 Integer level = graphData.get(process).get(assessor);
-                if (level > maxLevel) {
-                    maxLevel = level;
-                }
                 dataset.addValue(level, assessor, process);
             }
         }
-
 
         final JFreeChart chart = ChartFactory.createBarChart(
                 "",                                   // chart title
@@ -71,7 +66,7 @@ public class LevelBarGraphService extends BaseChartService {
         //Rotate x axis names to save space
         CategoryPlot plot = (CategoryPlot) chart.getPlot();
         ValueAxis rangeAxis = plot.getRangeAxis();
-        rangeAxis.setUpperBound(maxLevel < 5 ? maxLevel + 1 : maxLevel);
+        rangeAxis.setUpperBound(5);
         rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
         if (levelBarGraph.getOrientation().equals(Orientation.HORIZONTAL)) {
             CategoryAxis categoryAxis = plot.getDomainAxis();
@@ -180,7 +175,6 @@ public class LevelBarGraphService extends BaseChartService {
                     for (String attribute : processAttributesMap.get(i)) {
                         double finalScore = 0;
 
-
                         MultiKey multikey = new MultiKey(process, attribute, assessor);
                         //Process does not have this attribute defined we dont have to increase level
                         if (!valuesMap.containsKey(multikey)) {
@@ -193,30 +187,14 @@ public class LevelBarGraphService extends BaseChartService {
                             List<Double> scoresListDouble = new ArrayList<>();
                             for(int j =0; j<scoresList.size(); j++) {
                                 String score = scoresList.get(j);
-                                if (scoreToValueMap.containsKey(score)) {
-                                    scoresListDouble.add(scoreToValueMap.get(score));
-                                } else {
-                                    try {
-                                        scoresListDouble.add(Double.parseDouble(score));
-                                    } catch (Exception e) {
-                                        throw new JasperReportException("Capability graph score column contains unknown value: " + score, e);
-                                    }
+                                try {
+                                    Double doubleScore = getValueForScore(score);
+                                    scoresListDouble.add(doubleScore);
+                                } catch (Exception e) {
+                                    throw new JasperReportException("Level bar graph score column contains unknown value: " + score, e);
                                 }
                             }
-
-                            switch(levelBarGraph.getScoreFunction()) {
-                                case MIN:
-                                    finalScore += Collections.min(scoresListDouble);
-                                    break;
-                                case MAX:
-                                    finalScore += Collections.max(scoresListDouble);
-                                    break;
-                                case AVG:
-                                    finalScore += scoresListDouble.stream().mapToDouble(s -> s).average().getAsDouble();
-                                    break;
-                                default:
-                                    throw new JasperReportException("Capability graph score column contains unknown score function: " + levelBarGraph.getScoreFunction().toString());
-                            }
+                            finalScore += applyScoreFunction(scoresListDouble, levelBarGraph.getScoreFunction());
                         }
                         //Get average score achieved for this attribute
                         finalScore = finalScore / criterionScoreMap.size();

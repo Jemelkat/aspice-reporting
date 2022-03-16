@@ -1,6 +1,6 @@
 package com.aspicereporting.controller;
 
-import com.aspicereporting.controller.response.MessageResponse;
+import com.aspicereporting.dto.MessageResponseDTO;
 import com.aspicereporting.entity.Template;
 import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.views.View;
@@ -56,7 +56,7 @@ public class TemplateController {
     public ResponseEntity<?> delete(@RequestParam Long templateId, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
         templateService.deleteTemplate(templateId, loggedUser);
-        return ResponseEntity.ok(new MessageResponse("Template id= " + templateId + " deleted."));
+        return ResponseEntity.ok(new MessageResponseDTO("Template id= " + templateId + " deleted."));
     }
 
 }

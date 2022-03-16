@@ -1,4 +1,4 @@
-package com.aspicereporting.controller.response;
+package com.aspicereporting.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,7 +11,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class JwtResponse {
+public class JwtResponseDTO {
     private String token;
     private final String type = "Bearer";
     private Long id;

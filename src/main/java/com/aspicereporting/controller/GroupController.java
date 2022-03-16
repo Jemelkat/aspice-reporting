@@ -1,6 +1,6 @@
 package com.aspicereporting.controller;
 
-import com.aspicereporting.controller.response.MessageResponse;
+import com.aspicereporting.dto.MessageResponseDTO;
 import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.service.UserGroupService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,14 +22,14 @@ public class GroupController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> editUserGroup(@RequestBody @Valid UserGroup group) throws Exception {
         userGroupService.updateUserGroup(group);
-        return ResponseEntity.ok(new MessageResponse("User group " + group.getGroupName() + " edited successfully."));
+        return ResponseEntity.ok(new MessageResponseDTO("User group " + group.getGroupName() + " edited successfully."));
     }
 
     @DeleteMapping(value = "/delete")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> deleteUserGroup(@RequestParam("id") Long id) {
         userGroupService.deleteUserGroup(id);
-        return ResponseEntity.ok(new MessageResponse("User group id " + id + " deleted successfully."));
+        return ResponseEntity.ok(new MessageResponseDTO("User group id " + id + " deleted successfully."));
     }
 
 
@@ -37,6 +37,6 @@ public class GroupController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> createUserGroup(@RequestBody @Valid UserGroup group) {
         userGroupService.createUserGroup(group);
-        return ResponseEntity.ok(new MessageResponse("User group id " + group.getId() + " created successfully."));
+        return ResponseEntity.ok(new MessageResponseDTO("User group id " + group.getId() + " created successfully."));
     }
 }

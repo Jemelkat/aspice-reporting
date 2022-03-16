@@ -1,6 +1,6 @@
 package com.aspicereporting.controller;
 
-import com.aspicereporting.controller.response.MessageResponse;
+import com.aspicereporting.dto.MessageResponseDTO;
 import com.aspicereporting.dto.SourceTableDTO;
 import com.aspicereporting.entity.*;
 import com.aspicereporting.entity.views.View;
@@ -43,7 +43,7 @@ public class SourceController {
         //Store multipart file as source
         sourceService.storeFileAsSource(file, loggedUser);
 
-        return ResponseEntity.ok(new MessageResponse(file.getOriginalFilename() + "saved."));
+        return ResponseEntity.ok(new MessageResponseDTO(file.getOriginalFilename() + "saved."));
     }
 
     @GetMapping("/getAll")
@@ -94,7 +94,7 @@ public class SourceController {
     public ResponseEntity<?> delete(@Param("sourceId") Long sourceId, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
         sourceService.deleteById(sourceId, loggedUser);
-        return ResponseEntity.ok(new MessageResponse("Source id=" + sourceId + " deleted."));
+        return ResponseEntity.ok(new MessageResponseDTO("Source id=" + sourceId + " deleted."));
     }
 
     @JsonView(View.Simple.class)
@@ -108,7 +108,7 @@ public class SourceController {
     public ResponseEntity<?> share(@PathVariable("id") Long sourceId, @RequestBody List<Long> groupIds, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
         sourceService.shareWithGroups(sourceId, groupIds, loggedUser);
-        return ResponseEntity.ok(new MessageResponse("Source id=" + sourceId + " shared."));
+        return ResponseEntity.ok(new MessageResponseDTO("Source id=" + sourceId + " shared."));
     }
 
     @GetMapping("/{id}/download")

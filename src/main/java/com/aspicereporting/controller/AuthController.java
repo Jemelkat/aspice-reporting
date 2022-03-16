@@ -2,8 +2,8 @@ package com.aspicereporting.controller;
 
 import com.aspicereporting.dto.LoginDTO;
 import com.aspicereporting.dto.SignupDTO;
-import com.aspicereporting.controller.response.JwtResponse;
-import com.aspicereporting.controller.response.MessageResponse;
+import com.aspicereporting.dto.JwtResponseDTO;
+import com.aspicereporting.dto.MessageResponseDTO;
 import com.aspicereporting.entity.Role;
 import com.aspicereporting.entity.User;
 import com.aspicereporting.exception.EntityNotFoundException;
@@ -60,7 +60,7 @@ public class AuthController {
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(new JwtResponse(jwt,
+        return ResponseEntity.ok(new JwtResponseDTO(jwt,
                 userDetails.getId(),
                 userDetails.getUsername(),
                 userDetails.getEmail(),
@@ -72,13 +72,13 @@ public class AuthController {
         if (userRepository.existsByUsername(signUpDTO.getUsername())) {
             return ResponseEntity
                     .badRequest()
-                    .body(new MessageResponse("Username is already taken."));
+                    .body(new MessageResponseDTO("Username is already taken."));
         }
 
         if (userRepository.existsByEmail(signUpDTO.getEmail())) {
             return ResponseEntity
                     .badRequest()
-                    .body(new MessageResponse("Email is already taken."));
+                    .body(new MessageResponseDTO("Email is already taken."));
         }
 
         // Create new user's account
@@ -94,6 +94,6 @@ public class AuthController {
         user.setRoles(roles);
         userRepository.save(user);
 
-        return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+        return ResponseEntity.ok(new MessageResponseDTO("User registered successfully!"));
     }
 }

@@ -1,6 +1,6 @@
 package com.aspicereporting.controller;
 
-import com.aspicereporting.controller.response.MessageResponse;
+import com.aspicereporting.dto.MessageResponseDTO;
 import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.views.View;
@@ -29,7 +29,7 @@ public class UserController {
     public ResponseEntity<?> addToGroup(@RequestParam("groupId") Long groupId, @RequestParam(value = "userId", required = false) Long userId, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
         userService.addGroupToUser(groupId, userId, loggedUser);
-        return ResponseEntity.ok(new MessageResponse("User " + loggedUser.getUsername() + " added to group successfully."));
+        return ResponseEntity.ok(new MessageResponseDTO("User " + loggedUser.getUsername() + " added to group successfully."));
     }
 
     @PostMapping(value = "/edit")
@@ -40,17 +40,17 @@ public class UserController {
         if (((loggedUser.getId() != null) && (loggedUser.getId() == user.getId())) || (loggedUser.isAdmin())) {
             userService.updateUser(user);
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("You cannot edit other users without admin rights"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponseDTO("You cannot edit other users without admin rights"));
         }
 
-        return ResponseEntity.ok(new MessageResponse("User edited successfully."));
+        return ResponseEntity.ok(new MessageResponseDTO("User edited successfully."));
     }
 
     @PostMapping(value = "/delete")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> delete(@RequestParam Long id) {
         userService.deleteUser(id);
-        return ResponseEntity.ok(new MessageResponse("User id " + id + " deleted successfully."));
+        return ResponseEntity.ok(new MessageResponseDTO("User id " + id + " deleted successfully."));
     }
 
     @JsonView(View.Simple.class)

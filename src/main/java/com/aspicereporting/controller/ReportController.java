@@ -1,10 +1,8 @@
 package com.aspicereporting.controller;
 
-import com.aspicereporting.controller.response.ErrorResponse;
-import com.aspicereporting.controller.response.MessageResponse;
+import com.aspicereporting.dto.MessageResponseDTO;
 import com.aspicereporting.entity.Report;
 import com.aspicereporting.entity.User;
-import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.entity.views.View;
 import com.aspicereporting.service.JasperService;
 import com.aspicereporting.service.ReportService;
@@ -14,19 +12,13 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.ConstraintViolationException;
-import javax.validation.Valid;
 import java.io.ByteArrayOutputStream;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @CrossOrigin
 @RestController
@@ -75,7 +67,7 @@ public class ReportController {
     public ResponseEntity<?> delete(@RequestParam Long reportId, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
         reportService.deleteReport(reportId, loggedUser);
-        return ResponseEntity.ok(new MessageResponse("Report id= " + reportId + " deleted."));
+        return ResponseEntity.ok(new MessageResponseDTO("Report id= " + reportId + " deleted."));
     }
 
     @GetMapping("/generate")

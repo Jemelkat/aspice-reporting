@@ -1,5 +1,6 @@
 package com.aspicereporting.jasper.service;
 
+import com.aspicereporting.entity.enums.ScoreFunction;
 import com.aspicereporting.entity.items.ReportItem;
 import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.exception.JasperReportException;
@@ -47,7 +48,7 @@ public abstract class ItemService {
         return valueToScoreMap.get(key);
     }
 
-    public Double applyScoreFunction(List<Double> scoresList, ReportItem.EFunction scoreFunction) {
+    public Double applyScoreFunction(List<Double> scoresList, ScoreFunction scoreFunction) {
         if (scoresList.isEmpty()) {
             return null;
         }

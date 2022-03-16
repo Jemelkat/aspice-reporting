@@ -122,10 +122,10 @@ public class JasperService {
                 }
             }
             /*SIMPLE TABLE ITEM*/
-            else if (reportItem instanceof TableItem tableItem) {
+            else if (reportItem instanceof SimpleTable simpleTable) {
                 try {
                     //Create table element for JR
-                    JRDesignComponentElement JRTableElement = simpleTableService.createElement(jasperDesign, tableItem, tableCounter, parameters);
+                    JRDesignComponentElement JRTableElement = simpleTableService.createElement(jasperDesign, simpleTable, tableCounter, parameters);
                     //Add table to JR
                     band.addElement(JRTableElement);
                     tableCounter++;

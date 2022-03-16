@@ -29,8 +29,8 @@ public class ItemValidationService {
     public void validateItem(ReportItem reportItem, boolean allowUndefinedData, User user) {
         if (reportItem instanceof TextItem textItem) {
             //No additional validation
-        } else if (reportItem instanceof TableItem tableItem) {
-            validateSimpleTable(tableItem, user, allowUndefinedData);
+        } else if (reportItem instanceof SimpleTable simpleTable) {
+            validateSimpleTable(simpleTable, user, allowUndefinedData);
         } else if (reportItem instanceof CapabilityTable capabilityTable) {
             validateCapabilityTable(capabilityTable, user, allowUndefinedData);
         } else if (reportItem instanceof LevelBarGraph levelBarGraph) {
@@ -44,25 +44,25 @@ public class ItemValidationService {
         }
     }
 
-    private void validateSimpleTable(TableItem tableItem, User user, boolean allowUndefinedData) {
+    private void validateSimpleTable(SimpleTable simpleTable, User user, boolean allowUndefinedData) {
         if (!allowUndefinedData) {
             //Validate - if source and all id of columns are defined
-            tableItem.validate();
+            simpleTable.validate();
             //Validate - columns are defined
-            if (tableItem.getTableColumns().isEmpty()) {
+            if (simpleTable.getTableColumns().isEmpty()) {
                 throw new InvalidDataException("Simple table has no columns defined.");
             }
         }
 
         Long sourceId = null;
-        if (tableItem.getSource() != null) {
-            sourceId = tableItem.getSource().getId();
+        if (simpleTable.getSource() != null) {
+            sourceId = simpleTable.getSource().getId();
         }
         //Validate source defined
         if (sourceId == null) {
             if (allowUndefinedData) {
                 //Clear all other columns if source is not defined
-                for (var column : tableItem.getTableColumns()) {
+                for (var column : simpleTable.getTableColumns()) {
                     column.setSourceColumn(null);
                 }
             } else {
@@ -75,7 +75,7 @@ public class ItemValidationService {
                 throw new EntityNotFoundException("You dont have any source with id=" + sourceId);
             }
 
-            tableItem.getTableColumns().forEach(tableColumn -> {
+            simpleTable.getTableColumns().forEach(tableColumn -> {
                 if (tableColumn.getSourceColumn() != null) {
                     //Validate if column exists in source
                     Optional<SourceColumn> columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(tableColumn.getSourceColumn().getId())).findFirst();
@@ -89,7 +89,7 @@ public class ItemValidationService {
                 }
                 tableColumn.setId(null);
             });
-            source.addSimpleTable(tableItem);
+            source.addSimpleTable(simpleTable);
         }
     }
 

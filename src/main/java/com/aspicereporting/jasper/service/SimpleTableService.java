@@ -2,14 +2,11 @@ package com.aspicereporting.jasper.service;
 
 import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.items.TableColumn;
-import com.aspicereporting.entity.items.TableItem;
+import com.aspicereporting.entity.items.SimpleTable;
 import com.aspicereporting.jasper.model.SimpleTableModel;
-import net.sf.jasperreports.components.ComponentsExtensionsRegistryFactory;
-import net.sf.jasperreports.components.table.DesignCell;
 import net.sf.jasperreports.components.table.StandardColumn;
 import net.sf.jasperreports.components.table.StandardTable;
 import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.component.ComponentKey;
 import net.sf.jasperreports.engine.data.JRTableModelDataSource;
 import net.sf.jasperreports.engine.design.*;
 import org.springframework.stereotype.Service;
@@ -20,7 +17,7 @@ import java.util.Map;
 
 @Service
 public class SimpleTableService extends BaseTableService{
-    public JRDesignComponentElement createElement(JasperDesign jasperDesign, TableItem tableItem, Integer tableCount, Map<String, Object> parameters) throws JRException {
+    public JRDesignComponentElement createElement(JasperDesign jasperDesign, SimpleTable simpleTableItem, Integer tableCount, Map<String, Object> parameters) throws JRException {
         //Create data parameter for custom JRTableModelDataSource.class
         JRDesignParameter parameter = new JRDesignParameter();
         parameter.setValueClass(JRTableModelDataSource.class);
@@ -35,7 +32,7 @@ public class SimpleTableService extends BaseTableService{
         List<String> columnArray = new ArrayList<>();
         int rows = 0;
         int columns = 0;
-        for (TableColumn tableColumn : tableItem.getTableColumns()) {
+        for (TableColumn tableColumn : simpleTableItem.getTableColumns()) {
             SourceColumn sourceColumn = tableColumn.getSourceColumn();
 
             JRDesignField field = new JRDesignField();
@@ -47,15 +44,15 @@ public class SimpleTableService extends BaseTableService{
             columnArray.add(sourceColumn.getColumnName());
             if (rows == 0 && columns == 0) {
                 rows = sourceColumn.getSourceData().size();
-                columns = tableItem.getTableColumns().size();
+                columns = simpleTableItem.getTableColumns().size();
             }
         }
         jasperDesign.addDataset(tableSubdataset);
 
         //Creates object with data
         Object[][] test = new Object[rows][columns];
-        for (int i = 0; i < tableItem.getTableColumns().size(); i++) {
-            SourceColumn sc = tableItem.getTableColumns().get(i).getSourceColumn();
+        for (int i = 0; i < simpleTableItem.getTableColumns().size(); i++) {
+            SourceColumn sc = simpleTableItem.getTableColumns().get(i).getSourceColumn();
             for (int j = 0; j < sc.getSourceData().size(); j++) {
                 test[j][i] = sc.getSourceData().get(j).getValue();
             }
@@ -71,7 +68,7 @@ public class SimpleTableService extends BaseTableService{
 
 
         //Create table element
-        JRDesignComponentElement tableElement = createTableElement(jasperDesign, tableItem);
+        JRDesignComponentElement tableElement = createTableElement(jasperDesign, simpleTableItem);
         StandardTable table = new StandardTable();
         //Define dataset for this table
         JRDesignDatasetRun datasetRun = new JRDesignDatasetRun();
@@ -81,7 +78,7 @@ public class SimpleTableService extends BaseTableService{
         table.setDatasetRun(datasetRun);
 
         //Create all columns
-        for (TableColumn column : tableItem.getTableColumns()) {
+        for (TableColumn column : simpleTableItem.getTableColumns()) {
             String columnName = column.getSourceColumn().getColumnName();
             StandardColumn fieldColumn = createSimpleTableColumn(jasperDesign, column.getWidth(), 20, columnName, "$F{" + columnName + "}");
             table.addColumn(fieldColumn);

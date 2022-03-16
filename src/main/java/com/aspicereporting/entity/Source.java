@@ -1,6 +1,7 @@
 package com.aspicereporting.entity;
 
 import com.aspicereporting.entity.items.*;
+import com.aspicereporting.entity.items.SimpleTable;
 import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -17,7 +18,7 @@ import java.util.*;
 @Getter
 @NoArgsConstructor
 @Entity
-@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"source_name", "user_id"})})
+@javax.persistence.Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"source_name", "user_id"})})
 public class Source {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -55,7 +56,7 @@ public class Source {
 
     @JsonIgnore
     @OneToMany(mappedBy = "source", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
-    private List<TableItem> simpleTables = new ArrayList<>();
+    private List<SimpleTable> simpleSimpleTables = new ArrayList<>();
 
     @JsonIgnore
     @OneToMany(mappedBy = "source", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
@@ -76,9 +77,9 @@ public class Source {
 
 
     public void prepareForDelete() {
-        for (TableItem table : simpleTables) {
-            table.setSource(null);
-            for (TableColumn tc : table.getTableColumns()) {
+        for (SimpleTable simpleTable : simpleSimpleTables) {
+            simpleTable.setSource(null);
+            for (TableColumn tc : simpleTable.getTableColumns()) {
                 tc.setSourceColumn(null);
             }
         }
@@ -130,8 +131,8 @@ public class Source {
         capabilityTable.setSource(this);
     }
 
-    public void addSimpleTable(TableItem simpleTable) {
-        this.simpleTables.add(simpleTable);
+    public void addSimpleTable(SimpleTable simpleTable) {
+        this.simpleSimpleTables.add(simpleTable);
         simpleTable.setSource(this);
     }
 

@@ -2,6 +2,7 @@ package com.aspicereporting.entity.items;
 
 import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.SourceColumn;
+import com.aspicereporting.entity.enums.ScoreFunction;
 import com.aspicereporting.entity.views.View;
 import com.aspicereporting.exception.InvalidDataException;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -53,7 +54,7 @@ public class LevelPieGraph extends ReportItem{
     @NotNull(message = "Level pie graph needs score aggregate function defined.")
     @Column(length = 20, name = "score_function",nullable = false)
     @Enumerated(EnumType.STRING)
-    private EFunction scoreFunction;
+    private ScoreFunction scoreFunction;
 
     public void validate() {
         if (this.source.getId() == null) {

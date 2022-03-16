@@ -3,6 +3,7 @@ package com.aspicereporting.entity.items;
 import com.aspicereporting.entity.Dashboard;
 import com.aspicereporting.entity.Report;
 import com.aspicereporting.entity.Template;
+import com.aspicereporting.entity.enums.ItemType;
 import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -20,7 +21,7 @@ import javax.persistence.*;
         visible = true)
 @JsonSubTypes({
         @JsonSubTypes.Type(value = TextItem.class, name = "TEXT"),
-        @JsonSubTypes.Type(value = TableItem.class, name = "SIMPLE_TABLE"),
+        @JsonSubTypes.Type(value = SimpleTable.class, name = "SIMPLE_TABLE"),
         @JsonSubTypes.Type(value = CapabilityTable.class, name = "CAPABILITY_TABLE"),
         @JsonSubTypes.Type(value = LevelBarGraph.class, name = "CAPABILITY_BAR_GRAPH"),
         @JsonSubTypes.Type(value = SourceLevelBarGraph.class, name = "SOURCE_LEVEL_BAR_GRAPH"),
@@ -44,7 +45,7 @@ public abstract class ReportItem implements Comparable {
     private Long id;
     @Column(length = 50, name = "report_item_type", insertable = false, updatable = false)
     @Enumerated(EnumType.STRING)
-    private EItemType type;
+    private ItemType type;
     @Column(name = "report_item_x")
     private int x;
     @Column(name = "report_item_y")
@@ -68,14 +69,6 @@ public abstract class ReportItem implements Comparable {
     @JoinColumn(name = "dashboard_id", referencedColumnName = "dashboard_id")
     @JsonIgnore
     private Dashboard dashboard;
-
-    public enum EItemType {
-        TEXT, SIMPLE_TABLE, CAPABILITY_TABLE, CAPABILITY_BAR_GRAPH, LEVEL_PIE_GRAPH, SOURCE_LEVEL_BAR_GRAPH;
-    }
-
-    public enum EFunction {
-        MIN, MAX, AVG;
-    }
 
     @Override
     public int compareTo(Object o) {

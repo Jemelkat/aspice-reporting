@@ -17,7 +17,7 @@ import java.util.List;
 @Entity
 @DiscriminatorValue("SIMPLE_TABLE")
 @JsonView(View.Simple.class)
-public class TableItem extends ReportItem {
+public class SimpleTable extends ReportItem {
     @NotNull(message = "Simple table needs source defined")
     @ManyToOne
     private Source source;

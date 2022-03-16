@@ -1,17 +1,13 @@
 package com.aspicereporting.jasper.service;
 
 import com.aspicereporting.entity.items.ReportItem;
-import com.aspicereporting.entity.items.TableItem;
 import net.sf.jasperreports.components.ComponentsExtensionsRegistryFactory;
 import net.sf.jasperreports.components.table.DesignCell;
 import net.sf.jasperreports.components.table.StandardColumn;
-import net.sf.jasperreports.components.table.StandardGroupCell;
 import net.sf.jasperreports.engine.component.ComponentKey;
 import net.sf.jasperreports.engine.design.*;
 import net.sf.jasperreports.engine.type.HorizontalTextAlignEnum;
 import net.sf.jasperreports.engine.type.PositionTypeEnum;
-
-import java.awt.*;
 
 public abstract class BaseTableService extends ItemService {
     protected static final String TABLE_DATA = "tableData";

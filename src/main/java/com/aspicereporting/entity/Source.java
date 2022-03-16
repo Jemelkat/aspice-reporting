@@ -90,7 +90,7 @@ public class Source {
             graph.setSource(null);
             graph.setAssessorColumn(null);
             graph.setProcessColumn(null);
-            graph.setLevelColumn(null);
+            graph.setCriterionColumn(null);
             graph.setAttributeColumn(null);
             graph.setScoreColumn(null);
         }
@@ -98,7 +98,7 @@ public class Source {
             graph.setSource(null);
             graph.setAssessorColumn(null);
             graph.setProcessColumn(null);
-            graph.setLevelColumn(null);
+            graph.setCriterionColumn(null);
             graph.setAttributeColumn(null);
             graph.setScoreColumn(null);
         }

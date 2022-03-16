@@ -53,6 +53,11 @@ public class CapabilityTable extends ReportItem {
     @JoinColumn(name="score_column_id")
     private SourceColumn scoreColumn;
 
+    @NotNull(message = "Capability table needs score aggregate function defined.")
+    @Column(length = 20, name = "score_function",nullable = false)
+    @Enumerated(EnumType.STRING)
+    private EFunction scoreFunction;
+
     public void validate() {
         if (this.source.getId() == null) {
             throw new InvalidDataException("Capability table has no source defined.");

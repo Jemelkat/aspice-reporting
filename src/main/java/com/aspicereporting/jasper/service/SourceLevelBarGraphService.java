@@ -3,7 +3,6 @@ package com.aspicereporting.jasper.service;
 import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.enums.Orientation;
-import com.aspicereporting.entity.items.CapabilityBarGraph;
 import com.aspicereporting.entity.items.SourceLevelBarGraph;
 import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.exception.JasperReportException;
@@ -33,7 +32,6 @@ import org.jfree.data.category.DefaultCategoryDataset;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

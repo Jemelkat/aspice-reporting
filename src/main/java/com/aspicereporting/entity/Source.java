@@ -59,7 +59,7 @@ public class Source {
 
     @JsonIgnore
     @OneToMany(mappedBy = "source", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
-    private List<CapabilityBarGraph> capabilityBarGraphs = new ArrayList<>();
+    private List<LevelBarGraph> levelBarGraphs = new ArrayList<>();
 
     @JsonIgnore
     @OneToMany(mappedBy = "source", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
@@ -90,7 +90,7 @@ public class Source {
             table.setLevelColumn(null);
             table.setScoreColumn(null);
         }
-        for (CapabilityBarGraph graph : capabilityBarGraphs) {
+        for (LevelBarGraph graph : levelBarGraphs) {
             graph.setSource(null);
             graph.setAssessorColumn(null);
             graph.setProcessColumn(null);
@@ -135,9 +135,9 @@ public class Source {
         simpleTable.setSource(this);
     }
 
-    public void addCapabilityGraph(CapabilityBarGraph capabilityBarGraph) {
-        this.capabilityBarGraphs.add(capabilityBarGraph);
-        capabilityBarGraph.setSource(this);
+    public void addCapabilityGraph(LevelBarGraph levelBarGraph) {
+        this.levelBarGraphs.add(levelBarGraph);
+        levelBarGraph.setSource(this);
     }
 
     public void addLevelPieGraph(LevelPieGraph levelPieGraph) {

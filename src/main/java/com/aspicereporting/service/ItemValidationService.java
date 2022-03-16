@@ -33,8 +33,8 @@ public class ItemValidationService {
             validateSimpleTable(tableItem, user, allowUndefinedData);
         } else if (reportItem instanceof CapabilityTable capabilityTable) {
             validateCapabilityTable(capabilityTable, user, allowUndefinedData);
-        } else if (reportItem instanceof CapabilityBarGraph capabilityBarGraph) {
-            validateCapabilityBarGraph(capabilityBarGraph, user, allowUndefinedData);
+        } else if (reportItem instanceof LevelBarGraph levelBarGraph) {
+            validateLevelBarGraph(levelBarGraph, user, allowUndefinedData);
         } else if (reportItem instanceof SourceLevelBarGraph sourceLevelBarGraph) {
             validateSourceLevelGraph(sourceLevelBarGraph, user, allowUndefinedData);
         } else if (reportItem instanceof LevelPieGraph levelPieGraph) {
@@ -66,7 +66,7 @@ public class ItemValidationService {
                     column.setSourceColumn(null);
                 }
             } else {
-                throw new InvalidDataException("Capability table needs source defined.");
+                throw new InvalidDataException("Simple table needs source defined.");
             }
         } else {
             //Validate - user can use this source id
@@ -140,7 +140,7 @@ public class ItemValidationService {
                 }
             } else {
                 if (!allowUndefinedData) {
-                    throw new InvalidDataException("Capability bar graph needs level column defined.");
+                    throw new InvalidDataException("Capability table needs level column defined.");
                 }
             }
             //CRITERION VALIDATE
@@ -151,7 +151,7 @@ public class ItemValidationService {
                 }
             } else {
                 if (!allowUndefinedData) {
-                    throw new InvalidDataException("Capability bar graph needs level column defined.");
+                    throw new InvalidDataException("Capability table needs criterion column defined.");
                 }
             }
             //SCORE VALIDATE
@@ -162,7 +162,7 @@ public class ItemValidationService {
                 }
             } else {
                 if (!allowUndefinedData) {
-                    throw new InvalidDataException("Capability bar graph needs level column defined.");
+                    throw new InvalidDataException("Capability table needs score column defined.");
                 }
             }
             source.addCapabilityTable(capabilityTable);
@@ -199,28 +199,28 @@ public class ItemValidationService {
         }
     }
 
-    private void validateCapabilityBarGraph(CapabilityBarGraph capabilityBarGraph, User user, boolean allowUndefinedData) {
+    private void validateLevelBarGraph(LevelBarGraph levelBarGraph, User user, boolean allowUndefinedData) {
         if (!allowUndefinedData) {
             //Validate - if source and all id of columns are defined
-            capabilityBarGraph.validate();
+            levelBarGraph.validate();
         }
         Long sourceId = null;
-        if (capabilityBarGraph.getSource() != null) {
-            sourceId = capabilityBarGraph.getSource().getId();
+        if (levelBarGraph.getSource() != null) {
+            sourceId = levelBarGraph.getSource().getId();
         }
         //Validate source defined
         if (sourceId == null) {
             if (allowUndefinedData) {
                 //Clear all other columns if source is not defined
-                capabilityBarGraph.setProcessColumn(null);
-                capabilityBarGraph.setAttributeColumn(null);
-                capabilityBarGraph.setCriterionColumn(null);
-                capabilityBarGraph.setScoreColumn(null);
-                capabilityBarGraph.setAssessorColumn(null);
-                capabilityBarGraph.getProcessFilter().clear();
-                capabilityBarGraph.getAssessorFilter().clear();
+                levelBarGraph.setProcessColumn(null);
+                levelBarGraph.setAttributeColumn(null);
+                levelBarGraph.setCriterionColumn(null);
+                levelBarGraph.setScoreColumn(null);
+                levelBarGraph.setAssessorColumn(null);
+                levelBarGraph.getProcessFilter().clear();
+                levelBarGraph.getAssessorFilter().clear();
             } else {
-                throw new InvalidDataException("Capability bar graph needs source defined.");
+                throw new InvalidDataException("Level bar graph needs source defined.");
             }
         } else {
             //Validate - user can use this source id
@@ -230,50 +230,50 @@ public class ItemValidationService {
             }
             Optional<SourceColumn> columnExists = Optional.empty();
             //PROCESS VALIDATE
-            if (capabilityBarGraph.getProcessColumn() != null) {
-                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capabilityBarGraph.getProcessColumn().getId())).findFirst();
+            if (levelBarGraph.getProcessColumn() != null) {
+                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(levelBarGraph.getProcessColumn().getId())).findFirst();
                 if (columnExists.isEmpty()) {
-                    throw new EntityNotFoundException("Invalid source column id=" + capabilityBarGraph.getProcessColumn().getId() + " for source id=" + sourceId);
+                    throw new EntityNotFoundException("Invalid source column id=" + levelBarGraph.getProcessColumn().getId() + " for source id=" + sourceId);
                 }
             } else {
                 if (!allowUndefinedData) {
-                    throw new InvalidDataException("Capability bar graph needs process column defined.");
+                    throw new InvalidDataException("Level bar graph needs process column defined.");
                 }
             }
             //LEVEL VALIDATE
-            if (capabilityBarGraph.getCriterionColumn() != null) {
-                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capabilityBarGraph.getCriterionColumn().getId())).findFirst();
+            if (levelBarGraph.getCriterionColumn() != null) {
+                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(levelBarGraph.getCriterionColumn().getId())).findFirst();
                 if (columnExists.isEmpty()) {
-                    throw new EntityNotFoundException("Invalid source column id=" + capabilityBarGraph.getCriterionColumn().getId() + " for source id=" + sourceId);
+                    throw new EntityNotFoundException("Invalid source column id=" + levelBarGraph.getCriterionColumn().getId() + " for source id=" + sourceId);
                 }
             } else {
                 if (!allowUndefinedData) {
-                    throw new InvalidDataException("Capability bar graph needs level column defined.");
+                    throw new InvalidDataException("Level bar graph needs level column defined.");
                 }
             }
             //ATTRIBUTE VALIDATE
-            if (capabilityBarGraph.getAttributeColumn() != null) {
-                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capabilityBarGraph.getAttributeColumn().getId())).findFirst();
+            if (levelBarGraph.getAttributeColumn() != null) {
+                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(levelBarGraph.getAttributeColumn().getId())).findFirst();
                 if (columnExists.isEmpty()) {
-                    throw new EntityNotFoundException("Invalid source column id=" + capabilityBarGraph.getAttributeColumn().getId() + " for source id=" + sourceId);
+                    throw new EntityNotFoundException("Invalid source column id=" + levelBarGraph.getAttributeColumn().getId() + " for source id=" + sourceId);
                 }
             } else {
                 if (!allowUndefinedData) {
-                    throw new InvalidDataException("Capability bar graph needs attribute column defined.");
+                    throw new InvalidDataException("Level bar graph needs attribute column defined.");
                 }
             }
             //SCORE VALIDATE
-            if (capabilityBarGraph.getScoreColumn() != null) {
-                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capabilityBarGraph.getScoreColumn().getId())).findFirst();
+            if (levelBarGraph.getScoreColumn() != null) {
+                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(levelBarGraph.getScoreColumn().getId())).findFirst();
                 if (columnExists.isEmpty()) {
-                    throw new EntityNotFoundException("Invalid source column id=" + capabilityBarGraph.getScoreColumn().getId() + " for source id=" + sourceId);
+                    throw new EntityNotFoundException("Invalid source column id=" + levelBarGraph.getScoreColumn().getId() + " for source id=" + sourceId);
                 }
             } else {
                 if (!allowUndefinedData) {
-                    throw new InvalidDataException("Capability bar graph needs score column defined.");
+                    throw new InvalidDataException("Level bar graph needs score column defined.");
                 }
             }
-            source.addCapabilityGraph(capabilityBarGraph);
+            source.addCapabilityGraph(levelBarGraph);
         }
     }
 

@@ -206,7 +206,7 @@ public class LevelPieGraphService extends BaseChartService {
                                 try {
                                     scoresListDouble.add(Double.parseDouble(score));
                                 } catch (Exception e) {
-                                    throw new JasperReportException("Capability graph score column contains unknown value: " + score, e);
+                                    throw new JasperReportException("Level pie graph score column contains unknown value: " + score, e);
                                 }
                             }
                         }

@@ -1,26 +1,19 @@
 package com.aspicereporting.service;
 
 import com.aspicereporting.entity.Dashboard;
-import com.aspicereporting.entity.Source;
-import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.items.*;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.exception.InvalidDataException;
-import com.aspicereporting.jasper.service.CapabilityBarGraphService;
+import com.aspicereporting.jasper.service.LevelBarGraphService;
 import com.aspicereporting.jasper.service.LevelPieGraphService;
 import com.aspicereporting.jasper.service.SourceLevelBarGraphService;
 import com.aspicereporting.repository.DashboardRepository;
 import com.aspicereporting.repository.SourceRepository;
-import com.aspicereporting.utils.NaturalOrderComparator;
-import org.apache.commons.collections4.map.LinkedMap;
-import org.apache.commons.collections4.map.MultiKeyMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class DashboardService {
@@ -31,7 +24,7 @@ public class DashboardService {
     @Autowired
     ItemValidationService itemValidationService;
     @Autowired
-    CapabilityBarGraphService capabilityBarGraphService;
+    LevelBarGraphService levelBarGraphService;
     @Autowired
     SourceLevelBarGraphService sourceLevelBarGraphService;
     @Autowired
@@ -109,11 +102,11 @@ public class DashboardService {
 
 
         List<Map<String, String>> result = new ArrayList<>();
-        if (reportItem instanceof CapabilityBarGraph capabilityBarGraph) {
+        if (reportItem instanceof LevelBarGraph levelBarGraph) {
             /*Returns list of map items
              * [{process: "name", assessor: "name", level: 0}, ...]
              * */
-            LinkedHashMap<String, Map<String, Integer>> map = capabilityBarGraphService.getData(capabilityBarGraph);
+            LinkedHashMap<String, Map<String, Integer>> map = levelBarGraphService.getData(levelBarGraph);
             for(var process : map.keySet()){
                 for(var assessor : map.get(process).keySet()) {
                     result.add(Map.of("process", process, "assessor", assessor, "level", map.get(process).get(assessor).toString()));

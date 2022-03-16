@@ -32,7 +32,7 @@ public class JasperService {
     @Autowired
     TextService textService;
     @Autowired
-    CapabilityBarGraphService capabilityBarGraphService;
+    LevelBarGraphService levelBarGraphService;
     @Autowired
     SourceLevelBarGraphService sourceLevelBarGraphService;
     @Autowired
@@ -146,9 +146,9 @@ public class JasperService {
                 }
             }
             /*CAPABILITY BAR GRAPH*/
-            else if (reportItem instanceof CapabilityBarGraph capabilityBarGraph) {
+            else if (reportItem instanceof LevelBarGraph levelBarGraph) {
                 try {
-                    JRDesignImage element = capabilityBarGraphService.createElement(jasperDesign, capabilityBarGraph, graphCounter, parameters);
+                    JRDesignImage element = levelBarGraphService.createElement(jasperDesign, levelBarGraph, graphCounter, parameters);
                     band.addElement(element);
                     graphCounter++;
                 } catch (JRException e) {

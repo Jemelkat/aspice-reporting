@@ -29,43 +29,43 @@ import java.util.List;
         name = "list-array",
         typeClass = ListArrayType.class
 )
-public class CapabilityBarGraph extends ReportItem {
+public class LevelBarGraph extends ReportItem {
 
-    @NotNull(message = "Capability bar graph needs orientation defined.")
+    @NotNull(message = "Level bar graph needs orientation defined.")
     @Column(length = 20, name = "orientation",nullable = false)
     @Enumerated(EnumType.STRING)
     private Orientation orientation;
 
-    @NotNull(message = "Capability bar graph needs source defined")
+    @NotNull(message = "Level bar graph needs source defined")
     @ManyToOne
     private Source source;
 
-    @NotNull(message = "Capability bar graph needs assessor column defined")
+    @NotNull(message = "Level bar graph needs assessor column defined")
     @ManyToOne
     @JoinColumn(name = "assessor_column_id", referencedColumnName = "source_column_id")
     private SourceColumn assessorColumn;
 
-    @NotNull(message = "Capability bar graph needs process column defined")
+    @NotNull(message = "Level bar graph needs process column defined")
     @ManyToOne
     @JoinColumn(name = "process_column_id", referencedColumnName = "source_column_id")
     private SourceColumn processColumn;
 
-    @NotNull(message = "Capability bar graph needs level column defined")
+    @NotNull(message = "Level bar graph needs level column defined")
     @ManyToOne
     @JoinColumn(name = "criterion_column_id", referencedColumnName = "source_column_id")
     private SourceColumn criterionColumn;
 
-    @NotNull(message = "Capability bar graph needs attribute column defined")
+    @NotNull(message = "Level bar graph needs attribute column defined")
     @ManyToOne
     @JoinColumn(name = "attribute_column_id", referencedColumnName = "source_column_id")
     private SourceColumn attributeColumn;
 
-    @NotNull(message = "Capability bar graph needs score/value column defined")
+    @NotNull(message = "Level bar graph needs score/value column defined")
     @ManyToOne
     @JoinColumn(name = "score_column_id", referencedColumnName = "source_column_id")
     private SourceColumn scoreColumn;
 
-    @NotNull(message = "Capability bar graph needs score agregate function defined.")
+    @NotNull(message = "Level bar graph needs score agregate function defined.")
     @Column(length = 20, name = "score_function",nullable = false)
     @Enumerated(EnumType.STRING)
     private EFunction scoreFunction;
@@ -87,22 +87,22 @@ public class CapabilityBarGraph extends ReportItem {
 
     public void validate() {
         if (this.source.getId() == null) {
-            throw new InvalidDataException("Capability bar graph has no source defined.");
+            throw new InvalidDataException("Level bar graph has no source defined.");
         }
         if (this.assessorColumn.getId() == null) {
-            throw new InvalidDataException("Capability bar graph has no assessor column defined.");
+            throw new InvalidDataException("Level bar graph has no assessor column defined.");
         }
         if (this.processColumn.getId() == null) {
-            throw new InvalidDataException("Capability bar graph has no process column defined.");
+            throw new InvalidDataException("Level bar graph has no process column defined.");
         }
         if (this.criterionColumn.getId() == null) {
-            throw new InvalidDataException("Capability bar graph has no performance criterion column defined.");
+            throw new InvalidDataException("Level bar graph has no performance criterion column defined.");
         }
         if (this.attributeColumn.getId() == null) {
-            throw new InvalidDataException("Capability bar graph has no capability level column defined.");
+            throw new InvalidDataException("Level bar graph has no capability level column defined.");
         }
         if (this.scoreColumn.getId() == null) {
-            throw new InvalidDataException("Capability bar graph has no score column defined.");
+            throw new InvalidDataException("Level bar graph has no score column defined.");
         }
     }
 }

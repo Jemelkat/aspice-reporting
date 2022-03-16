@@ -2,7 +2,6 @@ package com.aspicereporting.entity.items;
 
 import com.aspicereporting.entity.Dashboard;
 import com.aspicereporting.entity.Report;
-import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.Template;
 import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -13,8 +12,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
@@ -25,7 +22,7 @@ import javax.validation.constraints.NotNull;
         @JsonSubTypes.Type(value = TextItem.class, name = "TEXT"),
         @JsonSubTypes.Type(value = TableItem.class, name = "SIMPLE_TABLE"),
         @JsonSubTypes.Type(value = CapabilityTable.class, name = "CAPABILITY_TABLE"),
-        @JsonSubTypes.Type(value = CapabilityBarGraph.class, name = "CAPABILITY_BAR_GRAPH"),
+        @JsonSubTypes.Type(value = LevelBarGraph.class, name = "CAPABILITY_BAR_GRAPH"),
         @JsonSubTypes.Type(value = SourceLevelBarGraph.class, name = "SOURCE_LEVEL_BAR_GRAPH"),
         @JsonSubTypes.Type(value = LevelPieGraph.class, name = "LEVEL_PIE_GRAPH"),
 

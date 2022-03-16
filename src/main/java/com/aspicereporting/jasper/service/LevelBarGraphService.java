@@ -1,8 +1,7 @@
 package com.aspicereporting.jasper.service;
 
 import com.aspicereporting.entity.enums.Orientation;
-import com.aspicereporting.entity.items.CapabilityBarGraph;
-import com.aspicereporting.exception.InvalidDataException;
+import com.aspicereporting.entity.items.LevelBarGraph;
 import com.aspicereporting.exception.JasperReportException;
 import com.aspicereporting.repository.SourceColumnRepository;
 import com.aspicereporting.repository.SourceRepository;
@@ -35,14 +34,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-public class CapabilityBarGraphService extends BaseChartService {
+public class LevelBarGraphService extends BaseChartService {
     @Autowired
     SourceRepository sourceRepository;
     @Autowired
     SourceColumnRepository sourceColumnRepository;
 
-    public JRDesignImage createElement(JasperDesign jasperDesign, CapabilityBarGraph capabilityBarGraph, Integer counter, Map<String, Object> parameters) throws JRException {
-        LinkedHashMap<String, Map<String, Integer>> graphData = getData(capabilityBarGraph);
+    public JRDesignImage createElement(JasperDesign jasperDesign, LevelBarGraph levelBarGraph, Integer counter, Map<String, Object> parameters) throws JRException {
+        LinkedHashMap<String, Map<String, Integer>> graphData = getData(levelBarGraph);
 
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         int maxLevel = 0;
@@ -62,7 +61,7 @@ public class CapabilityBarGraphService extends BaseChartService {
                 "Process",                  // domain axis label
                 "Level",                     // range axis label
                 dataset,                            // data
-                capabilityBarGraph.getOrientation().equals(Orientation.VERTICAL) ? PlotOrientation.HORIZONTAL : PlotOrientation.VERTICAL,           // the plot orientation
+                levelBarGraph.getOrientation().equals(Orientation.VERTICAL) ? PlotOrientation.HORIZONTAL : PlotOrientation.VERTICAL,           // the plot orientation
                 true,                        // legend
                 false,                        // tooltips
                 false                        // urls
@@ -74,7 +73,7 @@ public class CapabilityBarGraphService extends BaseChartService {
         ValueAxis rangeAxis = plot.getRangeAxis();
         rangeAxis.setUpperBound(maxLevel < 5 ? maxLevel + 1 : maxLevel);
         rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-        if (capabilityBarGraph.getOrientation().equals(Orientation.HORIZONTAL)) {
+        if (levelBarGraph.getOrientation().equals(Orientation.HORIZONTAL)) {
             CategoryAxis categoryAxis = plot.getDomainAxis();
             categoryAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
         }
@@ -88,10 +87,10 @@ public class CapabilityBarGraphService extends BaseChartService {
 
         //Add image - chart will be displayed in image tag
         JRDesignImage imageElement = new JRDesignImage(jasperDesign);
-        imageElement.setX(capabilityBarGraph.getX());
-        imageElement.setY(capabilityBarGraph.getY());
-        imageElement.setWidth(capabilityBarGraph.getWidth());
-        imageElement.setHeight(capabilityBarGraph.getHeight());
+        imageElement.setX(levelBarGraph.getX());
+        imageElement.setY(levelBarGraph.getY());
+        imageElement.setWidth(levelBarGraph.getWidth());
+        imageElement.setHeight(levelBarGraph.getHeight());
         imageElement.setPositionType(PositionTypeEnum.FLOAT);
         imageElement.setScaleImage(ScaleImageEnum.FILL_FRAME);
         imageElement.setLazy(true);
@@ -103,21 +102,21 @@ public class CapabilityBarGraphService extends BaseChartService {
         return imageElement;
     }
 
-    public LinkedHashMap<String, Map<String, Integer>> getData(CapabilityBarGraph capabilityBarGraph) {
+    public LinkedHashMap<String, Map<String, Integer>> getData(LevelBarGraph levelBarGraph) {
         //Get all unique processes and levels
-        List<String> processNames = sourceRepository.findDistinctColumnValuesForColumn(capabilityBarGraph.getProcessColumn().getId());
-        List<String> assessorNames = sourceRepository.findDistinctColumnValuesForColumn(capabilityBarGraph.getAssessorColumn().getId());
+        List<String> processNames = sourceRepository.findDistinctColumnValuesForColumn(levelBarGraph.getProcessColumn().getId());
+        List<String> assessorNames = sourceRepository.findDistinctColumnValuesForColumn(levelBarGraph.getAssessorColumn().getId());
         //Remove empty levels "" and processes ""
         processNames = processNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
         assessorNames = assessorNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
 
         //Apply process filter
-        if (!capabilityBarGraph.getProcessFilter().isEmpty()) {
-            processNames = processNames.stream().filter(process -> capabilityBarGraph.getProcessFilter().contains(process)).collect(Collectors.toList());
+        if (!levelBarGraph.getProcessFilter().isEmpty()) {
+            processNames = processNames.stream().filter(process -> levelBarGraph.getProcessFilter().contains(process)).collect(Collectors.toList());
         }
         //Apply assessor filter
-        if (!capabilityBarGraph.getAssessorFilter().isEmpty()) {
-            assessorNames = assessorNames.stream().filter(assessor -> capabilityBarGraph.getAssessorFilter().contains(assessor)).collect(Collectors.toList());
+        if (!levelBarGraph.getAssessorFilter().isEmpty()) {
+            assessorNames = assessorNames.stream().filter(assessor -> levelBarGraph.getAssessorFilter().contains(assessor)).collect(Collectors.toList());
         }
 
         //Sort alphabetically
@@ -125,12 +124,12 @@ public class CapabilityBarGraphService extends BaseChartService {
 
         //MultiKey map to store value for each process, level combination - {(process, attribute, assessor) : (criterion: [values])}
         MultiKeyMap valuesMap = new MultiKeyMap();
-        for (int i = 0; i < capabilityBarGraph.getScoreColumn().getSourceData().size(); i++) {
-            String processValue = capabilityBarGraph.getProcessColumn().getSourceData().get(i).getValue();
-            String criterionValue = capabilityBarGraph.getCriterionColumn().getSourceData().get(i).getValue();
-            String attributeValue = capabilityBarGraph.getAttributeColumn().getSourceData().get(i).getValue().toUpperCase().replaceAll("\\s", "");
-            String scoreValue = capabilityBarGraph.getScoreColumn().getSourceData().get(i).getValue();
-            String assessorValue = capabilityBarGraph.getAssessorColumn().getSourceData().get(i).getValue();
+        for (int i = 0; i < levelBarGraph.getScoreColumn().getSourceData().size(); i++) {
+            String processValue = levelBarGraph.getProcessColumn().getSourceData().get(i).getValue();
+            String criterionValue = levelBarGraph.getCriterionColumn().getSourceData().get(i).getValue();
+            String attributeValue = levelBarGraph.getAttributeColumn().getSourceData().get(i).getValue().toUpperCase().replaceAll("\\s", "");
+            String scoreValue = levelBarGraph.getScoreColumn().getSourceData().get(i).getValue();
+            String assessorValue = levelBarGraph.getAssessorColumn().getSourceData().get(i).getValue();
 
             //Filter by assessor and process
             if (!assessorNames.contains(assessorValue) || (!processNames.contains(processValue))) {
@@ -205,7 +204,7 @@ public class CapabilityBarGraphService extends BaseChartService {
                                 }
                             }
 
-                            switch(capabilityBarGraph.getScoreFunction()) {
+                            switch(levelBarGraph.getScoreFunction()) {
                                 case MIN:
                                     finalScore += Collections.min(scoresListDouble);
                                     break;
@@ -216,7 +215,7 @@ public class CapabilityBarGraphService extends BaseChartService {
                                     finalScore += scoresListDouble.stream().mapToDouble(s -> s).average().getAsDouble();
                                     break;
                                 default:
-                                    throw new JasperReportException("Capability graph score column contains unknown score function: " + capabilityBarGraph.getScoreFunction().toString());
+                                    throw new JasperReportException("Capability graph score column contains unknown score function: " + levelBarGraph.getScoreFunction().toString());
                             }
                         }
                         //Get average score achieved for this attribute

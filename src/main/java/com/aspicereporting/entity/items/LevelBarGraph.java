@@ -24,7 +24,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Entity
-@DiscriminatorValue("CAPABILITY_BAR_GRAPH")
+@DiscriminatorValue("LEVEL_BAR_GRAPH")
 @JsonView(View.Simple.class)
 @TypeDef(
         name = "list-array",

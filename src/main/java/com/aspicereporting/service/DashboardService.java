@@ -142,7 +142,7 @@ public class DashboardService {
         for (ReportItem item : dashboard.getDashboardItems()) {
             switch (item.getType()) {
                 case LEVEL_PIE_GRAPH:
-                case CAPABILITY_BAR_GRAPH:
+                case LEVEL_BAR_GRAPH:
                 case SOURCE_LEVEL_BAR_GRAPH:
                     break;
                 default:

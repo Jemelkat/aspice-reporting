@@ -34,6 +34,8 @@ public class JasperService {
     @Autowired
     CapabilityBarGraphService capabilityBarGraphService;
     @Autowired
+    SourceLevelBarGraphService sourceLevelBarGraphService;
+    @Autowired
     LevelPieGraphService levelPieGraphService;
     @Autowired
     ItemValidationService itemValidationService;
@@ -153,6 +155,16 @@ public class JasperService {
                     throw new JasperReportException("Error creating the capability graph item for report", e);
                 }
             }
+            /*SOURCES BAR GRAPH*/
+            else if (reportItem instanceof SourceLevelBarGraph sourceLevelBarGraph) {
+                try {
+                    JRDesignImage element = sourceLevelBarGraphService.createElement(jasperDesign, sourceLevelBarGraph, graphCounter, parameters);
+                    band.addElement(element);
+                    graphCounter++;
+                } catch (JRException e) {
+                    throw new JasperReportException("Error creating the capability graph item for report", e);
+                }
+            }
             /*LEVEL PIE GRAPH*/
             else if (reportItem instanceof LevelPieGraph levelPieGraph) {
                 try {
@@ -163,7 +175,7 @@ public class JasperService {
                     throw new JasperReportException("Error creating the level pie graph item for report", e);
                 }
             } else {
-                throw new JasperReportException("Unknown report item type: " + reportItem.getType());
+                throw new JasperReportException("Unsupported report item type: " + reportItem.getType());
             }
             //Create required datasources and fields
         }

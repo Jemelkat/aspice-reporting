@@ -22,9 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import java.io.ByteArrayOutputStream;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @CrossOrigin
@@ -77,9 +75,19 @@ public class SourceController {
 
     @JsonView(View.Simple.class)
     @GetMapping("/{id}/columns")
-    public List<SourceColumn> getColumns(@PathVariable("id") Long sourceId,Authentication authentication) {
+    public List<SourceColumn> getColumnsForSource(@PathVariable("id") Long sourceId,Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
         return sourceService.getColumnsForSource(sourceId,loggedUser);
+    }
+
+    @JsonView(View.Simple.class)
+    @GetMapping("/columns")
+    public List<String> getColumnsForSources(@RequestParam("sources") LinkedHashSet<Long> sources, Authentication authentication) {
+        User loggedUser = (User) authentication.getPrincipal();
+        //Convert Set to list
+        List<String> sourcesList = new ArrayList<>(sourceService.getColumnsForSources(sources,loggedUser));
+        Collections.sort(sourcesList,new NaturalOrderComparator());
+        return sourcesList;
     }
 
     @DeleteMapping("/delete")

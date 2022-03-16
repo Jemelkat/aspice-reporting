@@ -54,7 +54,12 @@ public abstract class BaseChartService {
         chart.getCategoryPlot().getDomainAxis().setTickLabelPaint( Color.decode("#666666") );
         chart.setTextAntiAlias( true );
         chart.setAntiAlias( true );
-        chart.getCategoryPlot().getRenderer().setSeriesPaint( 0, Color.decode( "#4572a7" ));
+        chart.getCategoryPlot().getRenderer().setSeriesPaint( 0, Color.decode( "#619ED6" ));
+        chart.getCategoryPlot().getRenderer().setSeriesPaint( 1, Color.decode( "#E64345" ));
+        chart.getCategoryPlot().getRenderer().setSeriesPaint( 2, Color.decode( "#6BA547" ));
+        chart.getCategoryPlot().getRenderer().setSeriesPaint( 3, Color.decode( "#E48F1B" ));
+        chart.getCategoryPlot().getRenderer().setSeriesPaint( 4, Color.decode( "#B77EA3" ));
+        chart.getCategoryPlot().getRenderer().setSeriesPaint( 5, Color.decode( "#60CEED" ));
 
         BarRenderer rend = (BarRenderer) chart.getCategoryPlot().getRenderer();
         rend.setShadowVisible( true );

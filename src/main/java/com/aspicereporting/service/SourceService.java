@@ -109,6 +109,19 @@ public class SourceService {
         return source.getSourceColumns();
     }
 
+    public Set<String> getColumnsForSources(Set<Long> sources, User user) {
+        List<Source> sourcesList = sourceRepository.findByIdInAndUserOrSourceGroupsIn(sources, user, user.getUserGroups());
+
+        Set<String> columns = new HashSet<>();
+        for(Source source : sourcesList) {
+            for(SourceColumn column : source.getSourceColumns()) {
+                columns.add(column.getColumnName());
+            }
+        }
+
+        return columns;
+    }
+
     public List<String> getDistinctValuesForColumn(Long sourceId, Long columnId, User user) {
         Source source = sourceRepository.findByIdAndUserOrSourceGroupsIn(sourceId, user, user.getUserGroups());
         if (source == null) {

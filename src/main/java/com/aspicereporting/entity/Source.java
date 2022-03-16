@@ -66,6 +66,10 @@ public class Source {
     private List<LevelPieGraph> levelPieGraphs = new ArrayList<>();
 
     @JsonIgnore
+    @ManyToMany(mappedBy = "sources", fetch = FetchType.LAZY)
+    private Set<SourceLevelBarGraph> sourceLevelBarGraphs = new HashSet<>();
+
+    @JsonIgnore
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

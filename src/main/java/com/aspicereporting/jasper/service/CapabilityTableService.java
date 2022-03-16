@@ -3,6 +3,7 @@ package com.aspicereporting.jasper.service;
 import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.items.CapabilityTable;
 import com.aspicereporting.exception.InvalidDataException;
+import com.aspicereporting.exception.JasperReportException;
 import com.aspicereporting.jasper.model.SimpleTableModel;
 import com.aspicereporting.repository.SourceColumnRepository;
 import com.aspicereporting.repository.SourceRepository;
@@ -68,7 +69,7 @@ public class CapabilityTableService extends BaseTableService {
             for (var column : levelAttributesMap.get(key)) {
                 JRDesignField field = new JRDesignField();
                 field.setValueClass(String.class);
-                field.setName(column + key);
+                field.setName(column);
                 tableSubdataset.addField(field);
             }
         }
@@ -102,7 +103,7 @@ public class CapabilityTableService extends BaseTableService {
             List<StandardColumn> columnsList = new ArrayList<>();
             for (String columnName : levelAttributesMap.get(key)) {
                 //Add new column
-                columnsList.add(createCapabilityColumns(jasperDesign, capabilityTable.getCriterionWidth(), rowHeight, fontSize, columnName, columnName + key, true));
+                columnsList.add(createCapabilityColumns(jasperDesign, capabilityTable.getCriterionWidth(), rowHeight, fontSize, columnName, columnName, true));
             }
             StandardColumnGroup columnGroup = new StandardColumnGroup();
             columnGroup.setWidth(columnsList.size() * capabilityTable.getCriterionWidth());
@@ -152,7 +153,7 @@ public class CapabilityTableService extends BaseTableService {
         } else {
             if (assessorNames.isEmpty()) {
                 throw new InvalidDataException("There are no assessors defined in column " + capabilityTable.getAssessorColumn().getColumnName());
-            }else {
+            } else {
                 //If no assessor is defined - we will use first assessor found
                 assessorNames.subList(1, assessorNames.size()).clear();
             }
@@ -162,12 +163,11 @@ public class CapabilityTableService extends BaseTableService {
         Collections.sort(levelNames, new NaturalOrderComparator());
         Collections.sort(processNames, new NaturalOrderComparator());
 
-        if(capabilityTable.getSpecificLevel() != null) {
+        if (capabilityTable.getSpecificLevel() != null) {
             //Get only specific level - chosen by parameter
-            if(levelNames.size() >= capabilityTable.getSpecificLevel()) {
-                levelNames = Arrays.asList(levelNames.get(capabilityTable.getSpecificLevel()-1));
-            }
-            else {
+            if (levelNames.size() >= capabilityTable.getSpecificLevel()) {
+                levelNames = Arrays.asList(levelNames.get(capabilityTable.getSpecificLevel() - 1));
+            } else {
                 levelNames.clear();
             }
         } else {
@@ -175,44 +175,45 @@ public class CapabilityTableService extends BaseTableService {
             levelNames = levelNames.stream().limit(capabilityTable.getLevelLimit()).collect(Collectors.toList());
         }
 
-        //Get all data for process, level, attribute and score columns
-        SourceColumn processColumn = sourceColumnRepository.findFirstById(capabilityTable.getProcessColumn().getId());
-        SourceColumn levelColumn = sourceColumnRepository.findFirstById(capabilityTable.getLevelColumn().getId());
-        SourceColumn attributeColumn = sourceColumnRepository.findFirstById(capabilityTable.getCriterionColumn().getId());
-        SourceColumn scoreColumn = sourceColumnRepository.findFirstById(capabilityTable.getScoreColumn().getId());
-
         //MultiKey map to store value for each process, level and attribute combination - {(process, level, attribute) : value}
         MultiKeyMap valuesMap = new MultiKeyMap();
+        for (int i = 0; i < capabilityTable.getScoreColumn().getSourceData().size(); i++) {
+            String processValue = capabilityTable.getProcessColumn().getSourceData().get(i).getValue();
+            String assessorValue = capabilityTable.getAssessorColumn().getSourceData().get(i).getValue();
+            String levelValue = capabilityTable.getLevelColumn().getSourceData().get(i).getValue();
+            String criterionValue = capabilityTable.getCriterionColumn().getSourceData().get(i).getValue();
+            String scoreValue = capabilityTable.getScoreColumn().getSourceData().get(i).getValue();
 
-        //Get all possible attributes for level and store them in Map
-        for (String level : levelNames) {
-            List<String> attributesForLevel = new ArrayList<>();
-
-            //Get all attributes for this level
-            for (int i = 0; i < attributeColumn.getSourceData().size(); i++) {
-                String levelValue = levelColumn.getSourceData().get(i).getValue();
-                String attributeValue = attributeColumn.getSourceData().get(i).getValue();
-                String assessorValue = capabilityTable.getAssessorColumn().getSourceData().get(i).getValue();
-
-                //Filter by assessor and process
-                if (!assessorNames.contains(assessorValue)) {
-                    continue;
-                }
-
-                if (levelValue.equals(level)) {
-                    //Add attributes to map
-                    attributesForLevel.add(attributeColumn.getSourceData().get(i).getValue());
-                }
-
-                //Create add value to multimap for process, level, attribute key
-                String processValue = processColumn.getSourceData().get(i).getValue();
-                String scoreValue = scoreColumn.getSourceData().get(i).getValue();
-                MultiKey multiKey = new MultiKey(processValue, levelValue, attributeValue);
-                valuesMap.put(multiKey, scoreValue);
+            //Filter by assessor
+            if (!assessorNames.contains(assessorValue)) {
+                continue;
             }
-            //Sort attributes alphabetically
-            Collections.sort(attributesForLevel, new NaturalOrderComparator());
-            levelAttributesMap.put(level, new LinkedHashSet<>(attributesForLevel));
+            //Filter by level
+            if (!levelNames.contains(levelValue)) {
+                continue;
+            }
+
+            //Update map of attributes for each level
+            if (levelAttributesMap.containsKey(levelValue)) {
+                levelAttributesMap.get(levelValue).add(criterionValue);
+            } else {
+                levelAttributesMap.put(levelValue, new LinkedHashSet<>());
+                levelAttributesMap.get(levelValue).add(criterionValue);
+            }
+
+            MultiKey key = new MultiKey(processValue, levelValue, criterionValue);
+            if (valuesMap.containsKey(key)) {
+                ((ArrayList<String>) valuesMap.get(key)).add(scoreValue);
+            } else {
+                valuesMap.put(key, new ArrayList(Arrays.asList(scoreValue)));
+            }
+        }
+
+        //Sort performance criterions in level
+        for (var levelAttributesKey : levelAttributesMap.keySet()) {
+            ArrayList<String> array = new ArrayList<>(levelAttributesMap.get(levelAttributesKey));
+            Collections.sort(array, new NaturalOrderComparator());
+            levelAttributesMap.put(levelAttributesKey, new LinkedHashSet<>(array));
         }
 
         //Get all column names
@@ -220,7 +221,7 @@ public class CapabilityTableService extends BaseTableService {
         for (String key : levelNames) {
             LinkedHashSet<String> criterionsList = levelAttributesMap.get(key);
             for (var criterion : criterionsList) {
-                columnArray.add(criterion + key);
+                columnArray.add(criterion);
             }
         }
 
@@ -228,7 +229,6 @@ public class CapabilityTableService extends BaseTableService {
         int columns = columnArray.size();
         //Creates object with data
         Object[][] test = new Object[rows][columns];
-
         int rowIndex = 0;
         for (String processName : processNames) {
             int columnIndex = 0;
@@ -237,12 +237,29 @@ public class CapabilityTableService extends BaseTableService {
 
             for (var levelKey : levelAttributesMap.keySet()) {
                 for (var criterion : levelAttributesMap.get(levelKey)) {
-                    String scoreValue = (String) valuesMap.get(new MultiKey(processName, levelKey, criterion));
-                    //If process does not have this criterion measured
-                    if (scoreValue == null) {
-                        scoreValue = "";
+                    List<Double> scoresListDouble = new ArrayList<>();
+                    if (valuesMap.containsKey(new MultiKey(processName, levelKey, criterion))) {
+                        ArrayList<String> scoresList = (ArrayList<String>) valuesMap.get(new MultiKey(processName, levelKey, criterion));
+                        for (String score : scoresList) {
+                            if (score != null) {
+                                try {
+                                    Double doubleScore = getValueForScore(score);
+                                    scoresListDouble.add(doubleScore);
+                                } catch (Exception e) {
+                                    throw new JasperReportException("Capability table score column contains unknown value: " + score, e);
+                                }
+                            }
+                        }
                     }
-                    test[rowIndex][columnIndex] = scoreValue;
+
+                    Double finalScore = applyScoreFunction(scoresListDouble, capabilityTable.getScoreFunction());
+                    //If process does not have this criterion measured
+                    if (finalScore == null) {
+                        test[rowIndex][columnIndex] = "";
+                    } else {
+                        test[rowIndex][columnIndex] = getScoreForValue(finalScore);
+                    }
+
                     columnIndex++;
                 }
             }

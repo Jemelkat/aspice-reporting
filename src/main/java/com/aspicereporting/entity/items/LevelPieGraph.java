@@ -8,12 +8,9 @@ import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
 @Setter
@@ -40,8 +37,8 @@ public class LevelPieGraph extends ReportItem{
 
     @NotNull(message = "Level pie graph needs level column defined")
     @ManyToOne
-    @JoinColumn(name = "level_column_id", referencedColumnName = "source_column_id")
-    private SourceColumn levelColumn;
+    @JoinColumn(name = "criterion_column_id", referencedColumnName = "source_column_id")
+    private SourceColumn criterionColumn;
 
     @NotNull(message = "Level pie graph needs attribute column defined")
     @ManyToOne
@@ -53,6 +50,11 @@ public class LevelPieGraph extends ReportItem{
     @JoinColumn(name = "score_column_id", referencedColumnName = "source_column_id")
     private SourceColumn scoreColumn;
 
+    @NotNull(message = "Level pie graph needs score aggregate function defined.")
+    @Column(length = 20, name = "score_function",nullable = false)
+    @Enumerated(EnumType.STRING)
+    private EFunction scoreFunction;
+
     public void validate() {
         if (this.source.getId() == null) {
             throw new InvalidDataException("Level pie graph has no source defined.");
@@ -63,8 +65,8 @@ public class LevelPieGraph extends ReportItem{
         if (this.processColumn.getId() == null) {
             throw new InvalidDataException("Level pie graph has no process defined.");
         }
-        if (this.levelColumn.getId() == null) {
-            throw new InvalidDataException("Level pie graph has no capability level column defined.");
+        if (this.criterionColumn.getId() == null) {
+            throw new InvalidDataException("Level pie graph has no performance criterion column defined.");
         }
         if (this.attributeColumn.getId() == null) {
             throw new InvalidDataException("Level pie graph has no capability level column defined.");

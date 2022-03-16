@@ -76,6 +76,10 @@ public abstract class ReportItem implements Comparable {
         TEXT, SIMPLE_TABLE, CAPABILITY_TABLE, CAPABILITY_BAR_GRAPH, LEVEL_PIE_GRAPH, SOURCE_LEVEL_BAR_GRAPH;
     }
 
+    public enum EFunction {
+        MIN, MAX, AVG;
+    }
+
     @Override
     public int compareTo(Object o) {
         ReportItem i = (ReportItem) o;

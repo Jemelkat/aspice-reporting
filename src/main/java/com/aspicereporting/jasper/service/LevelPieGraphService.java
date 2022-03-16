@@ -122,10 +122,8 @@ public class LevelPieGraphService extends BaseChartService {
 
         //Get all unique processes and levels
         List<String> processNames = sourceRepository.findDistinctColumnValuesForColumn(levelPieGraph.getProcessColumn().getId());
-        List<String> levelNames = sourceRepository.findDistinctColumnValuesForColumn(levelPieGraph.getLevelColumn().getId());
         List<String> assessorNames = sourceRepository.findDistinctColumnValuesForColumn(levelPieGraph.getAssessorColumn().getId());
-        //Remove empty levels "" and processes ""
-        levelNames = levelNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
+        //Remove empty assessors "" and processes ""
         processNames = processNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
         assessorNames = assessorNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
 
@@ -135,44 +133,40 @@ public class LevelPieGraphService extends BaseChartService {
         } else {
             if (assessorNames.isEmpty()) {
                 throw new InvalidDataException("There are no assessors defined in column " + levelPieGraph.getAssessorColumn().getColumnName());
-            }else {
+            } else {
                 //If no assessor is defined - we will use first assessor found
                 assessorNames.subList(1, assessorNames.size()).clear();
             }
         }
+        String assessor = assessorNames.get(0);
 
-        if (levelNames.size() > 5) {
-            throw new InvalidDataException("Source: \"" + levelPieGraph.getSource().getSourceName() + "\" has more than 5 capability levels defined");
-        }
-
-        //Sort alphabetically
-        Collections.sort(levelNames, new NaturalOrderComparator());
+                //Sort alphabetically
         Collections.sort(processNames, new NaturalOrderComparator());
 
         //MultiKey map to store value for each process, level combination - {(process, level) : (atribute: [value])}
         MultiKeyMap valuesMap = new MultiKeyMap();
         for (int i = 0; i < levelPieGraph.getScoreColumn().getSourceData().size(); i++) {
             String processValue = levelPieGraph.getProcessColumn().getSourceData().get(i).getValue();
-            String levelValue = levelPieGraph.getLevelColumn().getSourceData().get(i).getValue();
+            String criterionValue = levelPieGraph.getCriterionColumn().getSourceData().get(i).getValue();
             String attributeValue = levelPieGraph.getAttributeColumn().getSourceData().get(i).getValue().toUpperCase().replaceAll("\\s", "");
             String scoreValue = levelPieGraph.getScoreColumn().getSourceData().get(i).getValue();
             String assessorValue = levelPieGraph.getAssessorColumn().getSourceData().get(i).getValue();
 
             //Filter by assessor
-            if (!assessorNames.contains(assessorValue)) {
+            if (!assessorValue.equals(assessor)) {
                 continue;
             }
 
-            MultiKey key = new MultiKey(processValue, levelValue);
+            MultiKey key = new MultiKey(processValue, attributeValue);
             if (valuesMap.containsKey(key)) {
                 Map<String, ArrayList<String>> map = (Map<String, ArrayList<String>>) valuesMap.get(key);
-                if (map.containsKey(attributeValue)) {
-                    map.get(attributeValue).add(scoreValue);
+                if (map.containsKey(criterionValue)) {
+                    map.get(criterionValue).add(scoreValue);
                 } else {
-                    map.put(attributeValue, new ArrayList<>(Arrays.asList(scoreValue)));
+                    map.put(criterionValue, new ArrayList<>(Arrays.asList(scoreValue)));
                 }
             } else {
-                valuesMap.put(key, new HashMap(Map.of(attributeValue, new ArrayList(Arrays.asList(scoreValue)))));
+                valuesMap.put(key, new HashMap(Map.of(criterionValue, new ArrayList(Arrays.asList(scoreValue)))));
             }
         }
 
@@ -186,50 +180,65 @@ public class LevelPieGraphService extends BaseChartService {
             Integer level = 0;
             boolean isPreviousLevelAchieved = true;
 
-            for (int i = 0; i < levelNames.size(); i++) {
+            for (int i = 1; i < 5; i++) {
                 //If previous level is not fully achieved move to another process
                 if (!isPreviousLevelAchieved) {
                     break;
                 }
 
-                MultiKey multikey = new MultiKey(process, levelNames.get(i));
-                //Process does not have this level defined - we don't have to increment level achieved
-                if (!valuesMap.containsKey(multikey)) {
-                    break;
-                }
-                //Get all scores for (process, level) key
-                Map<String, ArrayList<String>> attributesScoreMap = (Map<String, ArrayList<String>>) valuesMap.get(multikey);
-                for (String attribute : processAttributesMap.get(i + 1)) {
-                    double avgScore = 0;
-                    if (attributesScoreMap.containsKey(attribute)) {
-                        //Create sum of all scores for attribute
-                        for (String s : attributesScoreMap.get(attribute)) {
-                            double score;
-                            if (scoreToValueMap.containsKey(s)) {
-                                score = scoreToValueMap.get(s);
+                for (String attribute : processAttributesMap.get(i)) {
+                    double finalScore = 0;
+                    MultiKey multikey = new MultiKey(process, attribute);
+                    //Process does not have this level defined - we don't have to increment level achieved
+                    if (!valuesMap.containsKey(multikey)) {
+                        break;
+                    }
+                    //Get all scores for (process, atrribute) key
+                    Map<String, ArrayList<String>> criterionScoreMap = (Map<String, ArrayList<String>>) valuesMap.get(multikey);
+                    for(String criterionKey : criterionScoreMap.keySet()) {
+                        List<String> scoresList = criterionScoreMap.get(criterionKey);
+                        List<Double> scoresListDouble = new ArrayList<>();
+                        for(int j =0; j<scoresList.size(); j++) {
+                            String score = scoresList.get(j);
+                            if (scoreToValueMap.containsKey(score)) {
+                                scoresListDouble.add(scoreToValueMap.get(score));
                             } else {
                                 try {
-                                    score = Double.parseDouble(s);
+                                    scoresListDouble.add(Double.parseDouble(score));
                                 } catch (Exception e) {
-                                    throw new JasperReportException("Capability graph score column contains non numeric or unknown value: " + s, e);
+                                    throw new JasperReportException("Capability graph score column contains unknown value: " + score, e);
                                 }
                             }
-                            avgScore += score;
+                        }
+
+                        switch(levelPieGraph.getScoreFunction()) {
+                            case MIN:
+                                finalScore += Collections.min(scoresListDouble);
+                                break;
+                            case MAX:
+                                finalScore += Collections.max(scoresListDouble);
+                                break;
+                            case AVG:
+                                finalScore += scoresListDouble.stream().mapToDouble(s -> s).average().getAsDouble();
+                                break;
+                            default:
+                                throw new JasperReportException("Level pie contains unknown score function: " + levelPieGraph.getScoreFunction().toString());
                         }
                     }
+
                     //Get average score achieved for this attribute
-                    avgScore = avgScore / attributesScoreMap.get(attribute).size();
+                    finalScore = finalScore / criterionScoreMap.size();
 
                     //Set score achieved for this attribute
                     //
-                    if (avgScore > 0.85) {
-                        if (i == 0) {
+                    if (finalScore > 0.85) {
+                        if (i == 1) {
                             processLevelAchievedMap.put(process, processLevelAchievedMap.get(process) + 2);
                         } else {
                             processLevelAchievedMap.put(process, processLevelAchievedMap.get(process) + 1);
                         }
-                    } else if (avgScore > 0.5) {
-                        if (i == 0) {
+                    } else if (finalScore > 0.5) {
+                        if (i == 1) {
                             processLevelAchievedMap.put(process, processLevelAchievedMap.get(process) + 1);
                         } else {
                             processLevelAchievedMap.put(process, processLevelAchievedMap.get(process) + 0.5);
@@ -251,9 +260,6 @@ public class LevelPieGraphService extends BaseChartService {
                 }
                 //Reset level achieved check value
                 processLevelAchievedMap.put(process, 0D);
-            }
-            if (level > 5) {
-                throw new InvalidDataException("Pie graph has maximum level 5. Please use check your source.");
             }
 
             levelCounts.put(level.toString(), levelCounts.get(level.toString()) + 1);

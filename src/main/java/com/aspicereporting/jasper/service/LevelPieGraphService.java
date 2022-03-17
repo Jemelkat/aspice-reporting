@@ -174,12 +174,6 @@ public class LevelPieGraphService extends BaseChartService {
             }
         }
 
-        //Prepare default level for each process - will be incremented and final score used to increment count for coresponding level
-        HashMap<String, Double> processLevelAchievedMap = new HashMap<>();
-        for (String process : processNames) {
-            processLevelAchievedMap.put(process, 0D);
-        }
-
         //Get level achieved for each process
         for (var process : processNames) {
             Integer levelAchieved = 0;

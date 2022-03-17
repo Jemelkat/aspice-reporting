@@ -8,7 +8,7 @@ import org.jfree.ui.RectangleInsets;
 
 import java.awt.*;
 
-public abstract class BaseChartService extends ItemService{
+public abstract class BaseChartService extends AbstractItemService {
     protected static final String CHART = "chart";
 
     protected void applyBarGraphTheme(JFreeChart chart) {

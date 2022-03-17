@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 
 @Service
-public abstract class ItemService {
+public abstract class AbstractItemService {
     protected static Map<String, Double> scoreToValueMap = Map.ofEntries(
             new AbstractMap.SimpleEntry<>("N", 0D),
             new AbstractMap.SimpleEntry<>("P", 0.33D),

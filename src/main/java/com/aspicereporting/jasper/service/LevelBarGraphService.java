@@ -41,8 +41,10 @@ public class LevelBarGraphService extends BaseChartService {
     SourceColumnRepository sourceColumnRepository;
 
     public JRDesignImage createElement(JasperDesign jasperDesign, LevelBarGraph levelBarGraph, Integer counter, Map<String, Object> parameters) throws JRException {
+        //Get data
         LinkedHashMap<String, Map<String, Integer>> graphData = getData(levelBarGraph);
 
+        //Create dataset for chart
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         for (var process : graphData.keySet()) {
             for(var assessor : graphData.get(process).keySet()) {
@@ -160,6 +162,7 @@ public class LevelBarGraphService extends BaseChartService {
             }
         }
 
+        //Get level achieved for each process and acessor combination
         for (var assessor : assessorNames) {
             for (var process : processNames) {
                 int level = 0;
@@ -180,7 +183,8 @@ public class LevelBarGraphService extends BaseChartService {
                         if (!valuesMap.containsKey(multikey)) {
                             break;
                         }
-                        //Get all criterion scores for (process, attribute, assessor) key
+
+                        //Get all criterion scores for (process, attribute, assessor) key and apply score function on them
                         Map<String, ArrayList<String>> criterionScoreMap = (Map<String, ArrayList<String>>) valuesMap.get(multikey);
                         for(String criterionKey : criterionScoreMap.keySet()) {
                             List<String> scoresList = criterionScoreMap.get(criterionKey);

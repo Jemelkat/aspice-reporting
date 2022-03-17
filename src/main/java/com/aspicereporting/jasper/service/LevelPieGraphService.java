@@ -48,8 +48,10 @@ public class LevelPieGraphService extends BaseChartService {
     };
 
     public JRDesignImage createElement(JasperDesign jasperDesign, LevelPieGraph levelPieGraph, Integer counter, Map<String, Object> parameters) throws JRException {
+        //Get data
         LinkedHashMap<String, Integer> graphData = getData(levelPieGraph);
 
+        //Create dataset for chart
         DefaultPieDataset dataset = new DefaultPieDataset();
         for (var level : graphData.keySet()) {
             Integer count = graphData.get(level);
@@ -68,7 +70,8 @@ public class LevelPieGraphService extends BaseChartService {
         plot.setBackgroundPaint(Color.white);
         plot.setOutlinePaint(null);
         plot.setShadowPaint(null);
-        //Label
+
+        //Create lables on pie sections
         PieSectionLabelGenerator gen = new StandardPieSectionLabelGenerator(
                 "{1} ({2})", NumberFormat.getInstance(), NumberFormat.getPercentInstance());
         plot.setSimpleLabels(true);
@@ -76,9 +79,8 @@ public class LevelPieGraphService extends BaseChartService {
         plot.setLabelBackgroundPaint(Color.white);
         plot.setLabelShadowPaint(null);
         plot.setLabelOutlinePaint(null);
-        //TODO SCALE TEXT
-        //plot.setLabelFont(new Font("test", Font.PLAIN, 5));
-        //Legend
+
+        //Create Legend
         plot.setLegendItemShape(new Rectangle(0, 0, 10, 10));
         chart.getLegend().setFrame(BlockBorder.NONE);
 
@@ -87,6 +89,7 @@ public class LevelPieGraphService extends BaseChartService {
             plot.setSectionPaint(key, pieColors[i]);
             plot.setSectionOutlinePaint(key, Color.white);
         }
+
         //Add data to parameter and add parameter to design
         parameters.put("chart" + counter, new JCommonDrawableRendererImpl(chart));
         JRDesignParameter parameter = new JRDesignParameter();
@@ -112,13 +115,14 @@ public class LevelPieGraphService extends BaseChartService {
     }
 
     public LinkedHashMap<String, Integer> getData(LevelPieGraph levelPieGraph) {
-        LinkedHashMap<String, Integer> levelCounts = new LinkedHashMap<>();
-        levelCounts.put("0", 0);
-        levelCounts.put("1", 0);
-        levelCounts.put("2", 0);
-        levelCounts.put("3", 0);
-        levelCounts.put("4", 0);
-        levelCounts.put("5", 0);
+        //Initialize counts for each level
+        LinkedHashMap<String, Integer> graphData = new LinkedHashMap<>();
+        graphData.put("0", 0);
+        graphData.put("1", 0);
+        graphData.put("2", 0);
+        graphData.put("3", 0);
+        graphData.put("4", 0);
+        graphData.put("5", 0);
 
         //Get all unique processes and levels
         List<String> processNames = sourceRepository.findDistinctColumnValuesForColumn(levelPieGraph.getProcessColumn().getId());
@@ -140,10 +144,10 @@ public class LevelPieGraphService extends BaseChartService {
         }
         String assessor = assessorNames.get(0);
 
-                //Sort alphabetically
+        //Sort alphabetically
         Collections.sort(processNames, new NaturalOrderComparator());
 
-        //MultiKey map to store value for each process, level combination - {(process, level) : (atribute: [value])}
+        //MultiKey map to store value for each process, level combination - {(process, attribute) : (criterion: [value])}
         MultiKeyMap valuesMap = new MultiKeyMap();
         for (int i = 0; i < levelPieGraph.getScoreColumn().getSourceData().size(); i++) {
             String processValue = levelPieGraph.getProcessColumn().getSourceData().get(i).getValue();
@@ -170,119 +174,104 @@ public class LevelPieGraphService extends BaseChartService {
             }
         }
 
-        //Prepare default level for each process
+        //Prepare default level for each process - will be incremented and final score used to increment count for coresponding level
         HashMap<String, Double> processLevelAchievedMap = new HashMap<>();
         for (String process : processNames) {
             processLevelAchievedMap.put(process, 0D);
         }
 
+        //Get level achieved for each process
         for (var process : processNames) {
-            Integer level = 0;
-            boolean isPreviousLevelAchieved = true;
+            Integer levelAchieved = 0;
+            boolean previousLevelAchieved = true;
 
             for (int i = 1; i < 5; i++) {
+                double levelCheckValue = 0;
                 //If previous level is not fully achieved move to another process
-                if (!isPreviousLevelAchieved) {
+                if (!previousLevelAchieved) {
                     break;
                 }
 
                 for (String attribute : processAttributesMap.get(i)) {
-                    double finalScore = 0;
+                    double scoreAchieved = 0;
                     MultiKey multikey = new MultiKey(process, attribute);
                     //Process does not have this level defined - we don't have to increment level achieved
                     if (!valuesMap.containsKey(multikey)) {
                         break;
                     }
-                    //Get all scores for (process, atrribute) key
+
+                    //Get all criterion scores for (process, attribute) key
                     Map<String, ArrayList<String>> criterionScoreMap = (Map<String, ArrayList<String>>) valuesMap.get(multikey);
                     for(String criterionKey : criterionScoreMap.keySet()) {
                         List<String> scoresList = criterionScoreMap.get(criterionKey);
                         List<Double> scoresListDouble = new ArrayList<>();
+                        //Convert all criterion scores for this attribute to double
                         for(int j =0; j<scoresList.size(); j++) {
                             String score = scoresList.get(j);
-                            if (scoreToValueMap.containsKey(score)) {
-                                scoresListDouble.add(scoreToValueMap.get(score));
-                            } else {
-                                try {
-                                    scoresListDouble.add(Double.parseDouble(score));
-                                } catch (Exception e) {
-                                    throw new JasperReportException("Level pie graph score column contains unknown value: " + score, e);
-                                }
+                            try {
+                                Double doubleScore = getValueForScore(score);
+                                scoresListDouble.add(doubleScore);
+                            } catch (Exception e) {
+                                throw new JasperReportException("Level bar graph score column contains unknown value: " + score, e);
                             }
                         }
-
-                        switch(levelPieGraph.getScoreFunction()) {
-                            case MIN:
-                                finalScore += Collections.min(scoresListDouble);
-                                break;
-                            case MAX:
-                                finalScore += Collections.max(scoresListDouble);
-                                break;
-                            case AVG:
-                                finalScore += scoresListDouble.stream().mapToDouble(s -> s).average().getAsDouble();
-                                break;
-                            default:
-                                throw new JasperReportException("Level pie contains unknown score function: " + levelPieGraph.getScoreFunction().toString());
-                        }
+                        //Get score achieved for this attribute by score function
+                        scoreAchieved += applyScoreFunction(scoresListDouble, levelPieGraph.getScoreFunction());
                     }
 
                     //Get average score achieved for this attribute
-                    finalScore = finalScore / criterionScoreMap.size();
+                    scoreAchieved = scoreAchieved / criterionScoreMap.size();
 
                     //Set score achieved for this attribute
-                    //
-                    if (finalScore > 0.85) {
+                    if (scoreAchieved > 0.85) {
                         if (i == 1) {
-                            processLevelAchievedMap.put(process, processLevelAchievedMap.get(process) + 2);
+                            levelCheckValue += 2;
                         } else {
-                            processLevelAchievedMap.put(process, processLevelAchievedMap.get(process) + 1);
+                            levelCheckValue += 1;
                         }
-                    } else if (finalScore > 0.5) {
+                    } else if (scoreAchieved > 0.5) {
                         if (i == 1) {
-                            processLevelAchievedMap.put(process, processLevelAchievedMap.get(process) + 1);
+                            levelCheckValue += 1;
                         } else {
-                            processLevelAchievedMap.put(process, processLevelAchievedMap.get(process) + 0.5);
+                            levelCheckValue += 0.5;
                         }
                     }
                 }
 
-                Double finalAttributesScore = processLevelAchievedMap.get(process);
                 //0 - not achieved, 1 - all defined attributes are largely achieved, 2- all are fully
-                if (finalAttributesScore == 2) {
-                    level += 1;
+                if (levelCheckValue == 2) {
+                    levelAchieved += 1;
                 } else {
                     //All attributes are at least largely achieved
-                    if (finalAttributesScore >= 1) {
-                        level += 1;
+                    if (levelCheckValue >= 1) {
+                        levelAchieved += 1;
                     }
                     //We need to have all attributes fully to continue
-                    isPreviousLevelAchieved = false;
+                    previousLevelAchieved = false;
                 }
-                //Reset level achieved check value
-                processLevelAchievedMap.put(process, 0D);
             }
-
-            levelCounts.put(level.toString(), levelCounts.get(level.toString()) + 1);
+            graphData.put(levelAchieved.toString(), graphData.get(levelAchieved.toString())+1);
         }
 
-        for (var key : new LinkedHashMap<>(levelCounts).keySet()) {
-            Integer count = levelCounts.get(key);
+        //Reword keys from numbers to "Level 0" and remove levels with count 0
+        for (var key : new LinkedHashMap<>(graphData).keySet()) {
+            Integer count = graphData.get(key);
             if (count == 0) {
-                levelCounts.remove(key);
+                graphData.remove(key);
             } else {
-                levelCounts.remove(key);
-                levelCounts.put("Level " + key, count);
+                graphData.remove(key);
+                graphData.put("Level " + key, count);
             }
         }
 
-        List<Map.Entry<String, Integer>> entries = new ArrayList<>(levelCounts.entrySet());
+        List<Map.Entry<String, Integer>> entries = new ArrayList<>(graphData.entrySet());
         Collections.sort(entries, Map.Entry.comparingByValue(Comparator.reverseOrder()));
 
-        levelCounts.clear();
+        graphData.clear();
         for (Map.Entry<String, Integer> e : entries) {
-            levelCounts.put(e.getKey(), e.getValue());
+            graphData.put(e.getKey(), e.getValue());
         }
 
-        return levelCounts;
+        return graphData;
     }
 }

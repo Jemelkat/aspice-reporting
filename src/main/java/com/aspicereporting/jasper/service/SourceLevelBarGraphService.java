@@ -176,7 +176,7 @@ public class SourceLevelBarGraphService extends BaseChartService {
                 int levelAchieved = 0;
                 boolean previousLevelAchieved = true;
                 for (int i = 1; i <= 5; i++) {
-                    double levelValue = 0;
+                    double levelCheckValue = 0;
                     if (!previousLevelAchieved) {
                         break;
                     }
@@ -204,25 +204,25 @@ public class SourceLevelBarGraphService extends BaseChartService {
                         //Set score achieved for this attribute
                         if (scoreAchieved > 0.85) {
                             if (i == 1) {
-                                levelValue += 2;
+                                levelCheckValue += 2;
                             } else {
-                                levelValue += 1;
+                                levelCheckValue += 1;
                             }
                         } else if (scoreAchieved > 0.5) {
                             if (i == 1) {
-                                levelValue += 1;
+                                levelCheckValue += 1;
                             } else {
-                                levelValue += 0.5;
+                                levelCheckValue += 0.5;
                             }
                         }
                     }
 
                     //0 - not achieved, 1 - all defined attributes are largely achieved, 2- all are fully
-                    if (levelValue == 2) {
+                    if (levelCheckValue == 2) {
                         levelAchieved += 1;
                     } else {
                         //All attributes are at least largely achieved
-                        if (levelValue >= 1) {
+                        if (levelCheckValue >= 1) {
                             levelAchieved += 1;
                         }
                         //We need to have all attributes fully to continue

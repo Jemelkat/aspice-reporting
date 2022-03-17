@@ -165,18 +165,18 @@ public class LevelBarGraphService extends BaseChartService {
         //Get level achieved for each process and acessor combination
         for (var assessor : assessorNames) {
             for (var process : processNames) {
-                int level = 0;
-                boolean isPreviousLevelAchieved = true;
+                int levelAchieved = 0;
+                boolean previousLevelAchieved = true;
 
                 for (int i = 1; i <= 5; i++) {
                     double levelValue = 0;
                     //If previous level is not fully achieved move to another process
-                    if (!isPreviousLevelAchieved) {
+                    if (!previousLevelAchieved) {
                         break;
                     }
 
                     for (String attribute : processAttributesMap.get(i)) {
-                        double finalScore = 0;
+                        double levelCheckValue = 0;
 
                         MultiKey multikey = new MultiKey(process, attribute, assessor);
                         //Process does not have this attribute defined we dont have to increase level
@@ -198,19 +198,19 @@ public class LevelBarGraphService extends BaseChartService {
                                     throw new JasperReportException("Level bar graph score column contains unknown value: " + score, e);
                                 }
                             }
-                            finalScore += applyScoreFunction(scoresListDouble, levelBarGraph.getScoreFunction());
+                            levelCheckValue += applyScoreFunction(scoresListDouble, levelBarGraph.getScoreFunction());
                         }
                         //Get average score achieved for this attribute
-                        finalScore = finalScore / criterionScoreMap.size();
+                        levelCheckValue = levelCheckValue / criterionScoreMap.size();
 
                         //Set score achieved for this attribute
-                        if (finalScore > 0.85) {
+                        if (levelCheckValue > 0.85) {
                             if (i == 1) {
                                 levelValue += 2;
                             } else {
                                 levelValue += 1;
                             }
-                        } else if (finalScore > 0.5) {
+                        } else if (levelCheckValue > 0.5) {
                             if (i == 1) {
                                 levelValue += 1;
                             } else {
@@ -221,19 +221,19 @@ public class LevelBarGraphService extends BaseChartService {
 
                     //0 - not achieved, 1 - all defined attributes are largely achieved, 2- all are fully
                     if (levelValue == 2) {
-                        level += 1;
+                        levelAchieved += 1;
                     } else {
                         //All attributes are at least largely achieved
                         if (levelValue >= 1) {
-                            level += 1;
+                            levelAchieved += 1;
                         }
                         //We need to have all attributes fully to continue
-                        isPreviousLevelAchieved = false;
+                        previousLevelAchieved = false;
                     }
                 }
 
                 Map<String, Integer> assessorLevelMap = processLevelMap.get(process);
-                assessorLevelMap.put(assessor, level);
+                assessorLevelMap.put(assessor, levelAchieved);
                 processLevelMap.put(process,assessorLevelMap);
             }
         }

@@ -258,9 +258,11 @@ public class LevelPieGraphService extends BaseChartService {
             }
         }
 
+        //Sort entries - entry with the highest count will be first
         List<Map.Entry<String, Integer>> entries = new ArrayList<>(graphData.entrySet());
         Collections.sort(entries, Map.Entry.comparingByValue(Comparator.reverseOrder()));
 
+        //Update graphData map with sorted entries
         graphData.clear();
         for (Map.Entry<String, Integer> e : entries) {
             graphData.put(e.getKey(), e.getValue());

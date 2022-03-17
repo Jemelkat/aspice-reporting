@@ -41,20 +41,17 @@ public class LevelBarGraphService extends BaseChartService {
     SourceColumnRepository sourceColumnRepository;
 
     public JRDesignImage createElement(JasperDesign jasperDesign, LevelBarGraph levelBarGraph, Integer counter, Map<String, Object> parameters) throws JRException {
+        //Get data
         LinkedHashMap<String, Map<String, Integer>> graphData = getData(levelBarGraph);
 
+        //Create dataset for chart
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        int maxLevel = 0;
         for (var process : graphData.keySet()) {
             for(var assessor : graphData.get(process).keySet()) {
                 Integer level = graphData.get(process).get(assessor);
-                if (level > maxLevel) {
-                    maxLevel = level;
-                }
                 dataset.addValue(level, assessor, process);
             }
         }
-
 
         final JFreeChart chart = ChartFactory.createBarChart(
                 "",                                   // chart title
@@ -71,7 +68,7 @@ public class LevelBarGraphService extends BaseChartService {
         //Rotate x axis names to save space
         CategoryPlot plot = (CategoryPlot) chart.getPlot();
         ValueAxis rangeAxis = plot.getRangeAxis();
-        rangeAxis.setUpperBound(maxLevel < 5 ? maxLevel + 1 : maxLevel);
+        rangeAxis.setUpperBound(5);
         rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
         if (levelBarGraph.getOrientation().equals(Orientation.HORIZONTAL)) {
             CategoryAxis categoryAxis = plot.getDomainAxis();
@@ -165,70 +162,55 @@ public class LevelBarGraphService extends BaseChartService {
             }
         }
 
+        //Get level achieved for each process and acessor combination
         for (var assessor : assessorNames) {
             for (var process : processNames) {
-                int level = 0;
-                boolean isPreviousLevelAchieved = true;
+                int levelAchieved = 0;
+                boolean previousLevelAchieved = true;
 
                 for (int i = 1; i <= 5; i++) {
                     double levelValue = 0;
                     //If previous level is not fully achieved move to another process
-                    if (!isPreviousLevelAchieved) {
+                    if (!previousLevelAchieved) {
                         break;
                     }
 
                     for (String attribute : processAttributesMap.get(i)) {
-                        double finalScore = 0;
-
+                        double levelCheckValue = 0;
 
                         MultiKey multikey = new MultiKey(process, attribute, assessor);
                         //Process does not have this attribute defined we dont have to increase level
                         if (!valuesMap.containsKey(multikey)) {
                             break;
                         }
-                        //Get all criterion scores for (process, attribute, assessor) key
+
+                        //Get all criterion scores for (process, attribute, assessor) key and apply score function on them
                         Map<String, ArrayList<String>> criterionScoreMap = (Map<String, ArrayList<String>>) valuesMap.get(multikey);
                         for(String criterionKey : criterionScoreMap.keySet()) {
                             List<String> scoresList = criterionScoreMap.get(criterionKey);
                             List<Double> scoresListDouble = new ArrayList<>();
                             for(int j =0; j<scoresList.size(); j++) {
                                 String score = scoresList.get(j);
-                                if (scoreToValueMap.containsKey(score)) {
-                                    scoresListDouble.add(scoreToValueMap.get(score));
-                                } else {
-                                    try {
-                                        scoresListDouble.add(Double.parseDouble(score));
-                                    } catch (Exception e) {
-                                        throw new JasperReportException("Capability graph score column contains unknown value: " + score, e);
-                                    }
+                                try {
+                                    Double doubleScore = getValueForScore(score);
+                                    scoresListDouble.add(doubleScore);
+                                } catch (Exception e) {
+                                    throw new JasperReportException("Level bar graph score column contains unknown value: " + score, e);
                                 }
                             }
-
-                            switch(levelBarGraph.getScoreFunction()) {
-                                case MIN:
-                                    finalScore += Collections.min(scoresListDouble);
-                                    break;
-                                case MAX:
-                                    finalScore += Collections.max(scoresListDouble);
-                                    break;
-                                case AVG:
-                                    finalScore += scoresListDouble.stream().mapToDouble(s -> s).average().getAsDouble();
-                                    break;
-                                default:
-                                    throw new JasperReportException("Capability graph score column contains unknown score function: " + levelBarGraph.getScoreFunction().toString());
-                            }
+                            levelCheckValue += applyScoreFunction(scoresListDouble, levelBarGraph.getScoreFunction());
                         }
                         //Get average score achieved for this attribute
-                        finalScore = finalScore / criterionScoreMap.size();
+                        levelCheckValue = levelCheckValue / criterionScoreMap.size();
 
                         //Set score achieved for this attribute
-                        if (finalScore > 0.85) {
+                        if (levelCheckValue > 0.85) {
                             if (i == 1) {
                                 levelValue += 2;
                             } else {
                                 levelValue += 1;
                             }
-                        } else if (finalScore > 0.5) {
+                        } else if (levelCheckValue > 0.5) {
                             if (i == 1) {
                                 levelValue += 1;
                             } else {
@@ -239,19 +221,19 @@ public class LevelBarGraphService extends BaseChartService {
 
                     //0 - not achieved, 1 - all defined attributes are largely achieved, 2- all are fully
                     if (levelValue == 2) {
-                        level += 1;
+                        levelAchieved += 1;
                     } else {
                         //All attributes are at least largely achieved
                         if (levelValue >= 1) {
-                            level += 1;
+                            levelAchieved += 1;
                         }
                         //We need to have all attributes fully to continue
-                        isPreviousLevelAchieved = false;
+                        previousLevelAchieved = false;
                     }
                 }
 
                 Map<String, Integer> assessorLevelMap = processLevelMap.get(process);
-                assessorLevelMap.put(assessor, level);
+                assessorLevelMap.put(assessor, levelAchieved);
                 processLevelMap.put(process,assessorLevelMap);
             }
         }

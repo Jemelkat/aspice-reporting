@@ -173,15 +173,15 @@ public class SourceLevelBarGraphService extends BaseChartService {
             LinkedHashMap<String, Integer> levelMap = new LinkedHashMap<>();
             for (String processName : processNames) {
 
-                int level = 0;
+                int levelAchieved = 0;
                 boolean previousLevelAchieved = true;
                 for (int i = 1; i <= 5; i++) {
-                    double levelValue = 0;
+                    double levelCheckValue = 0;
                     if (!previousLevelAchieved) {
                         break;
                     }
                     for (String attributeName : processAttributesMap.get(i)) {
-                        double avgScore = 0;
+                        double scoreAchieved = 0;
                         MultiKey key = new MultiKey(processName, attributeName);
                         if(sourceDataMap.containsKey(key)) {
                             for (String s : ((ArrayList<String>)sourceDataMap.get(key))) {
@@ -195,42 +195,42 @@ public class SourceLevelBarGraphService extends BaseChartService {
                                         throw new JasperReportException("Capability graph score column contains non numeric or unknown value: " + s, e);
                                     }
                                 }
-                                avgScore += score;
+                                scoreAchieved += score;
                             }
                             //Get average score achieved for this attribute
-                            avgScore = avgScore / ((ArrayList<String>)sourceDataMap.get(key)).size();
+                            scoreAchieved = scoreAchieved / ((ArrayList<String>)sourceDataMap.get(key)).size();
                         }
 
                         //Set score achieved for this attribute
-                        if (avgScore > 0.85) {
+                        if (scoreAchieved > 0.85) {
                             if (i == 1) {
-                                levelValue += 2;
+                                levelCheckValue += 2;
                             } else {
-                                levelValue += 1;
+                                levelCheckValue += 1;
                             }
-                        } else if (avgScore > 0.5) {
+                        } else if (scoreAchieved > 0.5) {
                             if (i == 1) {
-                                levelValue += 1;
+                                levelCheckValue += 1;
                             } else {
-                                levelValue += 0.5;
+                                levelCheckValue += 0.5;
                             }
                         }
                     }
 
                     //0 - not achieved, 1 - all defined attributes are largely achieved, 2- all are fully
-                    if (levelValue == 2) {
-                        level += 1;
+                    if (levelCheckValue == 2) {
+                        levelAchieved += 1;
                     } else {
                         //All attributes are at least largely achieved
-                        if (levelValue >= 1) {
-                            level += 1;
+                        if (levelCheckValue >= 1) {
+                            levelAchieved += 1;
                         }
                         //We need to have all attributes fully to continue
                         previousLevelAchieved = false;
                     }
                 }
 
-                levelMap.put(processName, level);
+                levelMap.put(processName, levelAchieved);
             }
             dataMap.put(source.getSourceName(), levelMap);
         }

@@ -137,24 +137,23 @@ public class CapabilityTableService extends BaseTableService {
     }
 
     private SimpleTableModel createTableModel(CapabilityTable capabilityTable, Map<String, LinkedHashSet<String>> levelAttributesMap) {
-        //Get all unique processes and levels
+        //Get all unique processes, levels and assessors
         List<String> processNames = sourceRepository.findDistinctColumnValuesForColumn(capabilityTable.getProcessColumn().getId());
         List<String> levelNames = sourceRepository.findDistinctColumnValuesForColumn(capabilityTable.getLevelColumn().getId());
         List<String> assessorNames = sourceRepository.findDistinctColumnValuesForColumn(capabilityTable.getAssessorColumn().getId());
 
-        //Remove empty levels "" and processes ""
+        //Remove empty ""
         levelNames = levelNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
         processNames = processNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
         assessorNames = assessorNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
 
-        //Apply assessor filter
+        //Apply assessor filter = if no assessor is defined - we will use first assessor found
         if (capabilityTable.getAssessorFilter() != null && !capabilityTable.getAssessorFilter().equals("")) {
             assessorNames = assessorNames.stream().filter(assessor -> assessor.equals(capabilityTable.getAssessorFilter())).collect(Collectors.toList());
         } else {
             if (assessorNames.isEmpty()) {
                 throw new InvalidDataException("There are no assessors defined in column " + capabilityTable.getAssessorColumn().getColumnName());
             } else {
-                //If no assessor is defined - we will use first assessor found
                 assessorNames.subList(1, assessorNames.size()).clear();
             }
         }
@@ -163,8 +162,8 @@ public class CapabilityTableService extends BaseTableService {
         Collections.sort(levelNames, new NaturalOrderComparator());
         Collections.sort(processNames, new NaturalOrderComparator());
 
+        //Get only specific level - chosen by parameter
         if (capabilityTable.getSpecificLevel() != null) {
-            //Get only specific level - chosen by parameter
             if (levelNames.size() >= capabilityTable.getSpecificLevel()) {
                 levelNames = Arrays.asList(levelNames.get(capabilityTable.getSpecificLevel() - 1));
             } else {
@@ -175,7 +174,7 @@ public class CapabilityTableService extends BaseTableService {
             levelNames = levelNames.stream().limit(capabilityTable.getLevelLimit()).collect(Collectors.toList());
         }
 
-        //MultiKey map to store value for each process, level and attribute combination - {(process, level, attribute) : value}
+        //MultiKey map to store value for each process, level and criterion combination - {(process, level, criterion) : value}
         MultiKeyMap valuesMap = new MultiKeyMap();
         for (int i = 0; i < capabilityTable.getScoreColumn().getSourceData().size(); i++) {
             String processValue = capabilityTable.getProcessColumn().getSourceData().get(i).getValue();
@@ -193,7 +192,7 @@ public class CapabilityTableService extends BaseTableService {
                 continue;
             }
 
-            //Update map of attributes for each level
+            //Update map of criterions for each level - map keeps track of all criterions defined in each level
             if (levelAttributesMap.containsKey(levelValue)) {
                 levelAttributesMap.get(levelValue).add(criterionValue);
             } else {
@@ -201,6 +200,7 @@ public class CapabilityTableService extends BaseTableService {
                 levelAttributesMap.get(levelValue).add(criterionValue);
             }
 
+            //Store value in map
             MultiKey key = new MultiKey(processValue, levelValue, criterionValue);
             if (valuesMap.containsKey(key)) {
                 ((ArrayList<String>) valuesMap.get(key)).add(scoreValue);
@@ -209,14 +209,14 @@ public class CapabilityTableService extends BaseTableService {
             }
         }
 
-        //Sort performance criterions in level
+        //Sort performance criterions for each level - criterions need to be sorted in result table
         for (var levelAttributesKey : levelAttributesMap.keySet()) {
             ArrayList<String> array = new ArrayList<>(levelAttributesMap.get(levelAttributesKey));
             Collections.sort(array, new NaturalOrderComparator());
             levelAttributesMap.put(levelAttributesKey, new LinkedHashSet<>(array));
         }
 
-        //Get all column names
+        //Get all column names (Process Name, criterion1, ...)
         columnArray.add("Process Name");
         for (String key : levelNames) {
             LinkedHashSet<String> criterionsList = levelAttributesMap.get(key);
@@ -225,9 +225,9 @@ public class CapabilityTableService extends BaseTableService {
             }
         }
 
+        //Create object with data for jasper table element
         int rows = processNames.size();
         int columns = columnArray.size();
-        //Creates object with data
         Object[][] test = new Object[rows][columns];
         int rowIndex = 0;
         for (String processName : processNames) {

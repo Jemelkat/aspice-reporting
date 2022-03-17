@@ -9,7 +9,7 @@ import net.sf.jasperreports.engine.design.*;
 import net.sf.jasperreports.engine.type.HorizontalTextAlignEnum;
 import net.sf.jasperreports.engine.type.PositionTypeEnum;
 
-public abstract class BaseTableService extends ItemService {
+public abstract class BaseTableService extends AbstractItemService {
     protected static final String TABLE_DATA = "tableData";
     protected static final String TABLE_DATASET = "tableDataset";
 
@@ -49,7 +49,6 @@ public abstract class BaseTableService extends ItemService {
         header.addElement(headerElement);
         column.setColumnHeader(header);
 
-        //column detail
         DesignCell detail = new DesignCell();
         detail.setDefaultStyleProvider(jasperDesign);
         detail.getLineBox().getPen().setLineWidth(1f);
@@ -62,13 +61,6 @@ public abstract class BaseTableService extends ItemService {
         detailElement.setHeight(height);
         detailElement.setExpression(new JRDesignExpression(detailExpression));
         detailElement.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
-
-
-        JRDesignExpression jrDesignExpression = new JRDesignExpression();
-        jrDesignExpression.setText("new String($F{total}).equalsIgnoreCase(F)");
-        JRDesignConditionalStyle jrDesignConditionalStyle = new JRDesignConditionalStyle();
-        jrDesignConditionalStyle.setConditionExpression(jrDesignExpression);
-
 
         detail.addElement(detailElement);
         column.setDetailCell(detail);

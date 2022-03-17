@@ -51,7 +51,7 @@ public class LevelBarGraph extends ReportItem {
     @JoinColumn(name = "process_column_id", referencedColumnName = "source_column_id")
     private SourceColumn processColumn;
 
-    @NotNull(message = "Level bar graph needs level column defined")
+    @NotNull(message = "Level bar graph needs criterion column defined")
     @ManyToOne
     @JoinColumn(name = "criterion_column_id", referencedColumnName = "source_column_id")
     private SourceColumn criterionColumn;

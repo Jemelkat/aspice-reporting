@@ -28,18 +28,7 @@ public class SourceService {
     FileParsingService fileParsingService;
 
     public void storeFileAsSource(MultipartFile file, User user) {
-
-        String fileName = file.getOriginalFilename();
-        Source source = null;
-        try {
-            if (fileName.toLowerCase().endsWith(".csv")) {
-                source = fileParsingService.parseCSVFile(file);
-            } else if (fileName.toLowerCase().endsWith(".xlsx") || fileName.toLowerCase().endsWith(".xls")) {
-                source = fileParsingService.parseExcelFile(file);
-            }
-        } catch (CsvValidationException | IOException e) {
-            throw new SourceFileException("Cannot read uploaded file.", e);
-        }
+        Source source = fileParsingService.parseFile(file);
 
         source.setSourceName(file.getOriginalFilename());
         source.setUser(user);
@@ -113,8 +102,8 @@ public class SourceService {
         List<Source> sourcesList = sourceRepository.findByIdInAndUserOrSourceGroupsIn(sources, user, user.getUserGroups());
 
         Set<String> columns = new HashSet<>();
-        for(Source source : sourcesList) {
-            for(SourceColumn column : source.getSourceColumns()) {
+        for (Source source : sourcesList) {
+            for (SourceColumn column : source.getSourceColumns()) {
                 columns.add(column.getColumnName());
             }
         }
@@ -128,7 +117,7 @@ public class SourceService {
             throw new EntityNotFoundException("Could not find data for source id=" + sourceId);
         }
         if (!source.getSourceColumns().stream().anyMatch(sourceColumn -> sourceColumn.getId().equals(columnId))) {
-            throw new EntityNotFoundException("Source id="+sourceId +" has no column id="+columnId);
+            throw new EntityNotFoundException("Source id=" + sourceId + " has no column id=" + columnId);
         }
         List<String> columValues = sourceRepository.findDistinctColumnValuesForColumn(columnId);
         return columValues.stream().filter(name -> !name.equals("")).collect(Collectors.toList());

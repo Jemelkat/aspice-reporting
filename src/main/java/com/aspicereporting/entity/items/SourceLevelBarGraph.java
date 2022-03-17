@@ -1,8 +1,10 @@
 package com.aspicereporting.entity.items;
 
 import com.aspicereporting.entity.Source;
+import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.entity.enums.Orientation;
+import com.aspicereporting.entity.enums.ScoreFunction;
 import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -45,8 +47,17 @@ public class SourceLevelBarGraph extends ReportItem {
     private List<String> processFilter = new ArrayList<>();
     @NotEmpty(message = "Sources level bar graph needs attribute column defined.")
     private String attributeColumn;
+    @NotEmpty(message = "Sources level bar graph needs criterion column defined.")
+    private String criterionColumn;
     @NotEmpty(message = "Sources level bar graph needs score column defined.")
     private String scoreColumn;
+    @NotNull(message = "Sources level bar graph needs score aggregate function defined.")
+    @Column(length = 20, name = "score_function",nullable = false)
+    @Enumerated(EnumType.STRING)
+    private ScoreFunction scoreFunction;
+    @Column(length = 20, name = "merge_sources")
+    @Enumerated(EnumType.STRING)
+    private ScoreFunction mergeScores;
 
 
     @NotEmpty(message = "Sources level bar graph needs sources.")

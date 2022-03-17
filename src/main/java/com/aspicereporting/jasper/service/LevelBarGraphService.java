@@ -169,14 +169,14 @@ public class LevelBarGraphService extends BaseChartService {
                 boolean previousLevelAchieved = true;
 
                 for (int i = 1; i <= 5; i++) {
-                    double levelValue = 0;
+                    double levelCheckValue = 0;
                     //If previous level is not fully achieved move to another process
                     if (!previousLevelAchieved) {
                         break;
                     }
 
                     for (String attribute : processAttributesMap.get(i)) {
-                        double levelCheckValue = 0;
+                        double scoreAchieved = 0;
 
                         MultiKey multikey = new MultiKey(process, attribute, assessor);
                         //Process does not have this attribute defined we dont have to increase level
@@ -198,33 +198,33 @@ public class LevelBarGraphService extends BaseChartService {
                                     throw new JasperReportException("Level bar graph score column contains unknown value: " + score, e);
                                 }
                             }
-                            levelCheckValue += applyScoreFunction(scoresListDouble, levelBarGraph.getScoreFunction());
+                            scoreAchieved += applyScoreFunction(scoresListDouble, levelBarGraph.getScoreFunction());
                         }
                         //Get average score achieved for this attribute
-                        levelCheckValue = levelCheckValue / criterionScoreMap.size();
+                        scoreAchieved = scoreAchieved / criterionScoreMap.size();
 
                         //Set score achieved for this attribute
-                        if (levelCheckValue > 0.85) {
+                        if (scoreAchieved > 0.85) {
                             if (i == 1) {
-                                levelValue += 2;
+                                levelCheckValue += 2;
                             } else {
-                                levelValue += 1;
+                                levelCheckValue += 1;
                             }
-                        } else if (levelCheckValue > 0.5) {
+                        } else if (scoreAchieved > 0.5) {
                             if (i == 1) {
-                                levelValue += 1;
+                                levelCheckValue += 1;
                             } else {
-                                levelValue += 0.5;
+                                levelCheckValue += 0.5;
                             }
                         }
                     }
 
                     //0 - not achieved, 1 - all defined attributes are largely achieved, 2- all are fully
-                    if (levelValue == 2) {
+                    if (levelCheckValue == 2) {
                         levelAchieved += 1;
                     } else {
                         //All attributes are at least largely achieved
-                        if (levelValue >= 1) {
+                        if (levelCheckValue >= 1) {
                             levelAchieved += 1;
                         }
                         //We need to have all attributes fully to continue

@@ -99,6 +99,9 @@ public class Source {
             graph.setAttributeColumn(null);
             graph.setScoreColumn(null);
         }
+        for (SourceLevelBarGraph graph : sourceLevelBarGraphs) {
+            graph.getSources().removeIf(source -> source.getId() == this.id);
+        }
         for (LevelPieGraph graph : levelPieGraphs) {
             graph.setSource(null);
             graph.setAssessorColumn(null);
@@ -107,6 +110,11 @@ public class Source {
             graph.setAttributeColumn(null);
             graph.setScoreColumn(null);
         }
+        this.simpleSimpleTables.clear();
+        this.levelBarGraphs.clear();
+        this.levelPieGraphs.clear();
+        this.capabilityTables.clear();
+        this.sourceLevelBarGraphs.clear();
     }
 
     public void addGroup(UserGroup group) {

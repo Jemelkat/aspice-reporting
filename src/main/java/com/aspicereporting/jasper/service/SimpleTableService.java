@@ -9,6 +9,8 @@ import net.sf.jasperreports.components.table.StandardTable;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.data.JRTableModelDataSource;
 import net.sf.jasperreports.engine.design.*;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -16,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@Scope(value = "prototype", proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class SimpleTableService extends BaseTableService{
     public JRDesignComponentElement createElement(JasperDesign jasperDesign, SimpleTable simpleTableItem, Integer tableCount, Map<String, Object> parameters) throws JRException {
         //Create data parameter for custom JRTableModelDataSource.class

@@ -25,6 +25,8 @@ import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
 import org.jfree.chart.plot.PiePlot;
 import org.jfree.data.general.DefaultPieDataset;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
@@ -34,6 +36,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Scope(value = "prototype", proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class LevelPieGraphService extends BaseChartService {
     @Autowired
     SourceRepository sourceRepository;

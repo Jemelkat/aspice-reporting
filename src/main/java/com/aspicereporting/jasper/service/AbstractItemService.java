@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-@Service
 public abstract class AbstractItemService {
     protected static Map<String, Double> scoreToValueMap = Map.ofEntries(
             new AbstractMap.SimpleEntry<>("N", 0D),
@@ -29,6 +28,10 @@ public abstract class AbstractItemService {
             new AbstractMap.SimpleEntry<>(4, new ArrayList<>(Arrays.asList("PA4.1", "PA4.2"))),
             new AbstractMap.SimpleEntry<>(5, new ArrayList<>(Arrays.asList("PA5.1", "PA5.2")))
     );
+
+    protected Double levelCheckValue = 0D;
+    protected Boolean previousLevelAchieved = true;
+    protected Integer levelAchieved = 0;
 
     public double getValueForScore(String score) {
         if (scoreToValueMap.containsKey(score)) {
@@ -68,5 +71,55 @@ public abstract class AbstractItemService {
             default:
                 return scoresList.stream().mapToDouble(s -> s).average().getAsDouble();
         }
+    }
+
+    protected List<Double> convertScoresToDoubles(List<String> scoresList) {
+        List<Double> scoresListDouble = new ArrayList<>();
+        for (int j = 0; j < scoresList.size(); j++) {
+            String score = scoresList.get(j);
+            try {
+                Double doubleScore = getValueForScore(score);
+                scoresListDouble.add(doubleScore);
+            } catch (Exception e) {
+                throw new JasperReportException(e);
+            }
+        }
+        return scoresListDouble;
+    }
+
+    protected void calculateLevelCheckValue(Double scoreAchieved, Integer evaulatingLevel) {
+        if (scoreAchieved > 0.85) {
+            if (evaulatingLevel == 1) {
+                levelCheckValue += 2;
+            } else {
+                levelCheckValue += 1;
+            }
+        } else if (scoreAchieved > 0.5) {
+            if (evaulatingLevel == 1) {
+                levelCheckValue += 1;
+            } else {
+                levelCheckValue += 0.5;
+            }
+        }
+    }
+
+    //0 - not achieved, 1 - all defined attributes are largely achieved, 2- all are fully
+    protected void evaulateLevelCheckToLevel() {
+        if (levelCheckValue == 2) {
+            levelAchieved += 1;
+        } else {
+            //All attributes are at least largely achieved
+            if (levelCheckValue >= 1) {
+                levelAchieved += 1;
+            }
+            //We need to have all attributes fully to continue
+            previousLevelAchieved = false;
+        }
+    }
+
+    protected void resetVariables() {
+        this.levelAchieved = 0;
+        this.previousLevelAchieved = true;
+        this.levelCheckValue = 0D;
     }
 }

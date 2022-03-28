@@ -20,6 +20,7 @@ import net.sf.jasperreports.renderers.JCommonDrawableRendererImpl;
 import net.sf.jasperreports.renderers.Renderable;
 import org.apache.commons.collections4.keyvalue.MultiKey;
 import org.apache.commons.collections4.map.MultiKeyMap;
+import org.apache.commons.lang3.StringUtils;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryAxis;
@@ -30,6 +31,8 @@ import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -38,6 +41,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
+@Scope(value = "prototype", proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class SourceLevelBarGraphService extends BaseChartService {
     @Autowired
     SourceRepository sourceRepository;
@@ -46,13 +50,9 @@ public class SourceLevelBarGraphService extends BaseChartService {
         LinkedHashMap<String, Map<String, Integer>> graphData = getData(sourceLevelBarGraph);
 
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        int maxLevel = 0;
         for (var process : graphData.keySet()) {
             for (var assessor : graphData.get(process).keySet()) {
                 Integer level = graphData.get(process).get(assessor);
-                if (level > maxLevel) {
-                    maxLevel = level;
-                }
                 dataset.addValue(level, process, assessor);
             }
         }
@@ -105,21 +105,21 @@ public class SourceLevelBarGraphService extends BaseChartService {
     }
 
     public LinkedHashMap<String, Map<String, Integer>> getData(SourceLevelBarGraph sourceLevelBarGraph) {
-        //Result data in format {sourceName: {process1: level, process2: level}, sourceName2: ...}
-        LinkedHashMap<String, Map<String, Integer>> dataMap = new LinkedHashMap<>();
+        //Stores all existing processes across sources
+        Set<String> allProcessSet = new HashSet<>();
 
-        //Will store all processes and set level to 0 to sources that did not have this process defined
-        Set<String> allProcessSet = new LinkedHashSet<>();
-        //Get all process filters
-        List<String> processNames = sourceLevelBarGraph.getProcessFilter();
+        //Use process filters as process names - if they are not defined array will stay empty
+        List<String> processNames = new ArrayList<>(sourceLevelBarGraph.getProcessFilter());
         Collections.sort(processNames, new NaturalOrderComparator());
         allProcessSet.addAll(processNames);
 
-        //Precompile regex pattern or use first assessor found as assessor
-        Pattern assessorPattern = Pattern.compile(sourceLevelBarGraph.getAssessorFilter() != null ? sourceLevelBarGraph.getAssessorFilter().trim() : "");
+        //Precompile regex pattern for assessor regex filter
+        Pattern assessorPattern = Pattern.compile(StringUtils.isEmpty(sourceLevelBarGraph.getAssessorFilter()) ? "" : sourceLevelBarGraph.getAssessorFilter());
         Matcher assessorMatcher = assessorPattern.matcher("");
-        String firstAssessor = null;
 
+        //Result data in format {sourceName: {process1: level, process2: level}, sourceName2: ...}
+        LinkedHashMap<String, Map<String, Integer>> dataMap = new LinkedHashMap<>();
+        //Iterate over each source defined and get element levels
         for (Source source : sourceLevelBarGraph.getSources()) {
             SourceColumn assessorColumn = getSourceColumnByName(source, sourceLevelBarGraph.getAssessorColumn());
             SourceColumn processColumn = getSourceColumnByName(source, sourceLevelBarGraph.getProcessColumn());
@@ -127,7 +127,7 @@ public class SourceLevelBarGraphService extends BaseChartService {
             SourceColumn attributeColumn = getSourceColumnByName(source, sourceLevelBarGraph.getAttributeColumn());
             SourceColumn scoreColumn = getSourceColumnByName(source, sourceLevelBarGraph.getScoreColumn());
 
-            //Get all process names sorted - only if not defined in filter
+            //Get all process names if process filter is not defined
             if (sourceLevelBarGraph.getProcessFilter().isEmpty()) {
                 List<String> currentProcessNames = sourceRepository.findDistinctColumnValuesForColumn(processColumn.getId());
                 allProcessSet.addAll(currentProcessNames);
@@ -135,17 +135,8 @@ public class SourceLevelBarGraphService extends BaseChartService {
                 Collections.sort(processNames, new NaturalOrderComparator());
             }
 
-            //Get first assessor if assessor filter is not defined
-            if (firstAssessor == null && (sourceLevelBarGraph.getAssessorFilter() == null || sourceLevelBarGraph.getAssessorFilter().trim().isEmpty())) {
-                List<String> assessorNames = sourceRepository.findDistinctColumnValuesForColumn(assessorColumn.getId());
-                if (!assessorNames.isEmpty()) {
-                    firstAssessor = assessorNames.get(0).trim();
-                } else {
-                    throw new InvalidDataException("Source: " + source.getSourceName() + " has no assessors defined.");
-                }
-            }
-
-            //Get all related data to map for easier lookup - {(process, attribute, criterion) : [values]}
+            //Get all data to MAP for faster lookup
+            // {(process,attribute) : [{criterion: {assessor: score}, {criterion: {assessor: score}], ...}
             MultiKeyMap sourceDataMap = new MultiKeyMap();
             for (int i = 0; i < scoreColumn.getSourceData().size(); i++) {
                 String process = processColumn.getSourceData().get(i).getValue();
@@ -155,107 +146,77 @@ public class SourceLevelBarGraphService extends BaseChartService {
                 String assessor = assessorColumn.getSourceData().get(i).getValue();
 
                 //Filter by process
-                if(!processNames.contains(process)) {
-                    continue;
+                if (!sourceLevelBarGraph.getProcessFilter().isEmpty()) {
+                    if (!processNames.contains(process)) {
+                        continue;
+                    }
                 }
-
-                //Filter by assessor filter or first assessor found in first source file
-                if (firstAssessor == null) {
+                //Filter by assessor
+                if (!StringUtils.isEmpty(sourceLevelBarGraph.getAssessorFilter())) {
                     assessorMatcher.reset(assessor);
                     if (!assessorMatcher.matches()) {
                         continue;
                     }
-                } else {
-                    if (!firstAssessor.equals(assessor)) {
-                        continue;
-                    }
                 }
 
-
-
                 MultiKey key = new MultiKey(process, attribute);
+                //If we already have record for this process attribute combination
                 if (sourceDataMap.containsKey(key)) {
-                    Map<String, ArrayList<String>> map = (Map<String, ArrayList<String>>) sourceDataMap.get(key);
-                    if (map.containsKey(criterion)) {
-                        map.get(criterion).add(score);
+                    Map<String, Map<String, String>> criterionMap = (Map<String, Map<String, String>>) sourceDataMap.get(key);
+                    //If we already have this criterion recorded - add new score for assesor
+                    if (criterionMap.containsKey(criterion)) {
+                        criterionMap.get(criterion).put(assessor, score);
                     } else {
-                        map.put(criterion, new ArrayList<>(Arrays.asList(score)));
+                        criterionMap.put(criterion, new HashMap(Map.of(assessor, score)));
                     }
-                } else {
-                    sourceDataMap.put(key, new HashMap(Map.of(criterion, new ArrayList(Arrays.asList(score)))));
+                }
+                //Create new criterion score record for this assessor
+                else {
+                    sourceDataMap.put(key, new HashMap<String, HashMap<String, String>>());
+                    ((Map<String, Map<String, String>>) sourceDataMap.get(key)).put(criterion, new HashMap(Map.of(assessor, score)));
                 }
             }
 
+            //Contains process: level for each process in source
             LinkedHashMap<String, Integer> levelMap = new LinkedHashMap<>();
             for (String process : processNames) {
-
-                int levelAchieved = 0;
-                boolean previousLevelAchieved = true;
+                resetVariables();
                 for (int i = 1; i <= 5; i++) {
-                    double levelCheckValue = 0;
                     if (!previousLevelAchieved) {
                         break;
                     }
                     for (String attribute : processAttributesMap.get(i)) {
                         double scoreAchieved = 0;
                         MultiKey multikey = new MultiKey(process, attribute);
-                        //Process does not have this attribute defined we dont have to increase level
+                        //Process does not have this attribute defined we don't have to increase level
                         if (!sourceDataMap.containsKey(multikey)) {
                             break;
                         }
 
                         //Get all criterion scores for (process, attribute, assessor) key and apply score function on them
-                        Map<String, ArrayList<String>> criterionScoreMap = (Map<String, ArrayList<String>>) sourceDataMap.get(multikey);
-                        for (String criterionKey : criterionScoreMap.keySet()) {
-                            List<String> scoresList = criterionScoreMap.get(criterionKey);
-                            List<Double> scoresListDouble = new ArrayList<>();
-                            for (int j = 0; j < scoresList.size(); j++) {
-                                String score = scoresList.get(j);
-                                try {
-                                    Double doubleScore = getValueForScore(score);
-                                    scoresListDouble.add(doubleScore);
-                                } catch (Exception e) {
-                                    throw new JasperReportException("Level bar graph score column contains unknown value: " + score, e);
-                                }
+                        Map<String, Map<String, String>> criterionAssessorMap = (Map<String, Map<String, String>>) sourceDataMap.get(multikey);
+                        List<Double> scoresList = new ArrayList<>();
+                        for (String criterion : criterionAssessorMap.keySet()) {
+                            List<String> assessorScoreList = new ArrayList<>();
+                            for (String assessor : criterionAssessorMap.get(criterion).keySet()) {
+                                assessorScoreList.add(criterionAssessorMap.get(criterion).get(assessor));
                             }
-                            scoreAchieved += applyScoreFunction(scoresListDouble, sourceLevelBarGraph.getScoreFunction());
-                        }
-
-                        //Get score achieved for this attribute
-                        scoreAchieved = scoreAchieved / criterionScoreMap.size();
-
-
-                        //Set score achieved for this attribute
-                        if (scoreAchieved > 0.85) {
-                            if (i == 1) {
-                                levelCheckValue += 2;
-                            } else {
-                                levelCheckValue += 1;
-                            }
-                        } else if (scoreAchieved > 0.5) {
-                            if (i == 1) {
-                                levelCheckValue += 1;
-                            } else {
-                                levelCheckValue += 0.5;
+                            try {
+                                scoresList.add(applyScoreFunction(convertScoresToDoubles(assessorScoreList), sourceLevelBarGraph.getScoreFunction()));
+                            } catch (JasperReportException e) {
+                                throw new JasperReportException("Sources level bar graph score column contains unknown value: ", e);
                             }
                         }
+                        //Get attribute score achieved as (sum of scores/count of scores)
+                        scoreAchieved = scoresList.stream().mapToDouble(a -> a).sum() / scoresList.size();
+                        calculateLevelCheckValue(scoreAchieved, i);
                     }
-
-                    //0 - not achieved, 1 - all defined attributes are largely achieved, 2- all are fully
-                    if (levelCheckValue == 2) {
-                        levelAchieved += 1;
-                    } else {
-                        //All attributes are at least largely achieved
-                        if (levelCheckValue >= 1) {
-                            levelAchieved += 1;
-                        }
-                        //We need to have all attributes fully to continue
-                        previousLevelAchieved = false;
-                    }
+                    evaulateLevelCheckToLevel();
                 }
-
+                //Add all this process level achieved to map
                 levelMap.put(process, levelAchieved);
             }
+            //Add all process levels for this source to map
             dataMap.put(source.getSourceName(), levelMap);
         }
 
@@ -270,17 +231,18 @@ public class SourceLevelBarGraphService extends BaseChartService {
             }
         }
 
-        //Combine sources with defined merge function
+        //Merge levels for each process with defined merge function
         //Result data in format {combined data: {process1: level, process2: level}}
         LinkedHashMap<String, Map<String, Integer>> resultDataMap = new LinkedHashMap<>();
         if (sourceLevelBarGraph.getMergeScores() != null) {
-            resultDataMap.put("Combined data for sources", new LinkedHashMap<>());
+            String seriesName = sourceLevelBarGraph.getMergeScores().name() + " levels for sources";
+            resultDataMap.put(seriesName, new LinkedHashMap<>());
             for (String process : allProcessList) {
                 boolean firstIteration = true;
                 for (var dataKey : dataMap.keySet()) {
                     //Put initial process level
                     if (firstIteration) {
-                        resultDataMap.get("Combined data for sources").put(process, dataMap.get(dataKey).get(process));
+                        resultDataMap.get(seriesName).put(process, dataMap.get(dataKey).get(process));
                         firstIteration = false;
                         continue;
                     }
@@ -288,17 +250,15 @@ public class SourceLevelBarGraphService extends BaseChartService {
                     Integer sourceProcessLevel = dataMap.get(dataKey).get(process);
                     switch (sourceLevelBarGraph.getMergeScores()) {
                         case MIN:
-                            if (sourceProcessLevel < resultDataMap.get("Combined data for sources").get(process)) {
-                                resultDataMap.get("Combined data for sources").put(process, sourceProcessLevel);
+                            if (sourceProcessLevel < resultDataMap.get(seriesName).get(process)) {
+                                resultDataMap.get(seriesName).put(process, sourceProcessLevel);
                             }
-                            ;
                             break;
                         //MAX
                         default:
-                            if (sourceProcessLevel > resultDataMap.get("Combined data for sources").get(process)) {
-                                resultDataMap.get("Combined data for sources").put(process, sourceProcessLevel);
+                            if (sourceProcessLevel > resultDataMap.get(seriesName).get(process)) {
+                                resultDataMap.get(seriesName).put(process, sourceProcessLevel);
                             }
-                            ;
                             break;
                     }
                 }

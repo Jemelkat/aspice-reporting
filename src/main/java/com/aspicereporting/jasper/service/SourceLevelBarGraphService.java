@@ -171,8 +171,6 @@ public class SourceLevelBarGraphService extends BaseChartService {
                     }
                 }
 
-
-
                 MultiKey key = new MultiKey(process, attribute);
                 if (sourceDataMap.containsKey(key)) {
                     Map<String, ArrayList<String>> map = (Map<String, ArrayList<String>>) sourceDataMap.get(key);

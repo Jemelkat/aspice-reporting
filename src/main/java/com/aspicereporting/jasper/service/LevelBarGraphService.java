@@ -167,9 +167,8 @@ public class LevelBarGraphService extends BaseChartService {
         for (var assessor : assessorFilter) {
             for (var process : processFilter) {
                 resetVariables();
-
                 for (int i = 1; i <= 5; i++) {
-                    double levelCheckValue = 0;
+                    resetCheckVariable();
                     //If previous level is not fully achieved move to another process
                     if (!previousLevelAchieved) {
                         break;
@@ -212,7 +211,7 @@ public class LevelBarGraphService extends BaseChartService {
 
         //Merge levels for assessors with defined merge function
         LinkedHashMap<String, Map<String, Integer>> resultMap = new LinkedHashMap<>();
-        if (levelBarGraph.getScoreFunction() != null) {
+        if (!levelBarGraph.getScoreFunction().equals(ScoreFunction.NONE)) {
             String seriesName = levelBarGraph.getScoreFunction().name() + " levels for merged assessors";
             for(String process : processLevelMap.keySet()) {
                 resultMap.put(process, new HashMap<>());

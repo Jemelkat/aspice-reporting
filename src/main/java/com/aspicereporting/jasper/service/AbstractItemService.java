@@ -122,4 +122,8 @@ public abstract class AbstractItemService {
         this.previousLevelAchieved = true;
         this.levelCheckValue = 0D;
     }
+
+    protected void resetCheckVariable() {
+        this.levelCheckValue = 0D;
+    }
 }

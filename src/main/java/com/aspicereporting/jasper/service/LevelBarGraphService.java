@@ -1,6 +1,7 @@
 package com.aspicereporting.jasper.service;
 
 import com.aspicereporting.entity.enums.Orientation;
+import com.aspicereporting.entity.enums.ScoreFunction;
 import com.aspicereporting.entity.items.LevelBarGraph;
 import com.aspicereporting.exception.JasperReportException;
 import com.aspicereporting.repository.SourceColumnRepository;
@@ -50,7 +51,7 @@ public class LevelBarGraphService extends BaseChartService {
         //Create dataset for chart
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         for (var process : graphData.keySet()) {
-            for(var assessor : graphData.get(process).keySet()) {
+            for (var assessor : graphData.get(process).keySet()) {
                 Integer level = graphData.get(process).get(assessor);
                 dataset.addValue(level, assessor, process);
             }
@@ -103,60 +104,57 @@ public class LevelBarGraphService extends BaseChartService {
     }
 
     public LinkedHashMap<String, Map<String, Integer>> getData(LevelBarGraph levelBarGraph) {
-        //Get all unique processes and levels
-        List<String> processNames = sourceRepository.findDistinctColumnValuesForColumn(levelBarGraph.getProcessColumn().getId());
-        List<String> assessorNames = sourceRepository.findDistinctColumnValuesForColumn(levelBarGraph.getAssessorColumn().getId());
-        //Remove empty levels "" and processes ""
-        processNames = processNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
-        assessorNames = assessorNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
+        //Get all unique processes and assessors
+        List<String> processFilter = sourceRepository.findDistinctColumnValuesForColumn(levelBarGraph.getProcessColumn().getId());
+        List<String> assessorFilter = sourceRepository.findDistinctColumnValuesForColumn(levelBarGraph.getAssessorColumn().getId());
 
-        //Apply process filter
+        //Remove empty levels "" and processes ""
+        assessorFilter = assessorFilter.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
+        processFilter = processFilter.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
+
+        //Apply process filter to process list
         if (!levelBarGraph.getProcessFilter().isEmpty()) {
-            processNames = processNames.stream().filter(process -> levelBarGraph.getProcessFilter().contains(process)).collect(Collectors.toList());
+            processFilter = processFilter.stream().filter(process -> levelBarGraph.getProcessFilter().contains(process)).collect(Collectors.toList());
         }
-        //Apply assessor filter
+        //Apply assessor filter assesor list
         if (!levelBarGraph.getAssessorFilter().isEmpty()) {
-            assessorNames = assessorNames.stream().filter(assessor -> levelBarGraph.getAssessorFilter().contains(assessor)).collect(Collectors.toList());
+            assessorFilter = assessorFilter.stream().filter(assessor -> levelBarGraph.getAssessorFilter().contains(assessor)).collect(Collectors.toList());
         }
 
         //Sort alphabetically
-        Collections.sort(processNames, new NaturalOrderComparator());
+        Collections.sort(processFilter, new NaturalOrderComparator());
 
         //MultiKey map to store value for each process, level combination - {(process, attribute, assessor) : (criterion: [values])}
         MultiKeyMap valuesMap = new MultiKeyMap();
         for (int i = 0; i < levelBarGraph.getScoreColumn().getSourceData().size(); i++) {
-            String processValue = levelBarGraph.getProcessColumn().getSourceData().get(i).getValue();
-            String criterionValue = levelBarGraph.getCriterionColumn().getSourceData().get(i).getValue();
-            String attributeValue = levelBarGraph.getAttributeColumn().getSourceData().get(i).getValue().toUpperCase().replaceAll("\\s", "");
-            String scoreValue = levelBarGraph.getScoreColumn().getSourceData().get(i).getValue();
-            String assessorValue = levelBarGraph.getAssessorColumn().getSourceData().get(i).getValue();
+            String process = levelBarGraph.getProcessColumn().getSourceData().get(i).getValue();
+            String criterion = levelBarGraph.getCriterionColumn().getSourceData().get(i).getValue();
+            String attribute = levelBarGraph.getAttributeColumn().getSourceData().get(i).getValue();
+            String score = levelBarGraph.getScoreColumn().getSourceData().get(i).getValue();
+            String assessor = levelBarGraph.getAssessorColumn().getSourceData().get(i).getValue();
 
             //Filter by assessor and process
-            if (!assessorNames.contains(assessorValue) || (!processNames.contains(processValue))) {
+            if (!assessorFilter.contains(assessor) || (!processFilter.contains(process))) {
                 continue;
             }
 
-            MultiKey key = new MultiKey(processValue, attributeValue, assessorValue);
+            MultiKey key = new MultiKey(process, attribute, assessor);
             if (valuesMap.containsKey(key)) {
-                Map<String, ArrayList<String>> map = (Map<String, ArrayList<String>>) valuesMap.get(key);
-                if (map.containsKey(criterionValue)) {
-                    map.get(criterionValue).add(scoreValue);
-                } else {
-                    map.put(criterionValue, new ArrayList<>(Arrays.asList(scoreValue)));
-                }
+                Map<String, String> map = (Map<String, String>) valuesMap.get(key);
+                map.put(criterion, score);
             } else {
-                valuesMap.put(key, new HashMap(Map.of(criterionValue, new ArrayList(Arrays.asList(scoreValue)))));
+                valuesMap.put(key, new HashMap(Map.of(criterion, score)));
             }
         }
 
         //Prepare default level for each process and assessor - {process, {assesor: level, assessor: level}, process,...}
         LinkedHashMap<String, Map<String, Integer>> processLevelMap = new LinkedHashMap<>();
         MultiKeyMap<String, Integer> processLevelAchievedMap = new MultiKeyMap();
-        for (String process : processNames) {
-            for (String assessor : assessorNames) {
+        for (String process : processFilter) {
+            for (String assessor : assessorFilter) {
                 processLevelAchievedMap.put(process, assessor, 0);
                 if (processLevelMap.containsKey(process)) {
-                    Map<String,Integer> assessorMap = processLevelMap.get(process);
+                    Map<String, Integer> assessorMap = processLevelMap.get(process);
                     assessorMap.put(assessor, 0);
                     processLevelMap.put(process, assessorMap);
                 } else {
@@ -165,11 +163,10 @@ public class LevelBarGraphService extends BaseChartService {
             }
         }
 
-        //Get level achieved for each process and acessor combination
-        for (var assessor : assessorNames) {
-            for (var process : processNames) {
-                int levelAchieved = 0;
-                boolean previousLevelAchieved = true;
+        //Get level achieved for each process and assessor combination
+        for (var assessor : assessorFilter) {
+            for (var process : processFilter) {
+                resetVariables();
 
                 for (int i = 1; i <= 5; i++) {
                     double levelCheckValue = 0;
@@ -188,58 +185,56 @@ public class LevelBarGraphService extends BaseChartService {
                         }
 
                         //Get all criterion scores for (process, attribute, assessor) key and apply score function on them
-                        Map<String, ArrayList<String>> criterionScoreMap = (Map<String, ArrayList<String>>) valuesMap.get(multikey);
-                        for(String criterionKey : criterionScoreMap.keySet()) {
-                            List<String> scoresList = criterionScoreMap.get(criterionKey);
-                            List<Double> scoresListDouble = new ArrayList<>();
-                            for(int j =0; j<scoresList.size(); j++) {
-                                String score = scoresList.get(j);
-                                try {
-                                    Double doubleScore = getValueForScore(score);
-                                    scoresListDouble.add(doubleScore);
-                                } catch (Exception e) {
-                                    throw new JasperReportException("Level bar graph score column contains unknown value: " + score, e);
-                                }
-                            }
-                            scoreAchieved += applyScoreFunction(scoresListDouble, levelBarGraph.getScoreFunction());
+                        Map<String, String> criterionScoreMap = (Map<String, String>) valuesMap.get(multikey);
+                        List<String> stringScoreList = new ArrayList<>();
+                        for (String criterionKey : criterionScoreMap.keySet()) {
+                            stringScoreList.add(criterionScoreMap.get(criterionKey));
                         }
-                        //Get average score achieved for this attribute
-                        scoreAchieved = scoreAchieved / criterionScoreMap.size();
+                        List<Double> scoresList;
+                        try {
+                            scoresList = convertScoresToDoubles(stringScoreList);
+                        } catch (JasperReportException e) {
+                            throw new JasperReportException("Level bar graph score column contains unknown value: ", e);
+                        }
 
-                        //Set score achieved for this attribute
-                        if (scoreAchieved > 0.85) {
-                            if (i == 1) {
-                                levelCheckValue += 2;
-                            } else {
-                                levelCheckValue += 1;
-                            }
-                        } else if (scoreAchieved > 0.5) {
-                            if (i == 1) {
-                                levelCheckValue += 1;
-                            } else {
-                                levelCheckValue += 0.5;
-                            }
-                        }
+                        //Get attribute score achieved as (sum of scores/count of scores)
+                        scoreAchieved = scoresList.stream().mapToDouble(a -> a).sum() / scoresList.size();
+                        calculateLevelCheckValue(scoreAchieved, i);
                     }
-
-                    //0 - not achieved, 1 - all defined attributes are largely achieved, 2- all are fully
-                    if (levelCheckValue == 2) {
-                        levelAchieved += 1;
-                    } else {
-                        //All attributes are at least largely achieved
-                        if (levelCheckValue >= 1) {
-                            levelAchieved += 1;
-                        }
-                        //We need to have all attributes fully to continue
-                        previousLevelAchieved = false;
-                    }
+                    evaulateLevelCheckToLevel();
                 }
 
                 Map<String, Integer> assessorLevelMap = processLevelMap.get(process);
                 assessorLevelMap.put(assessor, levelAchieved);
-                processLevelMap.put(process,assessorLevelMap);
+                processLevelMap.put(process, assessorLevelMap);
             }
         }
-        return processLevelMap;
+
+        //Merge levels for assessors with defined merge function
+        LinkedHashMap<String, Map<String, Integer>> resultMap = new LinkedHashMap<>();
+        if (levelBarGraph.getScoreFunction() != null) {
+            String seriesName = levelBarGraph.getScoreFunction().name() + " levels for merged assessors";
+            for(String process : processLevelMap.keySet()) {
+                resultMap.put(process, new HashMap<>());
+                List<Integer> processLevels = new ArrayList<>();
+                for(String assessor: processLevelMap.get(process).keySet()) {
+                    processLevels.add(processLevelMap.get(process).get(assessor));
+                }
+                Integer value;
+                switch(levelBarGraph.getScoreFunction()) {
+                    case MIN:
+                        value = Collections.min(processLevels);
+                        break;
+                    default:
+                        value = Collections.max(processLevels);
+                        break;
+                }
+                resultMap.get(process).put(seriesName, value);
+            }
+        } else {
+            resultMap = processLevelMap;
+        }
+
+        return resultMap;
     }
 }

@@ -135,9 +135,9 @@ public class SourceLevelBarGraphService extends BaseChartService {
                 Collections.sort(processNames, new NaturalOrderComparator());
             }
 
-            //Get all data to MAP for faster lookup
+            // Get all data to MAP for faster lookup
             // {(process,attribute) : [{criterion: {assessor: score}, {criterion: {assessor: score}], ...}
-            MultiKeyMap sourceDataMap = new MultiKeyMap();
+            MultiKeyMap valuesMap = new MultiKeyMap();
             for (int i = 0; i < scoreColumn.getSourceData().size(); i++) {
                 String process = processColumn.getSourceData().get(i).getValue();
                 String attribute = attributeColumn.getSourceData().get(i).getValue();
@@ -161,8 +161,8 @@ public class SourceLevelBarGraphService extends BaseChartService {
 
                 MultiKey key = new MultiKey(process, attribute);
                 //If we already have record for this process attribute combination
-                if (sourceDataMap.containsKey(key)) {
-                    Map<String, Map<String, String>> criterionMap = (Map<String, Map<String, String>>) sourceDataMap.get(key);
+                if (valuesMap.containsKey(key)) {
+                    Map<String, Map<String, String>> criterionMap = (Map<String, Map<String, String>>) valuesMap.get(key);
                     //If we already have this criterion recorded - add new score for assesor
                     if (criterionMap.containsKey(criterion)) {
                         criterionMap.get(criterion).put(assessor, score);
@@ -172,8 +172,8 @@ public class SourceLevelBarGraphService extends BaseChartService {
                 }
                 //Create new criterion score record for this assessor
                 else {
-                    sourceDataMap.put(key, new HashMap<String, HashMap<String, String>>());
-                    ((Map<String, Map<String, String>>) sourceDataMap.get(key)).put(criterion, new HashMap(Map.of(assessor, score)));
+                    valuesMap.put(key, new HashMap<String, HashMap<String, String>>());
+                    ((Map<String, Map<String, String>>) valuesMap.get(key)).put(criterion, new HashMap(Map.of(assessor, score)));
                 }
             }
 
@@ -189,12 +189,12 @@ public class SourceLevelBarGraphService extends BaseChartService {
                         double scoreAchieved = 0;
                         MultiKey multikey = new MultiKey(process, attribute);
                         //Process does not have this attribute defined we don't have to increase level
-                        if (!sourceDataMap.containsKey(multikey)) {
+                        if (!valuesMap.containsKey(multikey)) {
                             break;
                         }
 
                         //Get all criterion scores for (process, attribute, assessor) key and apply score function on them
-                        Map<String, Map<String, String>> criterionAssessorMap = (Map<String, Map<String, String>>) sourceDataMap.get(multikey);
+                        Map<String, Map<String, String>> criterionAssessorMap = (Map<String, Map<String, String>>) valuesMap.get(multikey);
                         List<Double> scoresList = new ArrayList<>();
                         for (String criterion : criterionAssessorMap.keySet()) {
                             List<String> assessorScoreList = new ArrayList<>();

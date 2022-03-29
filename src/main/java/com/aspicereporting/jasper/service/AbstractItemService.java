@@ -1,10 +1,7 @@
 package com.aspicereporting.jasper.service;
 
 import com.aspicereporting.entity.enums.ScoreFunction;
-import com.aspicereporting.entity.items.ReportItem;
-import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.exception.JasperReportException;
-import org.springframework.stereotype.Service;
 
 import java.util.*;
 
@@ -70,6 +67,19 @@ public abstract class AbstractItemService {
             //AVG
             default:
                 return scoresList.stream().mapToDouble(s -> s).average().getAsDouble();
+        }
+    }
+
+    public Integer applyMinMaxFunction(List<Integer> levels, ScoreFunction scoreFunction) {
+        if (levels.isEmpty()) {
+            return null;
+        }
+
+        switch (scoreFunction) {
+            case MIN:
+                return Collections.min(levels);
+            default:
+                return Collections.max(levels);
         }
     }
 

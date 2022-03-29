@@ -55,6 +55,9 @@ public class SourceLevelBarGraph extends ReportItem {
     @Column(length = 20, name = "score_function",nullable = false)
     @Enumerated(EnumType.STRING)
     private ScoreFunction scoreFunction;
+    @NotNull(message = "Sources level bar graph needs score aggregate function defined.")
+    @Column(name = "merge_levels",nullable = false)
+    private boolean mergeLevels;
     @Column(length = 20, name = "merge_sources")
     @Enumerated(EnumType.STRING)
     private ScoreFunction mergeScores;

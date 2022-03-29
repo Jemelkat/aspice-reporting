@@ -185,6 +185,7 @@ public class SourceLevelBarGraphService extends BaseChartService {
                     if (!previousLevelAchieved) {
                         break;
                     }
+                    resetCheckVariable();
                     for (String attribute : processAttributesMap.get(i)) {
                         double scoreAchieved = 0;
                         MultiKey multikey = new MultiKey(process, attribute);

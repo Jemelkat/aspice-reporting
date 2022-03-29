@@ -168,11 +168,11 @@ public class LevelBarGraphService extends BaseChartService {
             for (var process : processFilter) {
                 resetVariables();
                 for (int i = 1; i <= 5; i++) {
-                    resetCheckVariable();
                     //If previous level is not fully achieved move to another process
                     if (!previousLevelAchieved) {
                         break;
                     }
+                    resetCheckVariable();
 
                     for (String attribute : processAttributesMap.get(i)) {
                         double scoreAchieved = 0;

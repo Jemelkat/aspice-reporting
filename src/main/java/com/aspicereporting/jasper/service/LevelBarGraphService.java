@@ -4,7 +4,7 @@ import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.enums.Orientation;
 import com.aspicereporting.entity.enums.ScoreFunction;
-import com.aspicereporting.entity.items.SourceLevelBarGraph;
+import com.aspicereporting.entity.items.LevelBarGraph;
 import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.exception.JasperReportException;
 import com.aspicereporting.repository.SourceRepository;
@@ -43,12 +43,12 @@ import java.util.stream.Collectors;
 
 @Service
 @Scope(value = "prototype", proxyMode = ScopedProxyMode.TARGET_CLASS)
-public class SourceLevelBarGraphService extends BaseChartService {
+public class LevelBarGraphService extends BaseChartService {
     @Autowired
     SourceRepository sourceRepository;
 
-    public JRDesignImage createElement(JasperDesign jasperDesign, SourceLevelBarGraph sourceLevelBarGraph, Integer counter, Map<String, Object> parameters) throws JRException {
-        LinkedHashMap<String, Map<String, Integer>> graphData = getData(sourceLevelBarGraph);
+    public JRDesignImage createElement(JasperDesign jasperDesign, LevelBarGraph levelBarGraph, Integer counter, Map<String, Object> parameters) throws JRException {
+        LinkedHashMap<String, Map<String, Integer>> graphData = getData(levelBarGraph);
 
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         for (var process : graphData.keySet()) {
@@ -63,7 +63,7 @@ public class SourceLevelBarGraphService extends BaseChartService {
                 "Process",                  // domain axis label
                 "Level",                     // range axis label
                 dataset,                            // data
-                sourceLevelBarGraph.getOrientation().equals(Orientation.VERTICAL) ? PlotOrientation.HORIZONTAL : PlotOrientation.VERTICAL,           // the plot orientation
+                levelBarGraph.getOrientation().equals(Orientation.VERTICAL) ? PlotOrientation.HORIZONTAL : PlotOrientation.VERTICAL,           // the plot orientation
                 true,                        // legend
                 false,                        // tooltips
                 false                        // urls
@@ -75,7 +75,7 @@ public class SourceLevelBarGraphService extends BaseChartService {
         ValueAxis rangeAxis = plot.getRangeAxis();
         rangeAxis.setUpperBound(5);
         rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-        if (sourceLevelBarGraph.getOrientation().equals(Orientation.HORIZONTAL)) {
+        if (levelBarGraph.getOrientation().equals(Orientation.HORIZONTAL)) {
             CategoryAxis categoryAxis = plot.getDomainAxis();
             categoryAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
         }
@@ -89,10 +89,10 @@ public class SourceLevelBarGraphService extends BaseChartService {
 
         //Add image - chart will be displayed in image tag
         JRDesignImage imageElement = new JRDesignImage(jasperDesign);
-        imageElement.setX(sourceLevelBarGraph.getX());
-        imageElement.setY(sourceLevelBarGraph.getY());
-        imageElement.setWidth(sourceLevelBarGraph.getWidth());
-        imageElement.setHeight(sourceLevelBarGraph.getHeight());
+        imageElement.setX(levelBarGraph.getX());
+        imageElement.setY(levelBarGraph.getY());
+        imageElement.setWidth(levelBarGraph.getWidth());
+        imageElement.setHeight(levelBarGraph.getHeight());
         imageElement.setPositionType(PositionTypeEnum.FLOAT);
         imageElement.setScaleImage(ScaleImageEnum.FILL_FRAME);
         imageElement.setLazy(true);
@@ -104,29 +104,33 @@ public class SourceLevelBarGraphService extends BaseChartService {
         return imageElement;
     }
 
-    public LinkedHashMap<String, Map<String, Integer>> getData(SourceLevelBarGraph sourceLevelBarGraph) {
+    public LinkedHashMap<String, Map<String, Integer>> getData(LevelBarGraph levelBarGraph) {
         //Stores all existing processes across sources
         Set<String> allProcessSet = new HashSet<>();
-        Set<String> allAssessorsSet = new HashSet<>();
 
         //Use process filters as process names - if they are not defined array will stay empty
-        List<String> processFilter = new ArrayList<>(sourceLevelBarGraph.getProcessFilter());
+        List<String> processFilter = new ArrayList<>(levelBarGraph.getProcessFilter());
         processFilter = processFilter.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
+        allProcessSet.addAll(processFilter);
         Collections.sort(processFilter, new NaturalOrderComparator());
-
-        List<String> assessorFilter = new ArrayList<>(List.of("Assesor1", "Assesor3"));
 
         //Contains process: level for each process in source
         LinkedHashMap<String, Map<String, Map<String, Integer>>> levelsAchievedMap = new LinkedHashMap<>();
-        for (Source source : sourceLevelBarGraph.getSources()) {
-            SourceColumn assessorColumn = getSourceColumnByName(source, sourceLevelBarGraph.getAssessorColumn());
-            SourceColumn processColumn = getSourceColumnByName(source, sourceLevelBarGraph.getProcessColumn());
-            SourceColumn criterionColumn = getSourceColumnByName(source, sourceLevelBarGraph.getCriterionColumn());
-            SourceColumn attributeColumn = getSourceColumnByName(source, sourceLevelBarGraph.getAttributeColumn());
-            SourceColumn scoreColumn = getSourceColumnByName(source, sourceLevelBarGraph.getScoreColumn());
+        for (Source source : levelBarGraph.getSources()) {
+            SourceColumn assessorColumn = getSourceColumnByName(source, levelBarGraph.getAssessorColumnName());
+            SourceColumn processColumn = getSourceColumnByName(source, levelBarGraph.getProcessColumnName());
+            SourceColumn criterionColumn = getSourceColumnByName(source, levelBarGraph.getCriterionColumnName());
+            SourceColumn attributeColumn = getSourceColumnByName(source, levelBarGraph.getAttributeColumnName());
+            SourceColumn scoreColumn = getSourceColumnByName(source, levelBarGraph.getScoreColumnName());
+
+            List<String> assessorFilter = sourceRepository.findDistinctColumnValuesForColumn(assessorColumn.getId());
+            assessorFilter = assessorFilter.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
+            if (!levelBarGraph.getAssessorFilter().isEmpty()) {
+                assessorFilter = assessorFilter.stream().filter(assessor -> levelBarGraph.getAssessorFilter().contains(assessor)).collect(Collectors.toList());
+            }
 
             //Get all process names if process filter is not defined
-            if (sourceLevelBarGraph.getProcessFilter().isEmpty()) {
+            if (levelBarGraph.getProcessFilter().isEmpty()) {
                 List<String> currentProcessNames = sourceRepository.findDistinctColumnValuesForColumn(processColumn.getId());
                 currentProcessNames = currentProcessNames.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
                 allProcessSet.addAll(currentProcessNames);
@@ -134,16 +138,14 @@ public class SourceLevelBarGraphService extends BaseChartService {
                 Collections.sort(processFilter, new NaturalOrderComparator());
             }
 
-            //Stores all assessors in this source file
-            Set<String> assessorsSet = new HashSet<>();
 
             // Get all data to MAP for faster lookup*
-            MultiKeyMap valuesMap = prepareDataMap(sourceLevelBarGraph, scoreColumn, processColumn, attributeColumn, criterionColumn, assessorColumn, processFilter, assessorsSet);
+            MultiKeyMap valuesMap = prepareDataMap(levelBarGraph, scoreColumn, processColumn, attributeColumn, criterionColumn, assessorColumn, processFilter, assessorFilter);
             LinkedHashMap<String, Map<String, Integer>> assesorLevelMap = new LinkedHashMap<>();
-            if (sourceLevelBarGraph.getScoreFunction().equals(ScoreFunction.NONE) || sourceLevelBarGraph.isMergeLevels()) {
-                assesorLevelMap = getLevelsByLevel(sourceLevelBarGraph, valuesMap, processFilter, assessorFilter);
+            if (levelBarGraph.getAggregateScoresFunction().equals(ScoreFunction.NONE) || levelBarGraph.isAggregateLevels()) {
+                assesorLevelMap = getLevelsByLevel(levelBarGraph, valuesMap, processFilter, assessorFilter);
             } else {
-                assesorLevelMap = getLevelsByScore(sourceLevelBarGraph, valuesMap, processFilter);
+                assesorLevelMap = getLevelsByScore(levelBarGraph, valuesMap, processFilter);
             }
 
             levelsAchievedMap.put(source.getSourceName(), assesorLevelMap);
@@ -151,62 +153,15 @@ public class SourceLevelBarGraphService extends BaseChartService {
         //Result data in format {sourcename1: {process1: level, process2: level}, sourceName2: ...}
         LinkedHashMap<String, Map<String, Integer>> dataMap = new LinkedHashMap<>();
 
-        dataMap = mergeSources(levelsAchievedMap, sourceLevelBarGraph.getMergeScores());
+        dataMap = mergeSources(levelsAchievedMap, levelBarGraph.getAggregateSourcesFunction());
 
         ArrayList<String> allProcessList = new ArrayList<>(allProcessSet);
         Collections.sort(allProcessList, new NaturalOrderComparator());
-//        for (String process : allProcessList) {
-//            //Get levels for process across all sources
-//            List<String> sourceNames = new ArrayList<>();
-//            List<Integer> processLevels = new ArrayList<>();
-//            for (String source : levelsAchievedMap.keySet()) {
-//                sourceNames.add(source);
-//                if (levelsAchievedMap.get(source).get("test").containsKey(process)) {
-//                    processLevels.add(levelsAchievedMap.get(source).get("test").get(process));
-//                } else {
-//                    processLevels.add(0);
-//                }
-//
-//            }
-//
-//            //Merge process levels or create record for each source
-//            switch (sourceLevelBarGraph.getMergeScores()) {
-//                case MAX:
-//                    if (!dataMap.containsKey("MAX levels")) {
-//                        dataMap.put("MAX levels", new LinkedHashMap<>());
-//                    }
-//                    dataMap.get("MAX levels").put(process, applyMinMaxFunction(processLevels, sourceLevelBarGraph.getMergeScores()));
-//                    break;
-//                case MIN:
-//                    if (!dataMap.containsKey("MIN levels")) {
-//                        dataMap.put("MIN levels", new LinkedHashMap<>());
-//                    }
-//                    dataMap.get("MIN levels").put(process, applyMinMaxFunction(processLevels, sourceLevelBarGraph.getMergeScores()));
-//                    break;
-//                default:
-//                    for (int i = 0; i < sourceNames.size(); i++) {
-//                        String source = sourceNames.get(i);
-//                        Integer level = processLevels.get(i);
-//                        if (!dataMap.containsKey(source)) {
-//                            dataMap.put(source, new LinkedHashMap<>());
-//                        }
-//                        dataMap.get(source).put(process, level);
-//                    }
-//                    break;
-//            }
-//        }
-
-        //Fill all missing processes with level 0
-//        for (String process : allProcessList) {
-//            for (var dataKey : dataMap.keySet()) {
-//                if (!dataMap.get(dataKey).containsKey(process)) {
-//                    dataMap.get(dataKey).put(process, 0);
-//                }
-//            }
-//        }
 
         if(dataMap.isEmpty()) {
-            dataMap.put("", new HashMap<>(Map.of("No data found for any process.", 0)));
+            for(String process : allProcessList) {
+                dataMap.put(process, new HashMap<>(Map.of("No data found for any process.", 0)));
+            }
         }
 
         return dataMap;
@@ -216,11 +171,7 @@ public class SourceLevelBarGraphService extends BaseChartService {
      * Returns data in map format for easier lookup
      * {(process,attribute): [{criterion1:[{assessor1: score,assessor2: score}]},{criterion2: [{assessor1: score,assessor2: score}]},...}
      */
-    private MultiKeyMap prepareDataMap(SourceLevelBarGraph sourceLevelBarGraph, SourceColumn scoreColumn, SourceColumn processColumn, SourceColumn attributeColumn, SourceColumn criterionColumn, SourceColumn assessorColumn, List<String> processFilter, Set<String> assessorsSet) {
-        //Precompile regex pattern for assessor regex filter
-        Pattern assessorPattern = Pattern.compile(StringUtils.isEmpty(sourceLevelBarGraph.getAssessorFilter()) ? "" : sourceLevelBarGraph.getAssessorFilter());
-        Matcher assessorMatcher = assessorPattern.matcher("");
-
+    private MultiKeyMap prepareDataMap(LevelBarGraph levelBarGraph, SourceColumn scoreColumn, SourceColumn processColumn, SourceColumn attributeColumn, SourceColumn criterionColumn, SourceColumn assessorColumn, List<String> processFilter, List<String> assessorsSet) {
         MultiKeyMap valuesMap = new MultiKeyMap();
         for (int i = 0; i < scoreColumn.getSourceData().size(); i++) {
             String process = processColumn.getSourceData().get(i).getValue();
@@ -230,20 +181,15 @@ public class SourceLevelBarGraphService extends BaseChartService {
             String assessor = assessorColumn.getSourceData().get(i).getValue();
 
             //Filter by process
-            if (!sourceLevelBarGraph.getProcessFilter().isEmpty()) {
+            if (!levelBarGraph.getProcessFilter().isEmpty()) {
                 if (!processFilter.contains(process)) {
                     continue;
                 }
             }
-            //Filter by assessor
-            if (!StringUtils.isEmpty(sourceLevelBarGraph.getAssessorFilter())) {
-                assessorMatcher.reset(assessor);
-                if (!assessorMatcher.matches()) {
-                    assessorsSet.add(assessor);
+            if (!levelBarGraph.getAssessorFilter().isEmpty()) {
+                if (!assessor.contains(assessor)) {
                     continue;
                 }
-            } else {
-                assessorsSet.add(assessor);
             }
 
             MultiKey key = new MultiKey(process, attribute);
@@ -272,7 +218,7 @@ public class SourceLevelBarGraphService extends BaseChartService {
      *
      * @return {process: assessor: level} or {process: MIN/MAX levels achieved: level}
      */
-    private LinkedHashMap<String, Map<String, Integer>> getLevelsByLevel(SourceLevelBarGraph sourceLevelBarGraph, MultiKeyMap valuesMap, List<String> processFilter, List<String> assessorFilter) {
+    private LinkedHashMap<String, Map<String, Integer>> getLevelsByLevel(LevelBarGraph levelBarGraph, MultiKeyMap valuesMap, List<String> processFilter, List<String> assessorFilter) {
         LinkedHashMap<String, Map<String, Integer>> processLevelMap = new LinkedHashMap<>();
         for (var process : processFilter) {
             for (var assessor : assessorFilter) {
@@ -327,8 +273,8 @@ public class SourceLevelBarGraphService extends BaseChartService {
             }
         }
 
-        if (sourceLevelBarGraph.isMergeLevels()) {
-            processLevelMap = mergeAssessors(processLevelMap, sourceLevelBarGraph.getScoreFunction());
+        if (levelBarGraph.isAggregateLevels()) {
+            processLevelMap = mergeAssessors(processLevelMap, levelBarGraph.getAggregateScoresFunction());
         }
         return processLevelMap;
     }
@@ -338,7 +284,7 @@ public class SourceLevelBarGraphService extends BaseChartService {
      *
      * @return {process: MIN/MAX/AVG level by score: level}
      */
-    private LinkedHashMap<String, Map<String, Integer>> getLevelsByScore(SourceLevelBarGraph sourceLevelBarGraph, MultiKeyMap valuesMap, List<String> processFilter) {
+    private LinkedHashMap<String, Map<String, Integer>> getLevelsByScore(LevelBarGraph levelBarGraph, MultiKeyMap valuesMap, List<String> processFilter) {
         LinkedHashMap<String, Map<String, Integer>> processLevelMap = new LinkedHashMap<>();
         for (String process : processFilter) {
             resetVariables();
@@ -364,7 +310,7 @@ public class SourceLevelBarGraphService extends BaseChartService {
                             assessorScoreList.add(criterionAssessorMap.get(criterion).get(assessor));
                         }
                         try {
-                            scoresList.add(applyScoreFunction(convertScoresToDoubles(assessorScoreList), sourceLevelBarGraph.getScoreFunction()));
+                            scoresList.add(applyScoreFunction(convertScoresToDoubles(assessorScoreList), levelBarGraph.getAggregateScoresFunction()));
                         } catch (JasperReportException e) {
                             throw new JasperReportException("Sources level bar graph score column contains unknown value: ", e);
                         }
@@ -376,9 +322,9 @@ public class SourceLevelBarGraphService extends BaseChartService {
             }
 
             if (processLevelMap.containsKey(process)) {
-                processLevelMap.get(process).put(sourceLevelBarGraph.getScoreFunction().name() + " scores achieved", levelAchieved);
+                processLevelMap.get(process).put(levelBarGraph.getAggregateScoresFunction().name() + " scores achieved", levelAchieved);
             } else {
-                processLevelMap.put(process, new HashMap<>(Map.of(sourceLevelBarGraph.getScoreFunction().name() + " scores achieved", levelAchieved)));
+                processLevelMap.put(process, new HashMap<>(Map.of(levelBarGraph.getAggregateScoresFunction().name() + " scores achieved", levelAchieved)));
             }
         }
         return processLevelMap;
@@ -453,6 +399,6 @@ public class SourceLevelBarGraphService extends BaseChartService {
                 return sourceColumn;
             }
         }
-        throw new InvalidDataException("Source level bar graph source: " + source.getSourceName() + " has no column named: " + name);
+        throw new InvalidDataException("Level bar graph source: " + source.getSourceName() + " has no column named: " + name);
     }
 }

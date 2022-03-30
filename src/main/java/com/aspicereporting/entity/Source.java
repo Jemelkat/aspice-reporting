@@ -64,7 +64,7 @@ public class Source {
 
     @JsonIgnore
     @ManyToMany(mappedBy = "sources", fetch = FetchType.LAZY)
-    private Set<SourceLevelBarGraph> sourceLevelBarGraphs = new HashSet<>();
+    private Set<LevelBarGraph> levelBarGraphs = new HashSet<>();
 
     @JsonIgnore
     @ManyToOne(optional = false)
@@ -87,7 +87,7 @@ public class Source {
             table.setLevelColumn(null);
             table.setScoreColumn(null);
         }
-        for (SourceLevelBarGraph graph : sourceLevelBarGraphs) {
+        for (LevelBarGraph graph : levelBarGraphs) {
             graph.getSources().removeIf(source -> source.getId() == this.id);
         }
         for (LevelPieGraph graph : levelPieGraphs) {
@@ -101,7 +101,7 @@ public class Source {
         this.simpleSimpleTables.clear();
         this.levelPieGraphs.clear();
         this.capabilityTables.clear();
-        this.sourceLevelBarGraphs.clear();
+        this.levelBarGraphs.clear();
     }
 
     public void addGroup(UserGroup group) {

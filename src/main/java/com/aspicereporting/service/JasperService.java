@@ -32,7 +32,7 @@ public class JasperService {
     @Autowired
     TextService textService;
     @Autowired
-    SourceLevelBarGraphService sourceLevelBarGraphService;
+    LevelBarGraphService levelBarGraphService;
     @Autowired
     LevelPieGraphService levelPieGraphService;
     @Autowired
@@ -144,9 +144,9 @@ public class JasperService {
                 }
             }
             /*SOURCES BAR GRAPH*/
-            else if (reportItem instanceof SourceLevelBarGraph sourceLevelBarGraph) {
+            else if (reportItem instanceof LevelBarGraph levelBarGraph) {
                 try {
-                    JRDesignImage element = sourceLevelBarGraphService.createElement(jasperDesign, sourceLevelBarGraph, graphCounter, parameters);
+                    JRDesignImage element = levelBarGraphService.createElement(jasperDesign, levelBarGraph, graphCounter, parameters);
                     band.addElement(element);
                     graphCounter++;
                 } catch (JRException e) {

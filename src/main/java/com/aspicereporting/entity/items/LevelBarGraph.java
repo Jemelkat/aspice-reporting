@@ -1,12 +1,9 @@
 package com.aspicereporting.entity.items;
 
 import com.aspicereporting.entity.Source;
-import com.aspicereporting.entity.SourceColumn;
-import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.entity.enums.Orientation;
 import com.aspicereporting.entity.enums.ScoreFunction;
 import com.aspicereporting.entity.views.View;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.vladmihalcea.hibernate.type.array.ListArrayType;
 import lombok.Getter;
@@ -27,46 +24,52 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @Entity
-@DiscriminatorValue("SOURCE_LEVEL_BAR_GRAPH")
+@DiscriminatorValue("LEVEL_BAR_GRAPH")
 @JsonView(View.Simple.class)
 @TypeDef(
         name = "list-array",
         typeClass = ListArrayType.class
 )
-public class SourceLevelBarGraph extends ReportItem {
-    @NotNull(message = "Sources level bar graph needs orientation defined.")
+public class LevelBarGraph extends ReportItem {
+    @NotNull(message = "Level bar graph needs orientation defined.")
     @Column(length = 20, name = "orientation",nullable = false)
     @Enumerated(EnumType.STRING)
     private Orientation orientation;
-    @NotEmpty(message = "Sources level bar graph needs assessor column defined.")
-    private String assessorColumn;
-    private String assessorFilter;
-    @NotEmpty(message = "Sources level bar graph needs process column defined.")
-    private String processColumn;
+    @NotEmpty(message = "Level bar graph needs assessor column defined.")
+    private String assessorColumnName;
+    @Type(type = "list-array")
+    @Column(
+            name = "assessor_filter",
+            columnDefinition = "text[]"
+    )
+    private List<String> assessorFilter = new ArrayList<>();
+    @NotEmpty(message = "Level bar graph needs process column defined.")
+    private String processColumnName;
     @Type(type = "list-array")
     @Column(
             name = "process_filter",
             columnDefinition = "text[]"
     )
     private List<String> processFilter = new ArrayList<>();
-    @NotEmpty(message = "Sources level bar graph needs attribute column defined.")
-    private String attributeColumn;
-    @NotEmpty(message = "Sources level bar graph needs criterion column defined.")
-    private String criterionColumn;
-    @NotEmpty(message = "Sources level bar graph needs score column defined.")
-    private String scoreColumn;
-    @NotNull(message = "Sources level bar graph needs score aggregate function defined.")
-    @Column(length = 20, name = "score_function",nullable = false)
+    @NotEmpty(message = "Level bar graph needs attribute column defined.")
+    private String attributeColumnName;
+    @NotEmpty(message = "Level bar graph needs criterion column defined.")
+    private String criterionColumnName;
+    @NotEmpty(message = "Level bar graph needs score column defined.")
+    private String scoreColumnName;
+    @NotNull(message = "Level bar graph scores aggregate function cannot be null.")
+    @Column(length = 20, name = "aggregate_scores",nullable = false)
     @Enumerated(EnumType.STRING)
-    private ScoreFunction scoreFunction;
-    @NotNull(message = "Sources level bar graph needs score aggregate function defined.")
-    @Column(name = "merge_levels",nullable = false)
-    private boolean mergeLevels;
-    @Column(length = 20, name = "merge_sources")
+    private ScoreFunction aggregateScoresFunction;
+    @NotNull(message = "Level bar graph aggregate levels cannot be null. Please use true/false.")
+    @Column(name = "aggregate_levels")
+    private boolean aggregateLevels = false;
+    @NotNull(message = "Level bar graph sources aggregate function cannot be null.")
+    @Column(length = 20, name = "aggregate_sources",nullable = false)
     @Enumerated(EnumType.STRING)
-    private ScoreFunction mergeScores;
+    private ScoreFunction aggregateSourcesFunction;
 
-    @NotEmpty(message = "Sources level bar graph needs sources.")
+    @NotEmpty(message = "Level bar graph needs sources.")
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "bar_graph_sources",
             joinColumns = @JoinColumn(name = "report_item_id"),

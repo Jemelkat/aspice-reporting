@@ -6,7 +6,7 @@ import com.aspicereporting.entity.items.*;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.jasper.service.LevelPieGraphService;
-import com.aspicereporting.jasper.service.SourceLevelBarGraphService;
+import com.aspicereporting.jasper.service.LevelBarGraphService;
 import com.aspicereporting.repository.DashboardRepository;
 import com.aspicereporting.repository.SourceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ public class DashboardService {
     @Autowired
     ItemValidationService itemValidationService;
     @Autowired
-    SourceLevelBarGraphService sourceLevelBarGraphService;
+    LevelBarGraphService levelBarGraphService;
     @Autowired
     LevelPieGraphService levelPieGraphService;
 
@@ -104,8 +104,8 @@ public class DashboardService {
             for(var level : map.keySet()) {
                 result.add(Map.of("level", level, "count", map.get(level).toString()));
             }
-        } else if (reportItem instanceof SourceLevelBarGraph sourceLevelBarGraph) {
-            LinkedHashMap<String, Map<String, Integer>> map = sourceLevelBarGraphService.getData(sourceLevelBarGraph);
+        } else if (reportItem instanceof LevelBarGraph levelBarGraph) {
+            LinkedHashMap<String, Map<String, Integer>> map = levelBarGraphService.getData(levelBarGraph);
             Set<String> assessorSet = new HashSet<>();
             for(var process : map.keySet()){
                 for(var assessor : map.get(process).keySet()) {
@@ -128,7 +128,7 @@ public class DashboardService {
         for (ReportItem item : dashboard.getDashboardItems()) {
             switch (item.getType()) {
                 case LEVEL_PIE_GRAPH:
-                case SOURCE_LEVEL_BAR_GRAPH:
+                case LEVEL_BAR_GRAPH:
                     break;
                 default:
                     return false;

@@ -206,6 +206,10 @@ public class SourceLevelBarGraphService extends BaseChartService {
 //            }
 //        }
 
+        if(dataMap.isEmpty()) {
+            dataMap.put("", new HashMap<>(Map.of("No data found for any process.", 0)));
+        }
+
         return dataMap;
     }
 

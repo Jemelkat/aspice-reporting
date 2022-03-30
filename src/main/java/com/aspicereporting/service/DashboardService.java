@@ -128,19 +128,31 @@ public class DashboardService {
             }
         } else if (reportItem instanceof SourceLevelBarGraph sourceLevelBarGraph) {
             LinkedHashMap<String, Map<String, Integer>> map = sourceLevelBarGraphService.getData(sourceLevelBarGraph);
-
-            if(!map.isEmpty()) {
-                map.values().stream().findFirst().ifPresent(processMap -> {
-                    for(var process: processMap.keySet()) {
-                        Map<String, String> resultMap = new LinkedHashMap<>();
-                        resultMap.put("process", process);
-                        for(var source : map.keySet()) {
-                            resultMap.put(source, map.get(source).get(process).toString());
-                        }
-                        result.add(resultMap);
-                    }
-                });
+            Set<String> assessorSet = new HashSet<>();
+            for(var process : map.keySet()){
+                for(var assessor : map.get(process).keySet()) {
+                    assessorSet.add(assessor);
+                }
             }
+                for(var process : map.keySet()){
+                for(var assessor : assessorSet) {
+                    result.add(Map.of("process", process, "assessor", assessor, "level", map.get(process).containsKey(assessor) ? map.get(process).get(assessor).toString() : "0"));
+                    assessorSet.add(assessor);
+                }
+            }
+
+//            if(!map.isEmpty()) {
+//                map.values().stream().findFirst().ifPresent(processMap -> {
+//                    for(var process: processMap.keySet()) {
+//                        Map<String, String> resultMap = new LinkedHashMap<>();
+//                        resultMap.put("process", process);
+//                        for(var source : map.keySet()) {
+//                            resultMap.put(source, map.get(source).get(process).toString());
+//                        }
+//                        result.add(resultMap);
+//                    }
+//                });
+//            }
         } else {
             throw new InvalidDataException("Invalid item type provided :" + reportItem.getType().toString());
         }

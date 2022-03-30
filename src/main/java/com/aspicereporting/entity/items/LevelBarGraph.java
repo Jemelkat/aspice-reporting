@@ -33,7 +33,7 @@ import java.util.List;
 public class LevelBarGraph extends ReportItem {
 
     @NotNull(message = "Level bar graph needs orientation defined.")
-    @Column(length = 20, name = "orientation",nullable = false)
+    @Column(length = 20, name = "orientation", nullable = false)
     @Enumerated(EnumType.STRING)
     private Orientation orientation;
 
@@ -67,9 +67,12 @@ public class LevelBarGraph extends ReportItem {
     private SourceColumn scoreColumn;
 
     @NotNull(message = "Level bar graph needs score agregate function defined.")
-    @Column(length = 20, name = "score_function",nullable = false)
+    @Column(length = 20, name = "score_function", nullable = false)
     @Enumerated(EnumType.STRING)
     private ScoreFunction scoreFunction;
+
+    @Column(name = "merge_levels",nullable = false)
+    private boolean mergeLevels;
 
     @Type(type = "list-array")
     @Column(

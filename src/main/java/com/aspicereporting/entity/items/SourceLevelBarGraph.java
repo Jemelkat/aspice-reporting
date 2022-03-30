@@ -62,7 +62,6 @@ public class SourceLevelBarGraph extends ReportItem {
     @Enumerated(EnumType.STRING)
     private ScoreFunction mergeScores;
 
-
     @NotEmpty(message = "Sources level bar graph needs sources.")
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "bar_graph_sources",

@@ -135,21 +135,6 @@ public class SourceLevelBarGraphService extends BaseChartService {
             Set<String> assessorsSet = new HashSet<>();
 
             // Get all data to MAP for faster lookup*
-            /* {(process,attribute):
-                                    [
-                                    {criterion1:
-                                                [
-                                                {assessor1: score,
-                                                assessor2: score}
-                                                ]
-                                    },
-                                    {criterion2: [
-                                                {assessor1: score,
-                                                assessor2: score}
-                                                ]
-                                    },
-             ...}
-            * */
             MultiKeyMap valuesMap = prepareDataMap(sourceLevelBarGraph, scoreColumn, processColumn, attributeColumn, criterionColumn, assessorColumn, processFilter, assessorsSet);
 
             if (sourceLevelBarGraph.isMergeLevels()) {
@@ -178,7 +163,12 @@ public class SourceLevelBarGraphService extends BaseChartService {
                                         stringScoresList.add("0");
                                     }
                                 }
-                                List<Double> scoresList = convertScoresToDoubles(stringScoresList);
+                                List<Double> scoresList;
+                                try {
+                                    scoresList = convertScoresToDoubles(stringScoresList);
+                                } catch (JasperReportException e) {
+                                    throw new JasperReportException("Sources level bar graph score column contains unknown value: ", e);
+                                }
                                 calculateLevelCheckValue(scoresList.stream().mapToDouble(a -> a).sum() / scoresList.size(), i);
                             }
                             evaulateLevelCheckToLevel();
@@ -331,6 +321,10 @@ public class SourceLevelBarGraphService extends BaseChartService {
         return dataMap;
     }
 
+    /**
+     * Returns data in map format for easier lookup
+     * {(process,attribute): [{criterion1:[{assessor1: score,assessor2: score}]},{criterion2: [{assessor1: score,assessor2: score}]},...}
+     */
     private MultiKeyMap prepareDataMap(SourceLevelBarGraph sourceLevelBarGraph, SourceColumn scoreColumn, SourceColumn processColumn, SourceColumn attributeColumn, SourceColumn criterionColumn, SourceColumn assessorColumn, List<String> processFilter, Set<String> assessorsSet) {
         //Precompile regex pattern for assessor regex filter
         Pattern assessorPattern = Pattern.compile(StringUtils.isEmpty(sourceLevelBarGraph.getAssessorFilter()) ? "" : sourceLevelBarGraph.getAssessorFilter());

@@ -116,14 +116,24 @@ public class LevelBarGraphService extends BaseChartService {
         if (!levelBarGraph.getProcessFilter().isEmpty()) {
             processFilter = processFilter.stream().filter(process -> levelBarGraph.getProcessFilter().contains(process)).collect(Collectors.toList());
         }
-        //Apply assessor filter assesor list
+        //Apply assessor filter to assessor list
         if (!levelBarGraph.getAssessorFilter().isEmpty()) {
             assessorFilter = assessorFilter.stream().filter(assessor -> levelBarGraph.getAssessorFilter().contains(assessor)).collect(Collectors.toList());
         }
-
         //Sort alphabetically
         Collections.sort(processFilter, new NaturalOrderComparator());
 
+
+        //Get values map for easier lookup
+        MultiKeyMap valuesMap = prepareDataMap(levelBarGraph, assessorFilter, processFilter);
+
+        //Get map with levels for each process and assessor combination
+        LinkedHashMap<String, Map<String, Integer>> processLevelMap = prepareLevelsMap(levelBarGraph, valuesMap, assessorFilter, processFilter);
+
+        return processLevelMap;
+    }
+
+    private MultiKeyMap prepareDataMap(LevelBarGraph levelBarGraph, List<String> assessorFilter, List<String> processFilter) {
         //MultiKey map to store value for each process, level combination - {(process, attribute, assessor) : (criterion: [values])}
         MultiKeyMap valuesMap = new MultiKeyMap();
         for (int i = 0; i < levelBarGraph.getScoreColumn().getSourceData().size(); i++) {
@@ -138,102 +148,146 @@ public class LevelBarGraphService extends BaseChartService {
                 continue;
             }
 
-            MultiKey key = new MultiKey(process, attribute, assessor);
+            MultiKey key = new MultiKey(process, attribute);
             if (valuesMap.containsKey(key)) {
-                Map<String, String> map = (Map<String, String>) valuesMap.get(key);
-                map.put(criterion, score);
-            } else {
-                valuesMap.put(key, new HashMap(Map.of(criterion, score)));
-            }
-        }
-
-        //Prepare default level for each process and assessor - {process, {assesor: level, assessor: level}, process,...}
-        LinkedHashMap<String, Map<String, Integer>> processLevelMap = new LinkedHashMap<>();
-        MultiKeyMap<String, Integer> processLevelAchievedMap = new MultiKeyMap();
-        for (String process : processFilter) {
-            for (String assessor : assessorFilter) {
-                processLevelAchievedMap.put(process, assessor, 0);
-                if (processLevelMap.containsKey(process)) {
-                    Map<String, Integer> assessorMap = processLevelMap.get(process);
-                    assessorMap.put(assessor, 0);
-                    processLevelMap.put(process, assessorMap);
+                Map<String, Map<String, String>> criterionMap = (Map<String, Map<String, String>>) valuesMap.get(key);
+                //If we already have this criterion recorded - add new score for assesor
+                if (criterionMap.containsKey(criterion)) {
+                    criterionMap.get(criterion).put(assessor, score);
                 } else {
-                    processLevelMap.put(process, new HashMap<>(Map.of(assessor, 0)));
+                    criterionMap.put(criterion, new HashMap(Map.of(assessor, score)));
                 }
             }
+            //Create new criterion score record for this assessor
+            else {
+                valuesMap.put(key, new HashMap<String, HashMap<String, String>>());
+                ((Map<String, Map<String, String>>) valuesMap.get(key)).put(criterion, new HashMap(Map.of(assessor, score)));
+            }
         }
+        return valuesMap;
+    }
 
-        //Get level achieved for each process and assessor combination
-        for (var assessor : assessorFilter) {
+    /**
+     * Method returns map with levels achieved for each process
+     * This method performs merging of assessors based on defined score function and merge checkbox
+     * @param levelBarGraph
+     * @param valuesMap
+     * @param assessorFilter
+     * @param processFilter
+     * @return returns map {process: assessor: level}
+     */
+    private LinkedHashMap<String, Map<String, Integer>> prepareLevelsMap(LevelBarGraph levelBarGraph, MultiKeyMap valuesMap, List<String> assessorFilter, List<String> processFilter) {
+        LinkedHashMap<String, Map<String, Integer>> processLevelMap = new LinkedHashMap<>();
+        //Get data not merged
+        if (levelBarGraph.getScoreFunction().equals(ScoreFunction.NONE) || levelBarGraph.isMergeLevels()) {
             for (var process : processFilter) {
+                for (var assessor : assessorFilter) {
+                    //Check if this assessor evaulated this process
+                    boolean hasRecord = false;
+                    resetVariables();
+                    for (int i = 1; i <= 5; i++) {
+                        //If previous level is not fully achieved move to another process
+                        if (!previousLevelAchieved) {
+                            break;
+                        }
+                        //Reset check variable used for determining of level achieved
+                        resetCheckVariable();
+                        for (String attribute : processAttributesMap.get(i)) {
+                            MultiKey multikey = new MultiKey(process, attribute);
+                            //Process does not have this attribute defined we dont have to increase level
+                            if (!valuesMap.containsKey(multikey)) {
+                                break;
+                            }
+
+                            //Get all criterion scores for (process, attribute, assessor) key and apply score function on them
+                            Map<String, Map<String, String>> criterionAssessorMap = (Map<String, Map<String, String>>) valuesMap.get(multikey);
+                            List<String> stringScoreList = new ArrayList<>();
+                            for (String criterionKey : criterionAssessorMap.keySet()) {
+                                if (criterionAssessorMap.get(criterionKey).containsKey(assessor)) {
+                                    hasRecord = true;
+                                    stringScoreList.add(criterionAssessorMap.get(criterionKey).get(assessor));
+                                }
+                            }
+
+                            List<Double> scoresList;
+                            try {
+                                scoresList = convertScoresToDoubles(stringScoreList);
+                            } catch (JasperReportException e) {
+                                throw new JasperReportException("Level bar graph score column contains unknown value: ", e);
+                            }
+
+                            //Get attribute score achieved as (sum of scores/count of scores)
+                            Integer listSize = scoresList.isEmpty() ? 1 : scoresList.size();
+                            calculateLevelCheckValue(scoresList.stream().mapToDouble(a -> a).sum() / listSize, i);
+                        }
+                        evaulateLevelCheckToLevel();
+                    }
+
+                    if (hasRecord) {
+                        if (processLevelMap.containsKey(process)) {
+                            processLevelMap.get(process).put(assessor, levelAchieved);
+                        } else {
+                            processLevelMap.put(process, new HashMap<>(Map.of(assessor, levelAchieved)));
+                        }
+                    }
+                }
+            }
+
+            if (levelBarGraph.isMergeLevels()) {
+                processLevelMap = mergeAssessors(processLevelMap, levelBarGraph.getScoreFunction());
+            }
+        } else {
+            for (String process : processFilter) {
                 resetVariables();
                 for (int i = 1; i <= 5; i++) {
-                    //If previous level is not fully achieved move to another process
                     if (!previousLevelAchieved) {
                         break;
                     }
                     resetCheckVariable();
-
                     for (String attribute : processAttributesMap.get(i)) {
-                        double scoreAchieved = 0;
-
-                        MultiKey multikey = new MultiKey(process, attribute, assessor);
-                        //Process does not have this attribute defined we dont have to increase level
+                        MultiKey multikey = new MultiKey(process, attribute);
+                        //Process does not have this attribute defined we don't have to increase level
                         if (!valuesMap.containsKey(multikey)) {
                             break;
                         }
 
-                        //Get all criterion scores for (process, attribute, assessor) key and apply score function on them
-                        Map<String, String> criterionScoreMap = (Map<String, String>) valuesMap.get(multikey);
-                        List<String> stringScoreList = new ArrayList<>();
-                        for (String criterionKey : criterionScoreMap.keySet()) {
-                            stringScoreList.add(criterionScoreMap.get(criterionKey));
+                        //Get all evaluated criterions for this process attribute
+                        Map<String, Map<String, String>> criterionAssessorMap = (Map<String, Map<String, String>>) valuesMap.get(multikey);
+                        //Get all criterion scores for (process, attribute) key and apply score function on them
+                        List<Double> scoresList = new ArrayList<>();
+                        for (String criterion : criterionAssessorMap.keySet()) {
+                            List<String> assessorScoreList = new ArrayList<>();
+                            for (String assessor : criterionAssessorMap.get(criterion).keySet()) {
+                                assessorScoreList.add(criterionAssessorMap.get(criterion).get(assessor));
+                            }
+                            try {
+                                scoresList.add(applyScoreFunction(convertScoresToDoubles(assessorScoreList), levelBarGraph.getScoreFunction()));
+                            } catch (JasperReportException e) {
+                                throw new JasperReportException("Sources level bar graph score column contains unknown value: ", e);
+                            }
                         }
-                        List<Double> scoresList;
-                        try {
-                            scoresList = convertScoresToDoubles(stringScoreList);
-                        } catch (JasperReportException e) {
-                            throw new JasperReportException("Level bar graph score column contains unknown value: ", e);
-                        }
-
                         //Get attribute score achieved as (sum of scores/count of scores)
-                        scoreAchieved = scoresList.stream().mapToDouble(a -> a).sum() / scoresList.size();
-                        calculateLevelCheckValue(scoreAchieved, i);
+                        calculateLevelCheckValue(scoresList.stream().mapToDouble(a -> a).sum() / scoresList.size(), i);
                     }
                     evaulateLevelCheckToLevel();
                 }
 
-                Map<String, Integer> assessorLevelMap = processLevelMap.get(process);
-                assessorLevelMap.put(assessor, levelAchieved);
-                processLevelMap.put(process, assessorLevelMap);
+                if (processLevelMap.containsKey(process)) {
+                    processLevelMap.get(process).put(levelBarGraph.getScoreFunction().name() + " scores achieved", levelAchieved);
+                } else {
+                    processLevelMap.put(process, new HashMap<>(Map.of(levelBarGraph.getScoreFunction().name() + " scores achieved", levelAchieved)));
+                }
             }
         }
+        return processLevelMap;
+    }
 
-        //Merge levels for assessors with defined merge function
-        LinkedHashMap<String, Map<String, Integer>> resultMap = new LinkedHashMap<>();
-        if (!levelBarGraph.getScoreFunction().equals(ScoreFunction.NONE)) {
-            String seriesName = levelBarGraph.getScoreFunction().name() + " levels for merged assessors";
-            for(String process : processLevelMap.keySet()) {
-                resultMap.put(process, new HashMap<>());
-                List<Integer> processLevels = new ArrayList<>();
-                for(String assessor: processLevelMap.get(process).keySet()) {
-                    processLevels.add(processLevelMap.get(process).get(assessor));
-                }
-                Integer value;
-                switch(levelBarGraph.getScoreFunction()) {
-                    case MIN:
-                        value = Collections.min(processLevels);
-                        break;
-                    default:
-                        value = Collections.max(processLevels);
-                        break;
-                }
-                resultMap.get(process).put(seriesName, value);
-            }
-        } else {
-            resultMap = processLevelMap;
+    private LinkedHashMap<String, Map<String, Integer>> mergeAssessors(LinkedHashMap<String, Map<String, Integer>> processLevelMap, ScoreFunction scoreFunction) {
+        LinkedHashMap<String, Map<String, Integer>> updatedMap = new LinkedHashMap<>();
+        for (String process : processLevelMap.keySet()) {
+            List<Integer> levels = List.copyOf(processLevelMap.get(process).values());
+            updatedMap.put(process, new HashMap<>(Map.of(scoreFunction.name() + " levels achieved", applyMinMaxFunction(levels, scoreFunction))));
         }
-
-        return resultMap;
+        return updatedMap;
     }
 }

@@ -160,7 +160,7 @@ public class LevelBarGraphService extends BaseChartService {
 
         if(dataMap.isEmpty()) {
             for(String process : allProcessList) {
-                dataMap.put(process, new HashMap<>(Map.of("No data found for any process.", 0)));
+                dataMap.put(process, new HashMap<>(Map.of("No measurements found.", 0)));
             }
         }
 

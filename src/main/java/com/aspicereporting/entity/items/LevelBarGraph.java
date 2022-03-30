@@ -15,10 +15,7 @@ import org.hibernate.annotations.TypeDef;
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Getter
 @Setter
@@ -74,7 +71,8 @@ public class LevelBarGraph extends ReportItem {
     @JoinTable(name = "bar_graph_sources",
             joinColumns = @JoinColumn(name = "report_item_id"),
             inverseJoinColumns = @JoinColumn(name = "source_id"))
-    private Set<Source> sources = new HashSet<>();
+    @OrderColumn(name="graph_source_order")
+    private List<Source> sources = new ArrayList<>();
 
     public void validate() {
 

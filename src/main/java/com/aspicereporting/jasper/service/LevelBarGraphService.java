@@ -48,7 +48,7 @@ public class LevelBarGraphService extends BaseChartService {
     SourceRepository sourceRepository;
 
     public JRDesignImage createElement(JasperDesign jasperDesign, LevelBarGraph levelBarGraph, Integer counter, Map<String, Object> parameters) throws JRException {
-        LinkedHashMap<String, Map<String, Integer>> graphData = getData(levelBarGraph);
+        LinkedHashMap<String, LinkedHashMap<String, Integer>> graphData = getData(levelBarGraph);
 
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         for (var process : graphData.keySet()) {
@@ -104,7 +104,7 @@ public class LevelBarGraphService extends BaseChartService {
         return imageElement;
     }
 
-    public LinkedHashMap<String, Map<String, Integer>> getData(LevelBarGraph levelBarGraph) {
+    public LinkedHashMap<String, LinkedHashMap<String, Integer>> getData(LevelBarGraph levelBarGraph) {
         //Stores all existing processes across sources
         Set<String> allProcessSet = new HashSet<>();
 
@@ -151,7 +151,7 @@ public class LevelBarGraphService extends BaseChartService {
             levelsAchievedMap.put(source.getSourceName(), assesorLevelMap);
         }
         //Result data in format {sourcename1: {process1: level, process2: level}, sourceName2: ...}
-        LinkedHashMap<String, Map<String, Integer>> dataMap = new LinkedHashMap<>();
+        LinkedHashMap<String, LinkedHashMap<String, Integer>> dataMap;
 
         dataMap = mergeSources(levelsAchievedMap, levelBarGraph.getAggregateSourcesFunction());
 
@@ -160,7 +160,7 @@ public class LevelBarGraphService extends BaseChartService {
 
         if(dataMap.isEmpty()) {
             for(String process : allProcessList) {
-                dataMap.put(process, new HashMap<>(Map.of("No measurements found.", 0)));
+                dataMap.put(process, new LinkedHashMap<>(Map.of("No measurements found.", 0)));
             }
         }
 
@@ -342,8 +342,8 @@ public class LevelBarGraphService extends BaseChartService {
         return updatedMap;
     }
 
-    private LinkedHashMap<String, Map<String, Integer>> mergeSources(LinkedHashMap<String, Map<String, Map<String, Integer>>> levelsAchievedMap, ScoreFunction scoreFunction) {
-        LinkedHashMap<String, Map<String, Integer>> updatedMap = new LinkedHashMap<>();
+    private LinkedHashMap<String, LinkedHashMap<String, Integer>> mergeSources(LinkedHashMap<String, Map<String, Map<String, Integer>>> levelsAchievedMap, ScoreFunction scoreFunction) {
+        LinkedHashMap<String, LinkedHashMap<String, Integer>> updatedMap = new LinkedHashMap<>();
         //Only one source defined
         if (levelsAchievedMap.keySet().size() == 1 || scoreFunction.equals(ScoreFunction.NONE)) {
             for (String source : levelsAchievedMap.keySet()) {
@@ -356,7 +356,7 @@ public class LevelBarGraphService extends BaseChartService {
                         if (updatedMap.containsKey(process)) {
                             updatedMap.get(process).put(sourceAssessor, levelsAchievedMap.get(source).get(process).get(assessor));
                         } else {
-                            updatedMap.put(process, new HashMap<>(Map.of(sourceAssessor, levelsAchievedMap.get(source).get(process).get(assessor))));
+                            updatedMap.put(process, new LinkedHashMap<>(Map.of(sourceAssessor, levelsAchievedMap.get(source).get(process).get(assessor))));
                         }
                     }
                 }
@@ -385,7 +385,7 @@ public class LevelBarGraphService extends BaseChartService {
                     if (updatedMap.containsKey(process)) {
                         updatedMap.get(process).put(scoreFunction.name() + " levels achieved in sources", applyMinMaxFunction(combinedLevels.get(process).get(assessor), scoreFunction));
                     } else {
-                        updatedMap.put(process, new HashMap<>(Map.of(scoreFunction.name() + " levels achieved in sources", applyMinMaxFunction(combinedLevels.get(process).get(assessor), scoreFunction))));
+                        updatedMap.put(process, new LinkedHashMap<>(Map.of(scoreFunction.name() + " levels achieved in sources", applyMinMaxFunction(combinedLevels.get(process).get(assessor), scoreFunction))));
                     }
                 }
             }

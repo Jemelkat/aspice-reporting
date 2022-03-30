@@ -105,8 +105,8 @@ public class DashboardService {
                 result.add(Map.of("level", level, "count", map.get(level).toString()));
             }
         } else if (reportItem instanceof LevelBarGraph levelBarGraph) {
-            LinkedHashMap<String, Map<String, Integer>> map = levelBarGraphService.getData(levelBarGraph);
-            Set<String> assessorSet = new HashSet<>();
+            LinkedHashMap<String, LinkedHashMap<String, Integer>> map = levelBarGraphService.getData(levelBarGraph);
+            Set<String> assessorSet = new LinkedHashSet<>();
             for(var process : map.keySet()){
                 for(var assessor : map.get(process).keySet()) {
                     assessorSet.add(assessor);

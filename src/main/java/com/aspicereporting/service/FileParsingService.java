@@ -76,7 +76,33 @@ public class FileParsingService {
             Row row = fileIterator.next();
             for(int i=0; i<sourceColumns.size(); i++) {
                 SourceData data = new SourceData();
-                data.setValue(row.getCell(i, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).getStringCellValue());
+                String cellValue = "";
+                Cell cell = row.getCell(i, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                switch (cell.getCellType()) {
+                    case STRING:
+                        cellValue = cell.getStringCellValue();
+                        break;
+                    case FORMULA:
+                        cellValue = cell.getCellFormula();
+                        break;
+
+                    case NUMERIC:
+                        if (DateUtil.isCellDateFormatted(cell)) {
+                            cellValue = cell.getDateCellValue().toString();
+                        } else {
+                            cellValue = Double.toString(cell.getNumericCellValue());
+                        }
+                        break;
+                    case BLANK:
+                        cellValue = "";
+                        break;
+                    case BOOLEAN:
+                        cellValue = Boolean.toString(cell.getBooleanCellValue());
+                        break;
+                }
+
+
+                data.setValue(cellValue);
                 data.setSourceColumn(sourceColumns.get(i));
                 sourceColumns.get(i).addSourceData(data);
             }

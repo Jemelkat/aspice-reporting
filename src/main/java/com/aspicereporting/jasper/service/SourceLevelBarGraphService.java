@@ -4,7 +4,6 @@ import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.enums.Orientation;
 import com.aspicereporting.entity.enums.ScoreFunction;
-import com.aspicereporting.entity.items.LevelBarGraph;
 import com.aspicereporting.entity.items.SourceLevelBarGraph;
 import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.exception.JasperReportException;

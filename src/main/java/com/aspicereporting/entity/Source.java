@@ -60,10 +60,6 @@ public class Source {
 
     @JsonIgnore
     @OneToMany(mappedBy = "source", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
-    private List<LevelBarGraph> levelBarGraphs = new ArrayList<>();
-
-    @JsonIgnore
-    @OneToMany(mappedBy = "source", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     private List<LevelPieGraph> levelPieGraphs = new ArrayList<>();
 
     @JsonIgnore
@@ -91,14 +87,6 @@ public class Source {
             table.setLevelColumn(null);
             table.setScoreColumn(null);
         }
-        for (LevelBarGraph graph : levelBarGraphs) {
-            graph.setSource(null);
-            graph.setAssessorColumn(null);
-            graph.setProcessColumn(null);
-            graph.setCriterionColumn(null);
-            graph.setAttributeColumn(null);
-            graph.setScoreColumn(null);
-        }
         for (SourceLevelBarGraph graph : sourceLevelBarGraphs) {
             graph.getSources().removeIf(source -> source.getId() == this.id);
         }
@@ -111,7 +99,6 @@ public class Source {
             graph.setScoreColumn(null);
         }
         this.simpleSimpleTables.clear();
-        this.levelBarGraphs.clear();
         this.levelPieGraphs.clear();
         this.capabilityTables.clear();
         this.sourceLevelBarGraphs.clear();
@@ -142,11 +129,6 @@ public class Source {
     public void addSimpleTable(SimpleTable simpleTable) {
         this.simpleSimpleTables.add(simpleTable);
         simpleTable.setSource(this);
-    }
-
-    public void addCapabilityGraph(LevelBarGraph levelBarGraph) {
-        this.levelBarGraphs.add(levelBarGraph);
-        levelBarGraph.setSource(this);
     }
 
     public void addLevelPieGraph(LevelPieGraph levelPieGraph) {

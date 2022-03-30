@@ -23,7 +23,6 @@ import javax.persistence.*;
         @JsonSubTypes.Type(value = TextItem.class, name = "TEXT"),
         @JsonSubTypes.Type(value = SimpleTable.class, name = "SIMPLE_TABLE"),
         @JsonSubTypes.Type(value = CapabilityTable.class, name = "CAPABILITY_TABLE"),
-        @JsonSubTypes.Type(value = LevelBarGraph.class, name = "LEVEL_BAR_GRAPH"),
         @JsonSubTypes.Type(value = SourceLevelBarGraph.class, name = "SOURCE_LEVEL_BAR_GRAPH"),
         @JsonSubTypes.Type(value = LevelPieGraph.class, name = "LEVEL_PIE_GRAPH"),
 

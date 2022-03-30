@@ -29,6 +29,10 @@ import java.util.Set;
 @Entity
 @DiscriminatorValue("SOURCE_LEVEL_BAR_GRAPH")
 @JsonView(View.Simple.class)
+@TypeDef(
+        name = "list-array",
+        typeClass = ListArrayType.class
+)
 public class SourceLevelBarGraph extends ReportItem {
     @NotNull(message = "Sources level bar graph needs orientation defined.")
     @Column(length = 20, name = "orientation",nullable = false)

@@ -32,8 +32,6 @@ public class JasperService {
     @Autowired
     TextService textService;
     @Autowired
-    LevelBarGraphService levelBarGraphService;
-    @Autowired
     SourceLevelBarGraphService sourceLevelBarGraphService;
     @Autowired
     LevelPieGraphService levelPieGraphService;
@@ -143,16 +141,6 @@ public class JasperService {
                     tableCounter++;
                 } catch (JRException e) {
                     throw new JasperReportException("Error creating the capability table item for report", e);
-                }
-            }
-            /*CAPABILITY BAR GRAPH*/
-            else if (reportItem instanceof LevelBarGraph levelBarGraph) {
-                try {
-                    JRDesignImage element = levelBarGraphService.createElement(jasperDesign, levelBarGraph, graphCounter, parameters);
-                    band.addElement(element);
-                    graphCounter++;
-                } catch (JRException e) {
-                    throw new JasperReportException("Error creating the capability graph item for report", e);
                 }
             }
             /*SOURCES BAR GRAPH*/

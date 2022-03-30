@@ -55,7 +55,6 @@ public class LevelPieGraph extends ReportItem{
     @Column(length = 20, name = "score_function",nullable = false)
     @Enumerated(EnumType.STRING)
     private ScoreFunction scoreFunction;
-
     public void validate() {
         if (this.source.getId() == null) {
             throw new InvalidDataException("Level pie graph has no source defined.");

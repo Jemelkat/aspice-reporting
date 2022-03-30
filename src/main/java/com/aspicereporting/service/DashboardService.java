@@ -103,13 +103,22 @@ public class DashboardService {
 
         List<Map<String, String>> result = new ArrayList<>();
         if (reportItem instanceof LevelBarGraph levelBarGraph) {
+
+            LinkedHashMap<String, Map<String, Integer>> map = levelBarGraphService.getData(levelBarGraph);
+            //Adds 0 score to all other assessors - needed for recharts react library
+            Set<String> assessorSet = new HashSet<>();
+            for(var process : map.keySet()){
+                for(var assessor : map.get(process).keySet()) {
+                    assessorSet.add(assessor);
+                }
+            }
             /*Returns list of map items
              * [{process: "name", assessor: "name", level: 0}, ...]
              * */
-            LinkedHashMap<String, Map<String, Integer>> map = levelBarGraphService.getData(levelBarGraph);
             for(var process : map.keySet()){
-                for(var assessor : map.get(process).keySet()) {
-                    result.add(Map.of("process", process, "assessor", assessor, "level", map.get(process).get(assessor).toString()));
+                for(var assessor : assessorSet) {
+                    result.add(Map.of("process", process, "assessor", assessor, "level", map.get(process).containsKey(assessor) ? map.get(process).get(assessor).toString() : "0"));
+                    assessorSet.add(assessor);
                 }
             }
         } else if (reportItem instanceof LevelPieGraph levelPieGraph) {

@@ -1,6 +1,7 @@
 package com.aspicereporting.service;
 
 import com.aspicereporting.entity.*;
+import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.exception.SourceFileException;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.exception.UnauthorizedAccessException;
@@ -140,5 +141,28 @@ public class SourceService {
             throw new EntityNotFoundException("Could not find source with id = " + sourceId);
         }
         return fileParsingService.parseSourceToCSV(source);
+    }
+
+    public Set<String> getColumnValuesForSources(LinkedHashSet<Long> sources, String columnName, User user) {
+        Set<String> values = new HashSet<>();
+        for(Long sourceId : sources) {
+            Source existingSource = sourceRepository.findByIdAndUserOrSourceGroupsIn(sourceId, user, user.getUserGroups());
+            if(existingSource == null) {
+                throw new EntityNotFoundException("Could not find data for source id = " + sourceId);
+            }
+            SourceColumn sourceColumn = getSourceColumnByName(existingSource, columnName);
+            List<String> columValues = sourceRepository.findDistinctColumnValuesForColumn(sourceColumn.getId());
+            values.addAll(columValues.stream().filter(name -> !name.equals("")).collect(Collectors.toList()));
+        }
+        return values;
+    }
+
+    private SourceColumn getSourceColumnByName(Source source, String name) {
+        for (SourceColumn sourceColumn : source.getSourceColumns()) {
+            if (sourceColumn.getColumnName().equals(name)) {
+                return sourceColumn;
+            }
+        }
+        throw new InvalidDataException("Source: " + source.getSourceName() + " has no column named: " + name + ". Cannot get assessor filter data.");
     }
 }

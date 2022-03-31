@@ -100,6 +100,16 @@ public class SourceController {
         return sourcesList;
     }
 
+    @JsonView(View.Simple.class)
+    @GetMapping("/values")
+    public List<String> getValuesForSourcesAndColumn(@RequestParam("sources") LinkedHashSet<Long> sources,@RequestParam("columnName") String columnName, Authentication authentication) {
+        User loggedUser = (User) authentication.getPrincipal();
+        //Convert Set to list
+        List<String> valuesList = new ArrayList<>(sourceService.getColumnValuesForSources(sources,columnName,loggedUser));
+        Collections.sort(valuesList,new NaturalOrderComparator());
+        return valuesList;
+    }
+
     @DeleteMapping("/delete")
     public ResponseEntity<?> delete(@Param("sourceId") Long sourceId, Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();

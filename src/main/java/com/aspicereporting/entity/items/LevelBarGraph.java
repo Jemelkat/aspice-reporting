@@ -1,11 +1,9 @@
 package com.aspicereporting.entity.items;
 
 import com.aspicereporting.entity.Source;
-import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.enums.Orientation;
 import com.aspicereporting.entity.enums.ScoreFunction;
 import com.aspicereporting.entity.views.View;
-import com.aspicereporting.exception.InvalidDataException;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.vladmihalcea.hibernate.type.array.ListArrayType;
 import lombok.Getter;
@@ -15,10 +13,9 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
-import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Getter
 @Setter
@@ -31,79 +28,53 @@ import java.util.List;
         typeClass = ListArrayType.class
 )
 public class LevelBarGraph extends ReportItem {
-
     @NotNull(message = "Level bar graph needs orientation defined.")
     @Column(length = 20, name = "orientation",nullable = false)
     @Enumerated(EnumType.STRING)
     private Orientation orientation;
-
-    @NotNull(message = "Level bar graph needs source defined")
-    @ManyToOne
-    private Source source;
-
-    @NotNull(message = "Level bar graph needs assessor column defined")
-    @ManyToOne
-    @JoinColumn(name = "assessor_column_id", referencedColumnName = "source_column_id")
-    private SourceColumn assessorColumn;
-
-    @NotNull(message = "Level bar graph needs process column defined")
-    @ManyToOne
-    @JoinColumn(name = "process_column_id", referencedColumnName = "source_column_id")
-    private SourceColumn processColumn;
-
-    @NotNull(message = "Level bar graph needs criterion column defined")
-    @ManyToOne
-    @JoinColumn(name = "criterion_column_id", referencedColumnName = "source_column_id")
-    private SourceColumn criterionColumn;
-
-    @NotNull(message = "Level bar graph needs attribute column defined")
-    @ManyToOne
-    @JoinColumn(name = "attribute_column_id", referencedColumnName = "source_column_id")
-    private SourceColumn attributeColumn;
-
-    @NotNull(message = "Level bar graph needs score/value column defined")
-    @ManyToOne
-    @JoinColumn(name = "score_column_id", referencedColumnName = "source_column_id")
-    private SourceColumn scoreColumn;
-
-    @NotNull(message = "Level bar graph needs score agregate function defined.")
-    @Column(length = 20, name = "score_function",nullable = false)
-    @Enumerated(EnumType.STRING)
-    private ScoreFunction scoreFunction;
-
-    @Type(type = "list-array")
-    @Column(
-            name = "process_filter",
-            columnDefinition = "text[]"
-    )
-    private List<String> processFilter = new ArrayList<>();
-
+    @NotEmpty(message = "Level bar graph needs assessor column defined.")
+    private String assessorColumnName;
     @Type(type = "list-array")
     @Column(
             name = "assessor_filter",
             columnDefinition = "text[]"
     )
     private List<String> assessorFilter = new ArrayList<>();
+    @NotEmpty(message = "Level bar graph needs process column defined.")
+    private String processColumnName;
+    @Type(type = "list-array")
+    @Column(
+            name = "process_filter",
+            columnDefinition = "text[]"
+    )
+    private List<String> processFilter = new ArrayList<>();
+    @NotEmpty(message = "Level bar graph needs attribute column defined.")
+    private String attributeColumnName;
+    @NotEmpty(message = "Level bar graph needs criterion column defined.")
+    private String criterionColumnName;
+    @NotEmpty(message = "Level bar graph needs score column defined.")
+    private String scoreColumnName;
+    @NotNull(message = "Level bar graph scores aggregate function cannot be null.")
+    @Column(length = 20, name = "aggregate_scores",nullable = false)
+    @Enumerated(EnumType.STRING)
+    private ScoreFunction aggregateScoresFunction;
+    @NotNull(message = "Level bar graph aggregate levels cannot be null. Please use true/false.")
+    @Column(name = "aggregate_levels")
+    private boolean aggregateLevels = false;
+    @NotNull(message = "Level bar graph sources aggregate function cannot be null.")
+    @Column(length = 20, name = "aggregate_sources",nullable = false)
+    @Enumerated(EnumType.STRING)
+    private ScoreFunction aggregateSourcesFunction;
 
+    @NotEmpty(message = "Level bar graph needs sources.")
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "bar_graph_sources",
+            joinColumns = @JoinColumn(name = "report_item_id"),
+            inverseJoinColumns = @JoinColumn(name = "source_id"))
+    @OrderColumn(name="graph_source_order")
+    private List<Source> sources = new ArrayList<>();
 
     public void validate() {
-        if (this.source.getId() == null) {
-            throw new InvalidDataException("Level bar graph has no source defined.");
-        }
-        if (this.assessorColumn.getId() == null) {
-            throw new InvalidDataException("Level bar graph has no assessor column defined.");
-        }
-        if (this.processColumn.getId() == null) {
-            throw new InvalidDataException("Level bar graph has no process column defined.");
-        }
-        if (this.criterionColumn.getId() == null) {
-            throw new InvalidDataException("Level bar graph has no performance criterion column defined.");
-        }
-        if (this.attributeColumn.getId() == null) {
-            throw new InvalidDataException("Level bar graph has no capability level column defined.");
-        }
-        if (this.scoreColumn.getId() == null) {
-            throw new InvalidDataException("Level bar graph has no score column defined.");
-        }
+
     }
 }

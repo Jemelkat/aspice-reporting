@@ -7,4 +7,8 @@ public class JasperReportException extends RuntimeException{
     public JasperReportException(String message, Throwable cause) {
         super(message, cause);
     }
+
+    public JasperReportException(Throwable cause) {
+        super(cause);
+    }
 }

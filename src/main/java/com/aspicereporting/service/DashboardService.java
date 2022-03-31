@@ -5,9 +5,8 @@ import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.items.*;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.exception.InvalidDataException;
-import com.aspicereporting.jasper.service.LevelBarGraphService;
 import com.aspicereporting.jasper.service.LevelPieGraphService;
-import com.aspicereporting.jasper.service.SourceLevelBarGraphService;
+import com.aspicereporting.jasper.service.LevelBarGraphService;
 import com.aspicereporting.repository.DashboardRepository;
 import com.aspicereporting.repository.SourceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +24,6 @@ public class DashboardService {
     ItemValidationService itemValidationService;
     @Autowired
     LevelBarGraphService levelBarGraphService;
-    @Autowired
-    SourceLevelBarGraphService sourceLevelBarGraphService;
     @Autowired
     LevelPieGraphService levelPieGraphService;
 
@@ -102,35 +99,24 @@ public class DashboardService {
 
 
         List<Map<String, String>> result = new ArrayList<>();
-        if (reportItem instanceof LevelBarGraph levelBarGraph) {
-            /*Returns list of map items
-             * [{process: "name", assessor: "name", level: 0}, ...]
-             * */
-            LinkedHashMap<String, Map<String, Integer>> map = levelBarGraphService.getData(levelBarGraph);
-            for(var process : map.keySet()){
-                for(var assessor : map.get(process).keySet()) {
-                    result.add(Map.of("process", process, "assessor", assessor, "level", map.get(process).get(assessor).toString()));
-                }
-            }
-        } else if (reportItem instanceof LevelPieGraph levelPieGraph) {
+        if (reportItem instanceof LevelPieGraph levelPieGraph) {
             LinkedHashMap<String, Integer> map = levelPieGraphService.getData(levelPieGraph);
             for(var level : map.keySet()) {
                 result.add(Map.of("level", level, "count", map.get(level).toString()));
             }
-        } else if (reportItem instanceof SourceLevelBarGraph sourceLevelBarGraph) {
-            LinkedHashMap<String, Map<String, Integer>> map = sourceLevelBarGraphService.getData(sourceLevelBarGraph);
-
-            if(!map.isEmpty()) {
-                map.values().stream().findFirst().ifPresent(processMap -> {
-                    for(var process: processMap.keySet()) {
-                        Map<String, String> resultMap = new LinkedHashMap<>();
-                        resultMap.put("process", process);
-                        for(var source : map.keySet()) {
-                            resultMap.put(source, map.get(source).get(process).toString());
-                        }
-                        result.add(resultMap);
-                    }
-                });
+        } else if (reportItem instanceof LevelBarGraph levelBarGraph) {
+            LinkedHashMap<String, LinkedHashMap<String, Integer>> map = levelBarGraphService.getData(levelBarGraph);
+            Set<String> assessorSet = new LinkedHashSet<>();
+            for(var process : map.keySet()){
+                for(var assessor : map.get(process).keySet()) {
+                    assessorSet.add(assessor);
+                }
+            }
+                for(var process : map.keySet()){
+                for(var assessor : assessorSet) {
+                    result.add(Map.of("process", process, "assessor", assessor, "level", map.get(process).containsKey(assessor) ? map.get(process).get(assessor).toString() : "0"));
+                    assessorSet.add(assessor);
+                }
             }
         } else {
             throw new InvalidDataException("Invalid item type provided :" + reportItem.getType().toString());
@@ -143,7 +129,6 @@ public class DashboardService {
             switch (item.getType()) {
                 case LEVEL_PIE_GRAPH:
                 case LEVEL_BAR_GRAPH:
-                case SOURCE_LEVEL_BAR_GRAPH:
                     break;
                 default:
                     return false;

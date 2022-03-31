@@ -69,7 +69,12 @@ public class SourceController {
     @GetMapping("/allSimple")
     public List<Source> getAllSimple(Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
-        return sourceService.getAllByUserOrShared(loggedUser);
+        List<Source> sources = sourceService.getAllByUserOrShared(loggedUser);
+        Collections.sort(sources, (source1, source2) -> {
+            NaturalOrderComparator comparator = new NaturalOrderComparator();
+            return comparator.compare(source1.getSourceName(), source2.getSourceName());
+        });
+        return sources;
     }
 
 
@@ -77,7 +82,12 @@ public class SourceController {
     @GetMapping("/{id}/columns")
     public List<SourceColumn> getColumnsForSource(@PathVariable("id") Long sourceId,Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
-        return sourceService.getColumnsForSource(sourceId,loggedUser);
+        List<SourceColumn> sourceColumns = sourceService.getColumnsForSource(sourceId,loggedUser);
+        Collections.sort(sourceColumns, (sourceColmn1, sourceColumn2) -> {
+            NaturalOrderComparator comparator = new NaturalOrderComparator();
+            return comparator.compare(sourceColmn1.getColumnName(), sourceColumn2.getColumnName());
+        });
+        return sourceColumns;
     }
 
     @JsonView(View.Simple.class)
@@ -88,6 +98,16 @@ public class SourceController {
         List<String> sourcesList = new ArrayList<>(sourceService.getColumnsForSources(sources,loggedUser));
         Collections.sort(sourcesList,new NaturalOrderComparator());
         return sourcesList;
+    }
+
+    @JsonView(View.Simple.class)
+    @GetMapping("/values")
+    public List<String> getValuesForSourcesAndColumn(@RequestParam("sources") LinkedHashSet<Long> sources,@RequestParam("columnName") String columnName, Authentication authentication) {
+        User loggedUser = (User) authentication.getPrincipal();
+        //Convert Set to list
+        List<String> valuesList = new ArrayList<>(sourceService.getColumnValuesForSources(sources,columnName,loggedUser));
+        Collections.sort(valuesList,new NaturalOrderComparator());
+        return valuesList;
     }
 
     @DeleteMapping("/delete")

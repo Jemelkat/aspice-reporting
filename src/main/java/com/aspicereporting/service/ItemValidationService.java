@@ -35,8 +35,6 @@ public class ItemValidationService {
             validateCapabilityTable(capabilityTable, user, allowUndefinedData);
         } else if (reportItem instanceof LevelBarGraph levelBarGraph) {
             validateLevelBarGraph(levelBarGraph, user, allowUndefinedData);
-        } else if (reportItem instanceof SourceLevelBarGraph sourceLevelBarGraph) {
-            validateSourceLevelGraph(sourceLevelBarGraph, user, allowUndefinedData);
         } else if (reportItem instanceof LevelPieGraph levelPieGraph) {
             validateLevelPieGraph(levelPieGraph, user, allowUndefinedData);
         } else {
@@ -169,111 +167,31 @@ public class ItemValidationService {
         }
     }
 
-    private void validateSourceLevelGraph(SourceLevelBarGraph sourceLevelBarGraph, User user, boolean allowUndefinedData) {
-        if (!allowUndefinedData) {
-            //Validate - if source and all id of columns are defined
-            sourceLevelBarGraph.validate();
-        }
-
-        if(sourceLevelBarGraph.getSources().isEmpty()) {
-            if (allowUndefinedData) {
-                sourceLevelBarGraph.setAssessorColumn(null);
-                sourceLevelBarGraph.setProcessColumn(null);
-                sourceLevelBarGraph.setAttributeColumn(null);
-                sourceLevelBarGraph.setScoreColumn(null);
-            }
-            else {
-                throw new InvalidDataException("Source level bar graph needs sources defined.");
-            }
-        } else {
-            //Validate if user can access the sources
-            List<Source> sources = sourceRepository.findByIdInAndUserOrSourceGroupsIn(sourceLevelBarGraph.getSources().stream().map(s -> s.getId()).collect(Collectors.toSet()),user, user.getUserGroups());
-            if(sources.size() != sourceLevelBarGraph.getSources().size()) {
-                throw new InvalidDataException("Source level bar graph has inaccessible source defined.");
-            }
-            //TODO validate if column names are in atleast one source
-
-            for(Source source : sources) {
-                source.getSourceLevelBarGraphs().add(sourceLevelBarGraph);
-            }
-        }
-    }
-
     private void validateLevelBarGraph(LevelBarGraph levelBarGraph, User user, boolean allowUndefinedData) {
         if (!allowUndefinedData) {
             //Validate - if source and all id of columns are defined
             levelBarGraph.validate();
         }
-        Long sourceId = null;
-        if (levelBarGraph.getSource() != null) {
-            sourceId = levelBarGraph.getSource().getId();
-        }
-        //Validate source defined
-        if (sourceId == null) {
+
+        if (levelBarGraph.getSources().isEmpty()) {
             if (allowUndefinedData) {
-                //Clear all other columns if source is not defined
-                levelBarGraph.setProcessColumn(null);
-                levelBarGraph.setAttributeColumn(null);
-                levelBarGraph.setCriterionColumn(null);
-                levelBarGraph.setScoreColumn(null);
-                levelBarGraph.setAssessorColumn(null);
-                levelBarGraph.getProcessFilter().clear();
-                levelBarGraph.getAssessorFilter().clear();
+                levelBarGraph.setAssessorColumnName(null);
+                levelBarGraph.setProcessColumnName(null);
+                levelBarGraph.setAttributeColumnName(null);
+                levelBarGraph.setScoreColumnName(null);
             } else {
-                throw new InvalidDataException("Level bar graph needs source defined.");
+                throw new InvalidDataException("Level bar graph needs sources defined.");
             }
         } else {
-            //Validate - user can use this source id
-            Source source = sourceRepository.findByIdAndUserOrSourceGroupsIn(sourceId, user, user.getUserGroups());
-            if (source == null) {
-                throw new EntityNotFoundException("Source id= " + sourceId + " does not exist");
+            //Validate if user can access the sources
+            List<Source> sources = sourceRepository.findByIdInAndUserOrSourceGroupsIn(levelBarGraph.getSources().stream().map(s -> s.getId()).collect(Collectors.toSet()), user, user.getUserGroups());
+            if (sources.size() != levelBarGraph.getSources().size()) {
+                throw new InvalidDataException("Level bar graph has inaccessible source defined.");
             }
-            Optional<SourceColumn> columnExists = Optional.empty();
-            //PROCESS VALIDATE
-            if (levelBarGraph.getProcessColumn() != null) {
-                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(levelBarGraph.getProcessColumn().getId())).findFirst();
-                if (columnExists.isEmpty()) {
-                    throw new EntityNotFoundException("Invalid source column id=" + levelBarGraph.getProcessColumn().getId() + " for source id=" + sourceId);
-                }
-            } else {
-                if (!allowUndefinedData) {
-                    throw new InvalidDataException("Level bar graph needs process column defined.");
-                }
+
+            for (Source source : sources) {
+                source.getLevelBarGraphs().add(levelBarGraph);
             }
-            //LEVEL VALIDATE
-            if (levelBarGraph.getCriterionColumn() != null) {
-                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(levelBarGraph.getCriterionColumn().getId())).findFirst();
-                if (columnExists.isEmpty()) {
-                    throw new EntityNotFoundException("Invalid source column id=" + levelBarGraph.getCriterionColumn().getId() + " for source id=" + sourceId);
-                }
-            } else {
-                if (!allowUndefinedData) {
-                    throw new InvalidDataException("Level bar graph needs level column defined.");
-                }
-            }
-            //ATTRIBUTE VALIDATE
-            if (levelBarGraph.getAttributeColumn() != null) {
-                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(levelBarGraph.getAttributeColumn().getId())).findFirst();
-                if (columnExists.isEmpty()) {
-                    throw new EntityNotFoundException("Invalid source column id=" + levelBarGraph.getAttributeColumn().getId() + " for source id=" + sourceId);
-                }
-            } else {
-                if (!allowUndefinedData) {
-                    throw new InvalidDataException("Level bar graph needs attribute column defined.");
-                }
-            }
-            //SCORE VALIDATE
-            if (levelBarGraph.getScoreColumn() != null) {
-                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(levelBarGraph.getScoreColumn().getId())).findFirst();
-                if (columnExists.isEmpty()) {
-                    throw new EntityNotFoundException("Invalid source column id=" + levelBarGraph.getScoreColumn().getId() + " for source id=" + sourceId);
-                }
-            } else {
-                if (!allowUndefinedData) {
-                    throw new InvalidDataException("Level bar graph needs score column defined.");
-                }
-            }
-            source.addCapabilityGraph(levelBarGraph);
         }
     }
 

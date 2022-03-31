@@ -252,7 +252,7 @@ public class CapabilityTableService extends BaseTableService {
                         }
                     }
 
-                    Double finalScore = applyScoreFunction(scoresListDouble, capabilityTable.getScoreFunction());
+                    Double finalScore = applyScoreFunction(scoresListDouble, capabilityTable.getAggregateScoresFunction());
                     //If process does not have this criterion measured
                     if (finalScore == null) {
                         test[rowIndex][columnIndex] = "";

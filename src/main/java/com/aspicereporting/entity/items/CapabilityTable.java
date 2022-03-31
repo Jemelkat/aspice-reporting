@@ -7,9 +7,12 @@ import com.aspicereporting.exception.InvalidDataException;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
 
 @Setter
 @Getter
@@ -31,14 +34,23 @@ public class CapabilityTable extends ReportItem {
     @ManyToOne
     @JoinColumn(name = "assessor_column_id", referencedColumnName = "source_column_id")
     private SourceColumn assessorColumn;
-
-    private String assessorFilter;
+    @Type(type = "list-array")
+    @Column(
+            name = "assessor_filter",
+            columnDefinition = "text[]"
+    )
+    private List<String> assessorFilter = new ArrayList<>();
 
     @NotNull(message = "Capability table needs process column defined")
     @ManyToOne
     @JoinColumn(name="process_column_id")
     private SourceColumn processColumn;
-
+    @Type(type = "list-array")
+    @Column(
+            name = "process_filter",
+            columnDefinition = "text[]"
+    )
+    private List<String> processFilter = new ArrayList<>();
     @NotNull(message = "Capability table needs level column defined")
     @ManyToOne
     @JoinColumn(name="level_column_id")
@@ -53,11 +65,13 @@ public class CapabilityTable extends ReportItem {
     @ManyToOne
     @JoinColumn(name="score_column_id")
     private SourceColumn scoreColumn;
-
     @NotNull(message = "Capability table needs score aggregate function defined.")
-    @Column(length = 20, name = "score_function",nullable = false)
+    @Column(length = 20, name = "aggregate_scores",nullable = false)
     @Enumerated(EnumType.STRING)
-    private ScoreFunction scoreFunction;
+    private ScoreFunction aggregateScoresFunction;
+    @NotNull(message = "Capability table aggregate levels cannot be null. Please use true/false.")
+    @Column(name = "aggregate_levels")
+    private boolean aggregateLevels = false;
 
     public void validate() {
         if (this.source.getId() == null) {

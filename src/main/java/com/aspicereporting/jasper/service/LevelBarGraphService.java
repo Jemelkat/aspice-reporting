@@ -158,9 +158,13 @@ public class LevelBarGraphService extends BaseChartService {
         ArrayList<String> allProcessList = new ArrayList<>(allProcessSet);
         Collections.sort(allProcessList, new NaturalOrderComparator());
 
-        if(dataMap.isEmpty()) {
-            for(String process : allProcessList) {
-                dataMap.put(process, new LinkedHashMap<>(Map.of("No measurements found.", 0)));
+        if (dataMap.isEmpty()) {
+            if (allProcessList.isEmpty()) {
+                dataMap.put("", new LinkedHashMap<>(Map.of("No measurements found.", 0)));
+            } else {
+                for (String process : allProcessList) {
+                    dataMap.put(process, new LinkedHashMap<>(Map.of("No measurements found.", 0)));
+                }
             }
         }
 
@@ -384,10 +388,10 @@ public class LevelBarGraphService extends BaseChartService {
                 for (String assessor : combinedLevels.get(process).keySet()) {
                     Integer level = applyMinMaxFunction(combinedLevels.get(process).get(assessor), scoreFunction);
                     if (updatedMap.containsKey(process)) {
-                        if(scoreFunction.equals(ScoreFunction.MIN) && level < updatedMap.get(process).get(scoreFunction.name() + " levels achieved in sources")) {
+                        if (scoreFunction.equals(ScoreFunction.MIN) && level < updatedMap.get(process).get(scoreFunction.name() + " levels achieved in sources")) {
                             updatedMap.get(process).put(scoreFunction.name() + " levels achieved in sources", level);
-                        }else {
-                            if(level > updatedMap.get(process).get(scoreFunction.name() + " levels achieved in sources")) {
+                        } else {
+                            if (level > updatedMap.get(process).get(scoreFunction.name() + " levels achieved in sources")) {
                                 updatedMap.get(process).put(scoreFunction.name() + " levels achieved in sources", level);
                             }
                         }

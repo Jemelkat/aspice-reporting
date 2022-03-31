@@ -9,9 +9,12 @@ import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -29,7 +32,12 @@ public class LevelPieGraph extends ReportItem{
     @JoinColumn(name = "assessor_column_id", referencedColumnName = "source_column_id")
     private SourceColumn assessorColumn;
 
-    private String assessorFilter;
+    @Type(type = "list-array")
+    @Column(
+            name = "assessor_filter",
+            columnDefinition = "text[]"
+    )
+    private List<String> assessorFilter = new ArrayList<>();
 
     @NotNull(message = "Level pie graph needs process column defined")
     @ManyToOne
@@ -52,9 +60,13 @@ public class LevelPieGraph extends ReportItem{
     private SourceColumn scoreColumn;
 
     @NotNull(message = "Level pie graph needs score aggregate function defined.")
-    @Column(length = 20, name = "score_function",nullable = false)
+    @Column(length = 20, name = "aggregate_scores",nullable = false)
     @Enumerated(EnumType.STRING)
-    private ScoreFunction scoreFunction;
+    private ScoreFunction aggregateScoresFunction;
+    @NotNull(message = "Level pie graph aggregate levels cannot be null. Please use true/false.")
+    @Column(name = "aggregate_levels")
+    private boolean aggregateLevels = false;
+
     public void validate() {
         if (this.source.getId() == null) {
             throw new InvalidDataException("Level pie graph has no source defined.");

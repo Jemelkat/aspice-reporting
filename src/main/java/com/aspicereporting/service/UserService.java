@@ -1,17 +1,20 @@
 package com.aspicereporting.service;
 
+import com.aspicereporting.entity.Role;
 import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.entity.User;
 import com.aspicereporting.exception.EntityNotFoundException;
+import com.aspicereporting.repository.RoleRepository;
 import com.aspicereporting.repository.UserGroupRepository;
 import com.aspicereporting.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.aspicereporting.entity.Role.ERole.ROLE_USER;
 
 @Service
 public class UserService {
@@ -19,6 +22,8 @@ public class UserService {
     UserRepository userRepository;
     @Autowired
     UserGroupRepository userGroupRepository;
+    @Autowired
+    RoleRepository roleRepository;
 
     @Transactional
     public void addGroupToUser(Long groupId, Long userId, User user) {
@@ -49,7 +54,7 @@ public class UserService {
         }
 
         //Get user from DB for updates
-        User currentUser = null;
+        User currentUser;
         try {
             currentUser = userRepository.findById(user.getId()).get();
         } catch (NoSuchElementException e) {
@@ -59,6 +64,14 @@ public class UserService {
         //Set new unsername and email
         currentUser.setUsername(user.getUsername());
         currentUser.setEmail(user.getEmail());
+        List<Role.ERole> roleNames = user.getRoles().stream().map(role -> role.getName()).collect(Collectors.toList());
+        Set<Role> roles = roleRepository.findAllByNameIn(roleNames);
+        Optional<Role> userRole = roleRepository.findByName(ROLE_USER);
+        if(userRole.isEmpty()) {
+            throw new EntityNotFoundException("Default user role USER_ROLE not found.");
+        }
+        roles.add(userRole.get());
+        currentUser.setRoles(roles);
 
         userRepository.save(currentUser);
     }

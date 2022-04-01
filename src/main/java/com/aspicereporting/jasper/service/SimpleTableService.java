@@ -52,12 +52,22 @@ public class SimpleTableService extends BaseTableService{
         }
         jasperDesign.addDataset(tableSubdataset);
 
+
+
         //Creates object with data
-        Object[][] test = new Object[rows][columns];
-        for (int i = 0; i < simpleTableItem.getTableColumns().size(); i++) {
-            SourceColumn sc = simpleTableItem.getTableColumns().get(i).getSourceColumn();
-            for (int j = 0; j < sc.getSourceData().size(); j++) {
-                test[j][i] = sc.getSourceData().get(j).getValue();
+        Object[][] test;
+        if(rows == 0) {
+             test = new Object[1][columns];
+             for(int i=0; i< columns; i++) {
+                 test[0][i] = "";
+             }
+        } else {
+            test = new Object[rows][columns];
+            for (int i = 0; i < simpleTableItem.getTableColumns().size(); i++) {
+                SourceColumn sc = simpleTableItem.getTableColumns().get(i).getSourceColumn();
+                for (int j = 0; j < sc.getSourceData().size(); j++) {
+                    test[j][i] = sc.getSourceData().get(j).getValue();
+                }
             }
         }
 

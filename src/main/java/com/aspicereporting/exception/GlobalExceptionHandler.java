@@ -25,11 +25,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         logger.info("Returning HTTP 400 Bad Request", e);
     }
 
-    @ExceptionHandler({InvalidDataException.class,})
+    @ExceptionHandler({InvalidDataException.class,ConstraintException.class})
     public ResponseEntity handleBadRequests(Exception ex) {
         logException(ex);
         ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO(LocalDateTime.now(), HttpStatus.BAD_REQUEST.value(), ex.getMessage() != null ? ex.getMessage() : ex.getCause().toString());
-        return new ResponseEntity<>(errorResponseDTO, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(errorResponseDTO, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler({EntityNotFoundException.class,})
@@ -56,8 +56,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity handleConstraintViolationException(ConstraintViolationException ex) {
         logException(ex);
-        ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO(LocalDateTime.now(), HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getConstraintViolations().stream().findFirst().get().getMessage());
-        return new ResponseEntity<>(errorResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+        ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO(LocalDateTime.now(), HttpStatus.BAD_REQUEST.value(), ex.getConstraintViolations().stream().findFirst().get().getMessage());
+        return new ResponseEntity<>(errorResponseDTO, HttpStatus.BAD_REQUEST);
     }
 
     private void logException(Exception ex) {

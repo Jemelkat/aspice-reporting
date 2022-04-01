@@ -2,14 +2,17 @@ package com.aspicereporting.service;
 
 import com.aspicereporting.entity.*;
 import com.aspicereporting.entity.items.*;
+import com.aspicereporting.exception.ConstraintException;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.repository.*;
 import net.sf.jasperreports.engine.JRException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.SQLException;
 import java.util.*;
 
 @Service
@@ -108,7 +111,7 @@ public class ReportService {
             }
 
             //Validate report item if all related sources etc. can be accessed by this user
-            itemValidationService.validateItem(reportItem,true, user);
+            itemValidationService.validateItem(reportItem, true, user);
 
             reportItem.setReport(oldReport);
             reportItem.setTemplate(null);
@@ -116,8 +119,13 @@ public class ReportService {
         }
         oldReport.getReportItems().clear();
         oldReport.getReportItems().addAll(newTemplateItems);
-
-        return reportRepository.save(oldReport);
+        try {
+            return reportRepository.save(oldReport);
+        } catch (DataIntegrityViolationException e) {
+            if (e.getMostSpecificCause().getClass().getName().equals("org.postgresql.util.PSQLException") && ((SQLException) e.getMostSpecificCause()).getSQLState().equals("23505"))
+                throw new ConstraintException("There is already report with this name.", e.getMostSpecificCause());
+            throw new InvalidDataException("Error saving report", e);
+        }
     }
 
     public void deleteReport(Long reportId, User user) {

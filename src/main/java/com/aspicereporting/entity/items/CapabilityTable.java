@@ -69,9 +69,6 @@ public class CapabilityTable extends ReportItem {
     @Column(length = 20, name = "aggregate_scores",nullable = false)
     @Enumerated(EnumType.STRING)
     private ScoreFunction aggregateScoresFunction;
-    @NotNull(message = "Capability table aggregate levels cannot be null. Please use true/false.")
-    @Column(name = "aggregate_levels")
-    private boolean aggregateLevels = false;
 
     public void validate() {
         if (this.source.getId() == null) {

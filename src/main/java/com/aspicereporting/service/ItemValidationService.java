@@ -48,7 +48,7 @@ public class ItemValidationService {
             simpleTable.validate();
             //Validate - columns are defined
             if (simpleTable.getTableColumns().isEmpty()) {
-                throw new InvalidDataException("Simple table has no columns defined.");
+                throw new InvalidDataException("Simple table id = " + simpleTable.getId() +" has no columns defined.");
             }
         }
 
@@ -64,7 +64,7 @@ public class ItemValidationService {
                     column.setSourceColumn(null);
                 }
             } else {
-                throw new InvalidDataException("Simple table needs source defined.");
+                throw new InvalidDataException("Simple table id = " + simpleTable.getId() + " needs source defined.");
             }
         } else {
             //Validate - user can use this source id
@@ -82,7 +82,7 @@ public class ItemValidationService {
                     }
                 } else {
                     if (!allowUndefinedData) {
-                        throw new InvalidDataException("Simple table needs all columns defined.");
+                        throw new InvalidDataException("Simple table id = "+ simpleTable.getId() + " needs column selected for all table columns.");
                     }
                 }
                 tableColumn.setId(null);

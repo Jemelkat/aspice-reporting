@@ -257,7 +257,7 @@ public class LevelBarGraphService extends BaseChartService {
                         try {
                             scoresList = convertScoresToDoubles(stringScoreList);
                         } catch (JasperReportException e) {
-                            throw new JasperReportException("Level bar graph score column contains unknown value: ", e);
+                            throw new JasperReportException("Level bar graph id = " + levelBarGraph.getId() + " score column contains unknown value: ", e);
                         }
 
                         //Get attribute score achieved as (sum of scores/count of scores)
@@ -316,7 +316,7 @@ public class LevelBarGraphService extends BaseChartService {
                         try {
                             scoresList.add(applyScoreFunction(convertScoresToDoubles(assessorScoreList), levelBarGraph.getAggregateScoresFunction()));
                         } catch (JasperReportException e) {
-                            throw new JasperReportException("Sources level bar graph score column contains unknown value: ", e);
+                            throw new JasperReportException("Level bar graph id = " + levelBarGraph.getId() + " graph score column contains unknown value: ", e);
                         }
                     }
                     //Get attribute score achieved as (sum of scores/count of scores)

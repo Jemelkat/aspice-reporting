@@ -259,7 +259,7 @@ public class LevelPieGraphService extends BaseChartService {
                         try {
                             scoresList.add(applyScoreFunction(convertScoresToDoubles(assessorScoreList), levelPieGraph.getAggregateScoresFunction()));
                         } catch (JasperReportException e) {
-                            throw new JasperReportException("Sources level bar graph score column contains unknown value: ", e);
+                            throw new JasperReportException("Level pie graph id = " + levelPieGraph.getId() + " score column contains unknown value: ", e);
                         }
                     }
                     //Get attribute score achieved as (sum of scores/count of scores)

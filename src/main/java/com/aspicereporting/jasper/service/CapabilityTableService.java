@@ -1,9 +1,6 @@
 package com.aspicereporting.jasper.service;
 
-import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.items.CapabilityTable;
-import com.aspicereporting.entity.items.LevelPieGraph;
-import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.exception.JasperReportException;
 import com.aspicereporting.jasper.model.SimpleTableModel;
 import com.aspicereporting.repository.SourceColumnRepository;
@@ -59,7 +56,7 @@ public class CapabilityTableService extends BaseTableService {
         tableSubdataset.setName(TABLE_DATASET + tableCount);
 
         //Create table model with data
-        SimpleTableModel tableModel = createTableModel(capabilityTable, levelAttributesMap);
+        SimpleTableModel tableModel = getData(capabilityTable, levelAttributesMap);
         parameters.put(TABLE_DATA + tableCount, new JRTableModelDataSource(tableModel));
 
         //Add fields for columns
@@ -67,12 +64,19 @@ public class CapabilityTableService extends BaseTableService {
         processField.setValueClass(String.class);
         processField.setName(columnArray.get(0));
         tableSubdataset.addField(processField);
-        for (var key : levelAttributesMap.keySet()) {
-            for (var column : levelAttributesMap.get(key)) {
-                JRDesignField field = new JRDesignField();
-                field.setValueClass(String.class);
-                field.setName(column);
-                tableSubdataset.addField(field);
+        if (levelAttributesMap.isEmpty()) {
+            JRDesignField field = new JRDesignField();
+            field.setValueClass(String.class);
+            field.setName(columnArray.get(1));
+            tableSubdataset.addField(field);
+        } else {
+            for (var key : levelAttributesMap.keySet()) {
+                for (var column : levelAttributesMap.get(key)) {
+                    JRDesignField field = new JRDesignField();
+                    field.setValueClass(String.class);
+                    field.setName(column);
+                    tableSubdataset.addField(field);
+                }
             }
         }
         jasperDesign.addDataset(tableSubdataset);
@@ -101,44 +105,68 @@ public class CapabilityTableService extends BaseTableService {
         table.addColumn(processGroup);
 
         //Create all columns
-        for (String key : levelAttributesMap.keySet()) {
-            List<StandardColumn> columnsList = new ArrayList<>();
-            for (String columnName : levelAttributesMap.get(key)) {
-                //Add new column
-                columnsList.add(createCapabilityColumns(jasperDesign, capabilityTable.getCriterionWidth(), rowHeight, fontSize, columnName, columnName, true));
-            }
+        if (levelAttributesMap.isEmpty()) {
+            StandardColumn sc = createCapabilityColumns(jasperDesign, 5 * capabilityTable.getCriterionWidth(), rowHeight, fontSize, "No criterions found", "No criterions found", true);
             StandardColumnGroup columnGroup = new StandardColumnGroup();
-            columnGroup.setWidth(columnsList.size() * capabilityTable.getCriterionWidth());
+            columnGroup.setWidth(5 * capabilityTable.getCriterionWidth());
             DesignCell header = new DesignCell();
             header.setDefaultStyleProvider(jasperDesign);
             header.getLineBox().getPen().setLineWidth(1f);
             header.setHeight(rowHeight);
-
-
             JRDesignStaticText headerElement = new JRDesignStaticText(jasperDesign);
             headerElement.setX(0);
             headerElement.setY(0);
-            headerElement.setWidth(columnsList.size() * capabilityTable.getCriterionWidth());
+            headerElement.setWidth(5 * capabilityTable.getCriterionWidth());
             headerElement.setHeight(rowHeight);
-            headerElement.setText(key);
+            headerElement.setText("Levels");
             headerElement.setFontSize(fontSize);
             headerElement.setFontName("DejaVu Serif");
             headerElement.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
             headerElement.setVerticalTextAlign(VerticalTextAlignEnum.MIDDLE);
             header.addElement(headerElement);
             columnGroup.setColumnHeader(header);
-
-            for (var column : columnsList) {
-                columnGroup.addColumn(column);
-            }
+            columnGroup.addColumn(sc);
             table.addColumn(columnGroup);
+        } else {
+            for (String key : levelAttributesMap.keySet()) {
+                List<StandardColumn> columnsList = new ArrayList<>();
+                for (String columnName : levelAttributesMap.get(key)) {
+                    //Add new column
+                    columnsList.add(createCapabilityColumns(jasperDesign, capabilityTable.getCriterionWidth(), rowHeight, fontSize, columnName, columnName, true));
+                }
+                StandardColumnGroup columnGroup = new StandardColumnGroup();
+                columnGroup.setWidth(columnsList.size() * capabilityTable.getCriterionWidth());
+                DesignCell header = new DesignCell();
+                header.setDefaultStyleProvider(jasperDesign);
+                header.getLineBox().getPen().setLineWidth(1f);
+                header.setHeight(rowHeight);
+
+
+                JRDesignStaticText headerElement = new JRDesignStaticText(jasperDesign);
+                headerElement.setX(0);
+                headerElement.setY(0);
+                headerElement.setWidth(columnsList.size() * capabilityTable.getCriterionWidth());
+                headerElement.setHeight(rowHeight);
+                headerElement.setText(key);
+                headerElement.setFontSize(fontSize);
+                headerElement.setFontName("DejaVu Serif");
+                headerElement.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
+                headerElement.setVerticalTextAlign(VerticalTextAlignEnum.MIDDLE);
+                header.addElement(headerElement);
+                columnGroup.setColumnHeader(header);
+
+                for (var column : columnsList) {
+                    columnGroup.addColumn(column);
+                }
+                table.addColumn(columnGroup);
+            }
         }
 
         tableElement.setComponent(table);
         return tableElement;
     }
 
-    private SimpleTableModel createTableModel(CapabilityTable capabilityTable, Map<String, LinkedHashSet<String>> levelAttributesMap) {
+    private SimpleTableModel getData(CapabilityTable capabilityTable, Map<String, LinkedHashSet<String>> levelAttributesMap) {
 
         //Get all unique processes, levels and assessors
         List<String> assessorFilter = sourceRepository.findDistinctColumnValuesForColumn(capabilityTable.getAssessorColumn().getId());
@@ -161,63 +189,18 @@ public class CapabilityTableService extends BaseTableService {
         //Get all relevant data
         MultiKeyMap valuesMap = prepareDataMap(capabilityTable, processFilter, assessorFilter, levelAttributesMap, allProcessSet);
 
-        //Apply score aggregation function
+        //Apply score aggregation function to data
         valuesMap = aggregateScores(capabilityTable, valuesMap);
 
-
-        List<String> sortedLevels = new ArrayList(levelAttributesMap.keySet());
-        Collections.sort(sortedLevels, new NaturalOrderComparator());
-        //Sort performance criterions for each level - criterions need to be sorted in result table
-        for (var levelAttributesKey : sortedLevels) {
-            ArrayList<String> array = new ArrayList<>(levelAttributesMap.get(levelAttributesKey));
-            Collections.sort(array, new NaturalOrderComparator());
-            levelAttributesMap.remove(levelAttributesKey);
-            levelAttributesMap.put(levelAttributesKey, new LinkedHashSet<>(array));
-        }
-
-        //Get all column names (Process Name, criterion1, ...)
-        columnArray.add("Process Name");
-        for (String key : levelAttributesMap.keySet()) {
-            LinkedHashSet<String> criterionsList = levelAttributesMap.get(key);
-            for (var criterion : criterionsList) {
-                columnArray.add(criterion);
-            }
-        }
-
-        List<String> allProcessList = allProcessSet.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
-        Collections.sort(allProcessList, new NaturalOrderComparator());
-
-        //Create object with data for jasper table element
-        int rows = allProcessList.size();
-        int columns = columnArray.size();
-        Object[][] test = new Object[rows][columns];
-        int rowIndex = 0;
-        for (String process : allProcessList) {
-            int columnIndex = 0;
-            test[rowIndex][columnIndex] = process;
-            columnIndex++;
-
-            for (var level : levelAttributesMap.keySet()) {
-                for (var criterion : levelAttributesMap.get(level)) {
-                    if(valuesMap.containsKey(new MultiKey(process, level, criterion))) {
-                        test[rowIndex][columnIndex] = ((List<String>) valuesMap.get(new MultiKey(process, level, criterion))).get(0);
-                    } else {
-                        test[rowIndex][columnIndex] = "";
-                    }
-                    columnIndex++;
-                }
-            }
-            rowIndex++;
-        }
-
-        //Creates data bean
-        SimpleTableModel tableModel = new SimpleTableModel(rows, columns);
-        tableModel.setColumnNames(columnArray.toArray(new String[0]));
-        tableModel.setData(test);
-        tablesCounter++;
-        return tableModel;
+        //Create table model for jasper from data
+        return getData(valuesMap, levelAttributesMap, allProcessSet);
     }
 
+    /**
+     * Returns data in map format for easier lookup
+     * This method also updates criterions in levelCriterionsMap - this map keeps track of all found criterions for each level
+     * {(process,attribute, criterion): [scoreAssesor1, scoreAssesor2, scoreAssesor3],...}
+     */
     private MultiKeyMap prepareDataMap(CapabilityTable capabilityTable, List<String> processFilter, List<String> assessorFilter, Map<String, LinkedHashSet<String>> levelCriterionsMap, Set<String> allProcessSet) {
         //MultiKey map to store value for each process, level and criterion combination - {(process, level, criterion) : value}
         Set<String> allLevels = new HashSet<>();
@@ -241,6 +224,9 @@ public class CapabilityTableService extends BaseTableService {
                     continue;
                 }
             }
+            if(process.equals("")) {
+                continue;
+            }
             allProcessSet.add(process);
             allLevels.add(level);
 
@@ -262,7 +248,7 @@ public class CapabilityTableService extends BaseTableService {
                 levelMeasured = false;
             } else {
                 String specificLevel = allLevelsList.get(capabilityTable.getSpecificLevel() - 1);
-                for (var key : valuesMap.keySet()) {
+                for (var key : new HashSet<>(valuesMap.keySet())) {
                     MultiKey multiKey = (MultiKey) key;
                     if (!specificLevel.equals(multiKey.getKey(1))) {
                         valuesMap.remove(multiKey);
@@ -297,10 +283,87 @@ public class CapabilityTableService extends BaseTableService {
         return valuesMap;
     }
 
+    /**
+     * Method creates SimpleTableModel with scores for each process and performance criterion based on data in valuesMap
+     */
+    private SimpleTableModel getData(MultiKeyMap valuesMap, Map<String, LinkedHashSet<String>> levelCriterionsMap, Set<String> allProcessSet) {
+        List<String> sortedCriterions = new ArrayList(levelCriterionsMap.keySet());
+        Collections.sort(sortedCriterions, new NaturalOrderComparator());
+        //Sort criterion scores for each level - criterions need to be sorted in result table
+        for (var levelAttributesKey : sortedCriterions) {
+            ArrayList<String> array = new ArrayList<>(levelCriterionsMap.get(levelAttributesKey));
+            Collections.sort(array, new NaturalOrderComparator());
+            levelCriterionsMap.remove(levelAttributesKey);
+            levelCriterionsMap.put(levelAttributesKey, new LinkedHashSet<>(array));
+        }
+
+        //Get all column names (Process Name, criterion1, ...)
+        columnArray.add("Process Name");
+        for (String key : levelCriterionsMap.keySet()) {
+            LinkedHashSet<String> criterionsList = levelCriterionsMap.get(key);
+            for (var criterion : criterionsList) {
+                columnArray.add(criterion);
+            }
+        }
+
+        //No criterions found - will add no measurements found message later
+        if (columnArray.size() == 1) {
+            columnArray.add("No criterions found");
+        }
+
+        List<String> allProcessList = allProcessSet.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
+        Collections.sort(allProcessList, new NaturalOrderComparator());
+
+        //Create object with data for jasper table element
+        int rows = allProcessList.size();
+        int columns = columnArray.size();
+        Object[][] test = new Object[rows][columns];
+        int rowIndex = 0;
+        for (String process : allProcessList) {
+            int columnIndex = 0;
+            test[rowIndex][columnIndex] = process;
+            columnIndex++;
+
+            if (levelCriterionsMap.isEmpty()) {
+                test[rowIndex][columnIndex] = "No measurements found";
+            } else {
+                for (var level : levelCriterionsMap.keySet()) {
+                    for (var criterion : levelCriterionsMap.get(level)) {
+                        if (valuesMap.containsKey(new MultiKey(process, level, criterion))) {
+                            test[rowIndex][columnIndex] = ((List<String>) valuesMap.get(new MultiKey(process, level, criterion))).get(0);
+                        } else {
+                            test[rowIndex][columnIndex] = "";
+                        }
+                        columnIndex++;
+                    }
+                }
+            }
+
+
+            rowIndex++;
+        }
+
+        //Creates data bean
+        SimpleTableModel tableModel = new SimpleTableModel(rows, columns);
+        tableModel.setColumnNames(columnArray.toArray(new String[0]));
+        tableModel.setData(test);
+        tablesCounter++;
+        return tableModel;
+    }
+
+
+    /***
+     *  Aggregates all criterion score for each level by defined function
+     */
     public MultiKeyMap aggregateScores(CapabilityTable capabilityTable, MultiKeyMap valuesMap) {
         for (var key : new HashSet<>(valuesMap.keySet())) {
             List<String> scores = (List<String>) valuesMap.get(key);
-            Double newValue = applyScoreFunction(convertScoresToDoubles(scores), capabilityTable.getAggregateScoresFunction());
+            Double newValue;
+            try {
+                newValue = applyScoreFunction(convertScoresToDoubles(scores), capabilityTable.getAggregateScoresFunction());
+            } catch (JasperReportException e) {
+                throw new JasperReportException("Capability table id = " + capabilityTable.getId() + " score column contains unknown value: ", e);
+            }
             valuesMap.put((MultiKey) key, new ArrayList<>(List.of(getScoreForValue(newValue))));
         }
         return valuesMap;

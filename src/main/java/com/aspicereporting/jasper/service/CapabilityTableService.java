@@ -41,6 +41,9 @@ public class CapabilityTableService extends BaseTableService {
     private static int tablesCounter = 0;
     private boolean levelMeasured = true;
 
+    /**
+     * Creates JRDesign element which can be added to JasperDesign
+     */
     public JRDesignComponentElement createElement(JasperDesign jasperDesign, CapabilityTable capabilityTable, int tableCount, Map<String, Object> parameters) throws JRException {
         //Map for attributes for each level - {level : [a1,a2,a3]}
         Map<String, LinkedHashSet<String>> levelAttributesMap = new LinkedHashMap<>();
@@ -165,7 +168,9 @@ public class CapabilityTableService extends BaseTableService {
         tableElement.setComponent(table);
         return tableElement;
     }
-
+    /**
+     * Gets all result data based on item settings
+     */
     private SimpleTableModel getData(CapabilityTable capabilityTable, Map<String, LinkedHashSet<String>> levelAttributesMap) {
 
         //Get all unique processes, levels and assessors
@@ -355,7 +360,7 @@ public class CapabilityTableService extends BaseTableService {
     /***
      *  Aggregates all criterion score for each level by defined function
      */
-    public MultiKeyMap aggregateScores(CapabilityTable capabilityTable, MultiKeyMap valuesMap) {
+    private MultiKeyMap aggregateScores(CapabilityTable capabilityTable, MultiKeyMap valuesMap) {
         for (var key : new HashSet<>(valuesMap.keySet())) {
             List<String> scores = (List<String>) valuesMap.get(key);
             Double newValue;
@@ -369,7 +374,7 @@ public class CapabilityTableService extends BaseTableService {
         return valuesMap;
     }
 
-    protected StandardColumn createCapabilityColumns(JasperDesign jasperDesign, int width, int height, float fontSize, String headerText, String detailExpression, boolean isStyled) throws JRException {
+    private StandardColumn createCapabilityColumns(JasperDesign jasperDesign, int width, int height, float fontSize, String headerText, String detailExpression, boolean isStyled) throws JRException {
         StandardColumn column = new StandardColumn();
         column.setWidth(width);
 

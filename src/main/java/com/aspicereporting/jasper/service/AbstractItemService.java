@@ -30,7 +30,7 @@ public abstract class AbstractItemService {
     protected Boolean previousLevelAchieved = true;
     protected Integer levelAchieved = 0;
 
-    public double getValueForScore(String score) {
+    protected double getValueForScore(String score) {
         if (scoreToValueMap.containsKey(score)) {
             return scoreToValueMap.get(score);
         } else {
@@ -42,7 +42,7 @@ public abstract class AbstractItemService {
         }
     }
 
-    public String getScoreForValue(Double value) {
+    protected String getScoreForValue(Double value) {
         Double key = 0D;
         for (Double valueKey : valueToScoreMap.keySet()) {
             if (value >= valueKey) {
@@ -54,7 +54,7 @@ public abstract class AbstractItemService {
         return valueToScoreMap.get(key);
     }
 
-    public Double applyScoreFunction(List<Double> scoresList, ScoreFunction scoreFunction) {
+    protected Double applyScoreFunction(List<Double> scoresList, ScoreFunction scoreFunction) {
         if (scoresList.isEmpty()) {
             return null;
         }
@@ -70,7 +70,7 @@ public abstract class AbstractItemService {
         }
     }
 
-    public Integer applyMinMaxFunction(List<Integer> levels, ScoreFunction scoreFunction) {
+    protected Integer applyMinMaxFunction(List<Integer> levels, ScoreFunction scoreFunction) {
         if (levels.isEmpty()) {
             return null;
         }

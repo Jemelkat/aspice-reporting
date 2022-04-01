@@ -46,7 +46,9 @@ import java.util.stream.Collectors;
 public class LevelBarGraphService extends BaseChartService {
     @Autowired
     SourceRepository sourceRepository;
-
+    /**
+     * Creates JRDesignImage (level bar graph) which can be used in JasperDesign
+     */
     public JRDesignImage createElement(JasperDesign jasperDesign, LevelBarGraph levelBarGraph, Integer counter, Map<String, Object> parameters) throws JRException {
         LinkedHashMap<String, LinkedHashMap<String, Integer>> graphData = getData(levelBarGraph);
 
@@ -104,6 +106,9 @@ public class LevelBarGraphService extends BaseChartService {
         return imageElement;
     }
 
+    /**
+     * Gets all result data based on item settings
+     */
     public LinkedHashMap<String, LinkedHashMap<String, Integer>> getData(LevelBarGraph levelBarGraph) {
         //Stores all existing processes across sources
         Set<String> allProcessSet = new HashSet<>();

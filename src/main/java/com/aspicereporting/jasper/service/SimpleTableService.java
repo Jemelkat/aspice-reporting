@@ -21,6 +21,9 @@ import java.util.Map;
 @Service
 @Scope(value = "prototype", proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class SimpleTableService extends BaseTableService {
+    /**
+     * Creates JRDesignComponentElement (table) which can be used in JasperDesign
+     */
     public JRDesignComponentElement createElement(JasperDesign jasperDesign, SimpleTable simpleTableItem, Integer tableCount, Map<String, Object> parameters) throws JRException {
         //Create data parameter for custom JRTableModelDataSource.class
         JRDesignParameter parameter = new JRDesignParameter();

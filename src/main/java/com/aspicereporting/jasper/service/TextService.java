@@ -15,7 +15,9 @@ import java.awt.*;
 
 @Service
 public class TextService {
-
+    /**
+     * Creates JRDesignStaticText (level bar graph) which can be used in JasperDesign
+     */
     public JRDesignStaticText createElement(JasperDesign jasperDesign, TextItem textItem, Integer styleCount) throws JRException {
         JRDesignStaticText jrStaticText = createStaticText(textItem);
 

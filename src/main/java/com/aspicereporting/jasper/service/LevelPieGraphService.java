@@ -52,6 +52,9 @@ public class LevelPieGraphService extends BaseChartService {
             Color.decode("#d6d327")
     };
 
+    /**
+     * Creates JRDesignImage (level pie graph) which can be used in JasperDesign
+     */
     public JRDesignImage createElement(JasperDesign jasperDesign, LevelPieGraph levelPieGraph, Integer counter, Map<String, Object> parameters) throws JRException {
         //Get data
         LinkedHashMap<String, Integer> graphData = getData(levelPieGraph);
@@ -119,6 +122,9 @@ public class LevelPieGraphService extends BaseChartService {
         return imageElement;
     }
 
+    /**
+     * Gets all result data based on item settings
+     */
     public LinkedHashMap<String, Integer> getData(LevelPieGraph levelPieGraph) {
         //Get all unique processes and levels
         List<String> processFilter = sourceRepository.findDistinctColumnValuesForColumn(levelPieGraph.getProcessColumn().getId());

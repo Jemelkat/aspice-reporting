@@ -2,13 +2,17 @@ package com.aspicereporting.service;
 
 import com.aspicereporting.entity.*;
 import com.aspicereporting.entity.items.*;
+import com.aspicereporting.exception.ConstraintException;
 import com.aspicereporting.exception.EntityNotFoundException;
+import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.repository.SourceRepository;
 import com.aspicereporting.repository.TemplateRepository;
 import com.aspicereporting.repository.UserGroupRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
+import java.sql.SQLException;
 import java.util.*;
 
 @Service
@@ -86,7 +90,7 @@ public class TemplateService {
             }
 
             //Validate template item if all related sources etc. can be accessed by this user
-            itemValidationService.validateItem(templateItem,true, user);
+            itemValidationService.validateItem(templateItem, true, user);
 
             templateItem.setTemplate(oldTemplate);
             templateItem.setReport(null);
@@ -94,8 +98,14 @@ public class TemplateService {
         }
         oldTemplate.getTemplateItems().clear();
         oldTemplate.getTemplateItems().addAll(newTemplateItems);
-
-        return templateRepository.save(oldTemplate);
+        try {
+            return templateRepository.save(oldTemplate);
+        } catch (
+                DataIntegrityViolationException e) {
+            if (e.getMostSpecificCause().getClass().getName().equals("org.postgresql.util.PSQLException") && ((SQLException) e.getMostSpecificCause()).getSQLState().equals("23505"))
+                throw new ConstraintException("There is already template with this name.", e.getMostSpecificCause());
+            throw new InvalidDataException("Error saving report", e);
+        }
     }
 
     public void deleteTemplate(Long templateId, User user) {

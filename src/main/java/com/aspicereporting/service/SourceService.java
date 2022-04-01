@@ -51,9 +51,12 @@ public class SourceService {
 
     @Transactional
     public void deleteById(Long sourceId, User user) {
-        Source source = sourceRepository.findByIdAndUserOrSourceGroupsIn(sourceId, user, user.getUserGroups());
+        Source source = sourceRepository.findFirstById(sourceId);
         if (source == null) {
             throw new EntityNotFoundException("Could not find source with id = " + sourceId);
+        }
+        if (source.getUser().getId() != user.getId()) {
+            throw new UnauthorizedAccessException("Only the owner of this source can share it.");
         }
         //Source was found - delete it
         source.prepareForDelete();

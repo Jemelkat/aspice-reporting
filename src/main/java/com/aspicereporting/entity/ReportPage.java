@@ -25,7 +25,7 @@ public class ReportPage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column (name = "report_page_id")
-    private Long reportPageId;
+    private Long id;
 
     @NotNull(message = "Report page needs orientation defined.")
     @Column(length = 20, name = "orientation",nullable = false)
@@ -50,5 +50,10 @@ public class ReportPage {
     public void addTemplate(Template template) {
         this.pageTemplate = template;
         template.getReportPages().add(this);
+    }
+
+    public void addReportItem(ReportItem item) {
+        this.reportItems.add(item);
+        item.setReportPage(this);
     }
 }

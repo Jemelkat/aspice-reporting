@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.IntStream;
 
 @Service
 public class ReportService {
@@ -54,19 +55,19 @@ public class ReportService {
             }
             oldReport.setReportLastUpdated(changeDate);
 
-//            for (ReportPage reportPage : oldReport.getReportPages()) {
-//                //Update report template
-//                if (updatedReport.getReportTemplate() != null && updatedReport.getReportTemplate().getId() != null) {
-//                    Template template = templateRepository.findByTemplateUserAndId(user, updatedReport.getReportTemplate().getId());
-//                    if (template == null) {
-//                        throw new EntityNotFoundException("Template id=" + updatedReport.getReportTemplate().getId() + " does not exist or you cannot access this template.");
-//                    }
-//                    oldReport.addTemplate(template);
-//                } else {
-//                    oldReport.setReportTemplate(null);
-//                }
-//            }
-            //TODO add report pages
+            List<ReportPage> newReportPages = new ArrayList<>();
+            for(ReportPage reportPage : updatedReport.getReportPages()) {
+                int existsIndex = IntStream.range(0, oldReport.getReportPages().size())
+                        .filter(i -> oldReport.getReportPages().get(i).getId().equals(reportPage.getId()))
+                        .findFirst().orElse(-1);
+                if(existsIndex == -1 ) {
+                    reportPage.setId(null);
+                }
+
+                newReportPages.add(reportPage);
+            }
+            oldReport.getReportPages().clear();
+            oldReport.getReportPages().addAll(newReportPages);
         }
         //Create
         else {
@@ -84,23 +85,19 @@ public class ReportService {
             }
 
             for (ReportPage reportPage : oldReport.getReportPages()) {
-                reportPage.setReportPageId(null);
+                reportPage.setId(null);
                 reportPage.setReport(oldReport);
             }
         }
 
         //Update name and Orientation
         oldReport.setReportName(updatedReport.getReportName());
-        List<ReportPage> reportPages= new ArrayList<>();
         for (ReportPage reportPage : oldReport.getReportPages()) {
-            //TODO FIX
-            //reportPage.setOrientation(updatedReport.getOrientation());
-
             //Configure item IDs - if they exist use same ID - hibernate will MERGE
             List<ReportItem> reportItems = new ArrayList<>();
             for (ReportItem reportItem : reportPage.getReportItems()) {
                 Optional<ReportItem> existingItem = Optional.empty();
-                if (reportPage.getReportPageId() != null) {
+                if (reportPage.getId() != null) {
                     existingItem = reportPage.getReportItems().stream()
                             .filter(i -> i.getId().equals(reportItem.getId()))
                             .findAny();
@@ -130,11 +127,13 @@ public class ReportService {
                 reportItem.setTemplate(null);
                 reportItem.setDashboard(null);
                 reportItems.add(reportItem);
+
             }
+            reportPage.setReport(oldReport);
             reportPage.getReportItems().clear();
             reportPage.getReportItems().addAll(reportItems);
         }
-        oldReport.setReportPages(reportPages);
+        //oldReport.setReportPages(reportPages);
         try {
             return reportRepository.save(oldReport);
         } catch (DataIntegrityViolationException e) {

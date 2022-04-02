@@ -46,7 +46,7 @@ public class Report {
 
 
     @JsonView(View.Canvas.class)
-    @OneToMany(mappedBy = "report", cascade = {CascadeType.ALL},orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "report", cascade = {CascadeType.ALL}, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderColumn(name = "pages_ordinal")
     private List<ReportPage> reportPages = new ArrayList<>();
 
@@ -54,4 +54,9 @@ public class Report {
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
     private User reportUser;
+
+    public void addReportPage(ReportPage reportPage) {
+        this.reportPages.add(reportPage);
+        reportPage.setReport(this);
+    }
 }

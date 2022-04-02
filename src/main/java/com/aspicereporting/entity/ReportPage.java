@@ -47,10 +47,6 @@ public class ReportPage {
     @JsonIgnore
     private Report report;
 
-    public void addTemplate(Template template) {
-        this.pageTemplate = template;
-        template.getReportPages().add(this);
-    }
 
     public void addReportItem(ReportItem item) {
         this.reportItems.add(item);

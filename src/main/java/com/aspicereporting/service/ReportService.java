@@ -43,7 +43,6 @@ public class ReportService {
         return reportRepository.findByIdAndReportUser(id, user);
     }
 
-    @Transactional
     public Report saveOrEdit(Report report, User user) {
         Report newReport;
         Date changeDate = new Date();

@@ -1,5 +1,6 @@
 package com.aspicereporting.entity.items;
 import com.aspicereporting.entity.Source;
+import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.views.View;
 import com.aspicereporting.exception.InvalidDataException;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -35,6 +36,19 @@ public class SimpleTable extends ReportItem {
         for(TableColumn tableColumn : this.tableColumns) {
             if(tableColumn.getId() == null) {
                 throw new InvalidDataException("Simple table needs all columns defined.");
+            }
+        }
+    }
+
+    public void userGroupRemove(User user, List<Long> newGroups) {
+        if (this.getSource() != null) {
+            if (!user.getId().equals(this.getSource().getUser().getId())) {
+                if (!this.getSource().getSourceGroups().stream().anyMatch(group -> newGroups.contains(group.getId()))) {
+                    this.setSource(null);
+                    for (TableColumn tc : this.getTableColumns()) {
+                        tc.setSourceColumn(null);
+                    }
+                }
             }
         }
     }

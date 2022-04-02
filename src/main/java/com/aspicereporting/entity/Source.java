@@ -64,7 +64,7 @@ public class Source {
     private List<LevelPieGraph> levelPieGraphs = new ArrayList<>();
 
     @JsonIgnore
-    @ManyToMany(mappedBy = "sources", fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "sources", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     private Set<LevelBarGraph> levelBarGraphs = new HashSet<>();
 
     @JsonIgnore

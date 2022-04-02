@@ -1,6 +1,7 @@
 package com.aspicereporting.service;
 
 import com.aspicereporting.entity.Role;
+import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.entity.User;
 import com.aspicereporting.exception.EntityNotFoundException;
@@ -80,8 +81,12 @@ public class UserService {
         return userRepository.findAll();
     }
 
+    @Transactional
     public void deleteUser(Long userId) {
         userRepository.findById(userId).ifPresentOrElse((obj) -> {
+            for(Source source : obj.getSources()) {
+                source.prepareForDelete();
+            }
             userRepository.delete(obj);
         }, () -> {
             throw new EntityNotFoundException("User id " + userId + " not found.");

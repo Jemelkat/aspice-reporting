@@ -44,38 +44,42 @@ public class ReportService {
     }
 
     @Transactional
-    public Report saveOrEdit(Report updatedReport, User user) {
-        Report oldReport;
+    public Report saveOrEdit(Report report, User user) {
+        Report newReport;
         Date changeDate = new Date();
         //Update
-        if (updatedReport.getId() != null) {
-            oldReport = reportRepository.findByIdAndReportUser(updatedReport.getId(), user);
-            if (oldReport == null) {
-                throw new EntityNotFoundException("Report " + updatedReport.getReportName() + " id=" + updatedReport.getId() + " was not found and cannot be saved.");
+        if (report.getId() != null) {
+            newReport = reportRepository.findByIdAndReportUser(report.getId(), user);
+            if (newReport == null) {
+                throw new EntityNotFoundException("Report " + report.getReportName() + " id=" + report.getId() + " was not found and cannot be saved.");
             }
-            oldReport.setReportLastUpdated(changeDate);
+            newReport.setReportLastUpdated(changeDate);
 
             List<ReportPage> newReportPages = new ArrayList<>();
-            for(ReportPage reportPage : updatedReport.getReportPages()) {
-                int existsIndex = IntStream.range(0, oldReport.getReportPages().size())
-                        .filter(i -> oldReport.getReportPages().get(i).getId().equals(reportPage.getId()))
+            //Keeps report pages with same ID - hibernate will update instead of insert
+            for (ReportPage reportPage : report.getReportPages()) {
+                int existsIndex = IntStream.range(0, newReport.getReportPages().size())
+                        .filter(i -> newReport.getReportPages().get(i).getId().equals(reportPage.getId()))
                         .findFirst().orElse(-1);
-                if(existsIndex == -1 ) {
+                if (existsIndex == -1) {
                     reportPage.setId(null);
                 }
-
+                for(ReportItem reportItem : reportPage.getReportItems()) {
+                    reportItem.setId(null);
+                }
                 newReportPages.add(reportPage);
             }
-            oldReport.getReportPages().clear();
-            oldReport.getReportPages().addAll(newReportPages);
+            //Set new pages to report
+            newReport.getReportPages().clear();
+            newReport.getReportPages().addAll(newReportPages);
         }
         //Create
         else {
-            oldReport = updatedReport;
-            oldReport.setId(null);
-            oldReport.setReportCreated(changeDate);
-            oldReport.setReportUser(user);
-            for (ReportPage reportPage : oldReport.getReportPages()) {
+            newReport = report;
+            newReport.setId(null);
+            newReport.setReportCreated(changeDate);
+            newReport.setReportUser(user);
+            for (ReportPage reportPage : newReport.getReportPages()) {
                 if (reportPage.getPageTemplate() != null) {
                     Template template = templateRepository.findByTemplateUserAndId(user, reportPage.getPageTemplate().getId());
                     if (template == null) {
@@ -84,23 +88,25 @@ public class ReportService {
                 }
             }
 
-            for (ReportPage reportPage : oldReport.getReportPages()) {
+            for (ReportPage reportPage : newReport.getReportPages()) {
                 reportPage.setId(null);
-                reportPage.setReport(oldReport);
+                reportPage.setReport(newReport);
             }
         }
 
         //Update name and Orientation
-        oldReport.setReportName(updatedReport.getReportName());
-        for (ReportPage reportPage : oldReport.getReportPages()) {
+        newReport.setReportName(report.getReportName());
+        for (ReportPage reportPage : newReport.getReportPages()) {
             //Configure item IDs - if they exist use same ID - hibernate will MERGE
             List<ReportItem> reportItems = new ArrayList<>();
             for (ReportItem reportItem : reportPage.getReportItems()) {
                 Optional<ReportItem> existingItem = Optional.empty();
-                if (reportPage.getId() != null) {
-                    existingItem = reportPage.getReportItems().stream()
-                            .filter(i -> i.getId().equals(reportItem.getId()))
-                            .findAny();
+                if (reportItem.getId() != null) {
+                    if (reportPage.getId() != null) {
+                        existingItem = reportPage.getReportItems().stream()
+                                .filter(i -> i.getId().equals(reportItem.getId()))
+                                .findAny();
+                    }
                 }
                 //If item with this ID does not exist - we will create new record in DB
                 if (existingItem.isEmpty()) {
@@ -129,13 +135,12 @@ public class ReportService {
                 reportItems.add(reportItem);
 
             }
-            reportPage.setReport(oldReport);
+            reportPage.setReport(newReport);
             reportPage.getReportItems().clear();
             reportPage.getReportItems().addAll(reportItems);
         }
-        //oldReport.setReportPages(reportPages);
         try {
-            return reportRepository.save(oldReport);
+            return reportRepository.save(newReport);
         } catch (DataIntegrityViolationException e) {
             if (e.getMostSpecificCause().getClass().getName().equals("org.postgresql.util.PSQLException") && ((SQLException) e.getMostSpecificCause()).getSQLState().equals("23505"))
                 throw new ConstraintException("There is already report with this name.", e.getMostSpecificCause());

@@ -77,7 +77,7 @@ public class CapabilityTable extends ReportItem {
         if (this.assessorColumn.getId() == null) {
             throw new InvalidDataException("Capability table has no assessor column defined.");
         }
-        if (this.getProcessColumn() == null) {
+        if (this.getProcessColumn().getId() == null) {
             throw new InvalidDataException("Capability table has no process column defined.");
         }
         if (this.levelColumn.getId() == null) {

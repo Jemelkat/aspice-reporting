@@ -55,7 +55,7 @@ public class SourceService {
         if (source == null) {
             throw new EntityNotFoundException("Could not find source with id = " + sourceId);
         }
-        if (source.getUser().getId() != user.getId()) {
+        if (!source.getUser().getId().equals(user.getId())) {
             throw new UnauthorizedAccessException("Only the owner of this source can share it.");
         }
         //Source was found - delete it
@@ -73,7 +73,7 @@ public class SourceService {
         if (source == null) {
             throw new EntityNotFoundException("Could not find source with id = " + sourceId);
         }
-        if (source.getUser().getId() != loggedUser.getId()) {
+        if (!source.getUser().getId().equals(loggedUser.getId())) {
             throw new UnauthorizedAccessException("Only the owner of this source can share it.");
         }
 
@@ -96,6 +96,7 @@ public class SourceService {
 
         //Remove removed groups
         for (UserGroup group : removedGroups) {
+            source.removeFromItemsOnUnshare(user, groupIds);
             source.removeGroup(group);
         }
         //Add new groups

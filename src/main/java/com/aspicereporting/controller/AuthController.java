@@ -6,21 +6,28 @@ import com.aspicereporting.dto.JwtResponseDTO;
 import com.aspicereporting.dto.MessageResponseDTO;
 import com.aspicereporting.entity.Role;
 import com.aspicereporting.entity.User;
+import com.aspicereporting.exception.ConstraintException;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.repository.RoleRepository;
 import com.aspicereporting.repository.UserRepository;
 import com.aspicereporting.security.jwt.JwtUtils;
 import com.aspicereporting.security.services.UserDetailsImpl;
+import org.hibernate.validator.internal.engine.ConstraintViolationImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.ConstraintViolation;
 import javax.validation.Valid;
+import javax.validation.Validator;
+import javax.validation.executable.ValidateOnExecution;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -46,11 +53,18 @@ public class AuthController {
     @Autowired
     JwtUtils jwtUtils;
 
+    @Autowired
+    Validator validator;
+
     @PostMapping("/signin")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginDTO loginDTO) {
+    public ResponseEntity<?> authenticateUser(@RequestBody LoginDTO loginDTO) {
+        Set<ConstraintViolation<LoginDTO>> result = validator.validate(loginDTO);
+        if (!result.isEmpty()) {
+            throw new ConstraintException(((ConstraintViolationImpl)result.toArray()[0]).getMessage());
+        }
 
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword()));
+                    new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateJwtToken(authentication);
@@ -68,7 +82,11 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody SignupDTO signUpDTO) {
+    public ResponseEntity<?> registerUser(@RequestBody SignupDTO signUpDTO) {
+        Set<ConstraintViolation<SignupDTO>> result = validator.validate(signUpDTO);
+        if (!result.isEmpty()) {
+            throw new ConstraintException(((ConstraintViolationImpl)result.toArray()[0]).getMessage());
+        }
         if (userRepository.existsByUsername(signUpDTO.getUsername())) {
             return ResponseEntity
                     .badRequest()

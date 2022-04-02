@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -19,13 +20,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     //TODO: Remove
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public void handle(Exception e) {
-        logger.info("Returning HTTP 400 Bad Request", e);
-    }
+//    @ExceptionHandler
+//    @ResponseStatus(HttpStatus.BAD_REQUEST)
+//    public void handle(Exception e) {
+//        logger.info("Returning HTTP 400 Bad Request", e);
+//    }
 
-    @ExceptionHandler({InvalidDataException.class,ConstraintException.class})
+    @ExceptionHandler({InvalidDataException.class,ConstraintException.class, BadCredentialsException.class})
     public ResponseEntity handleBadRequests(Exception ex) {
         logException(ex);
         ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO(LocalDateTime.now(), HttpStatus.BAD_REQUEST.value(), ex.getMessage() != null ? ex.getMessage() : ex.getCause().toString());

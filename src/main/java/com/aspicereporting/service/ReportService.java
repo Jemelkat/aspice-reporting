@@ -54,16 +54,19 @@ public class ReportService {
             }
             oldReport.setReportLastUpdated(changeDate);
 
-            //Update report template
-            if (updatedReport.getReportTemplate() != null && updatedReport.getReportTemplate().getId() != null) {
-                Template template = templateRepository.findByTemplateUserAndId(user, updatedReport.getReportTemplate().getId());
-                if (template == null) {
-                    throw new EntityNotFoundException("Template id=" + updatedReport.getReportTemplate().getId() + " does not exist or you cannot access this template.");
-                }
-                oldReport.addTemplate(template);
-            } else {
-                oldReport.setReportTemplate(null);
-            }
+//            for (ReportPage reportPage : oldReport.getReportPages()) {
+//                //Update report template
+//                if (updatedReport.getReportTemplate() != null && updatedReport.getReportTemplate().getId() != null) {
+//                    Template template = templateRepository.findByTemplateUserAndId(user, updatedReport.getReportTemplate().getId());
+//                    if (template == null) {
+//                        throw new EntityNotFoundException("Template id=" + updatedReport.getReportTemplate().getId() + " does not exist or you cannot access this template.");
+//                    }
+//                    oldReport.addTemplate(template);
+//                } else {
+//                    oldReport.setReportTemplate(null);
+//                }
+//            }
+            //TODO add report pages
         }
         //Create
         else {
@@ -71,54 +74,67 @@ public class ReportService {
             oldReport.setId(null);
             oldReport.setReportCreated(changeDate);
             oldReport.setReportUser(user);
-            if (oldReport.getReportTemplate() != null) {
-                Template template = templateRepository.findByTemplateUserAndId(user, oldReport.getReportTemplate().getId());
-                if (template == null) {
-                    throw new EntityNotFoundException("Template id=" + oldReport.getReportTemplate().getId() + " does not exist or you cannot access this template.");
+            for (ReportPage reportPage : oldReport.getReportPages()) {
+                if (reportPage.getPageTemplate() != null) {
+                    Template template = templateRepository.findByTemplateUserAndId(user, reportPage.getPageTemplate().getId());
+                    if (template == null) {
+                        throw new EntityNotFoundException("Template name = " + reportPage.getPageTemplate().getTemplateName() + " does not exist or you cannot access this template.");
+                    }
                 }
+            }
+
+            for (ReportPage reportPage : oldReport.getReportPages()) {
+                reportPage.setReportPageId(null);
+                reportPage.setReport(oldReport);
             }
         }
 
         //Update name and Orientation
         oldReport.setReportName(updatedReport.getReportName());
-        oldReport.setOrientation(updatedReport.getOrientation());
+        List<ReportPage> reportPages= new ArrayList<>();
+        for (ReportPage reportPage : oldReport.getReportPages()) {
+            //TODO FIX
+            //reportPage.setOrientation(updatedReport.getOrientation());
 
-        //Configure item IDs - if they exist use same ID - hibernate will MERGE
-        List<ReportItem> newTemplateItems = new ArrayList<>();
-        for (ReportItem reportItem : updatedReport.getReportItems()) {
-            Optional<ReportItem> existingItem = Optional.empty();
-            if (oldReport.getId() != null) {
-                existingItem = oldReport.getReportItems().stream()
-                        .filter(i -> i.getId().equals(reportItem.getId()))
-                        .findAny();
-            }
-            //If item with this ID does not exist - we will create new record in DB
-            if (existingItem.isEmpty()) {
-                reportItem.setId(null);
-            }
-
-            //Configure and reconstruct relationship items IDs
-            if (reportItem instanceof TextItem textItem) {
-                //If this item ID was not found or its instance is not TextItem
-                if (reportItem.getId() == null) {
-                    textItem.getTextStyle().setId(null);
-                } else {
-                    //Use existing textStyle ID
-                    textItem.getTextStyle().setId(((TextItem) existingItem.get()).getTextStyle().getId());
+            //Configure item IDs - if they exist use same ID - hibernate will MERGE
+            List<ReportItem> reportItems = new ArrayList<>();
+            for (ReportItem reportItem : reportPage.getReportItems()) {
+                Optional<ReportItem> existingItem = Optional.empty();
+                if (reportPage.getReportPageId() != null) {
+                    existingItem = reportPage.getReportItems().stream()
+                            .filter(i -> i.getId().equals(reportItem.getId()))
+                            .findAny();
                 }
-                //Bidirectional
-                textItem.getTextStyle().setTextItem(textItem);
+                //If item with this ID does not exist - we will create new record in DB
+                if (existingItem.isEmpty()) {
+                    reportItem.setId(null);
+                }
+
+                //Configure and reconstruct relationship items IDs
+                if (reportItem instanceof TextItem textItem) {
+                    //If this item ID was not found or its instance is not TextItem
+                    if (reportItem.getId() == null) {
+                        textItem.getTextStyle().setId(null);
+                    } else {
+                        //Use existing textStyle ID
+                        textItem.getTextStyle().setId(((TextItem) existingItem.get()).getTextStyle().getId());
+                    }
+                    //Bidirectional
+                    textItem.getTextStyle().setTextItem(textItem);
+                }
+
+                //Validate report item if all related sources etc. can be accessed by this user
+                itemValidationService.validateItem(reportItem, true, user);
+
+                reportItem.setReportPage(reportPage);
+                reportItem.setTemplate(null);
+                reportItem.setDashboard(null);
+                reportItems.add(reportItem);
             }
-
-            //Validate report item if all related sources etc. can be accessed by this user
-            itemValidationService.validateItem(reportItem, true, user);
-
-            reportItem.setReport(oldReport);
-            reportItem.setTemplate(null);
-            newTemplateItems.add(reportItem);
+            reportPage.getReportItems().clear();
+            reportPage.getReportItems().addAll(reportItems);
         }
-        oldReport.getReportItems().clear();
-        oldReport.getReportItems().addAll(newTemplateItems);
+        oldReport.setReportPages(reportPages);
         try {
             return reportRepository.save(oldReport);
         } catch (DataIntegrityViolationException e) {
@@ -126,6 +142,7 @@ public class ReportService {
                 throw new ConstraintException("There is already report with this name.", e.getMostSpecificCause());
             throw new InvalidDataException("Error saving report", e);
         }
+
     }
 
     public void deleteReport(Long reportId, User user) {

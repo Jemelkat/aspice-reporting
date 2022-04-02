@@ -28,11 +28,6 @@ public class Report {
     @Column(name = "report_id")
     private Long id;
 
-    @NotNull(message = "Report needs orientation defined.")
-    @Column(length = 20, name = "orientation",nullable = false)
-    @Enumerated(EnumType.STRING)
-    private Orientation orientation;
-
     @Column(length = 50, name = "report_name")
     @NotBlank(message = "Report name is required.")
     private String reportName;
@@ -49,23 +44,14 @@ public class Report {
     @Temporal(TemporalType.TIMESTAMP)
     private Date reportLastUpdated;
 
-    @JsonView(View.Canvas.class)
-    @OneToMany(mappedBy = "report", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    @Valid
-    private List<ReportItem> reportItems = new ArrayList<>();
 
-    @JsonView(View.Simple.class)
-    @ManyToOne
-    @JoinColumn(name = "template_id")
-    private Template reportTemplate;
+    @JsonView(View.Canvas.class)
+    @OneToMany(mappedBy = "report", cascade = {CascadeType.ALL},orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderColumn(name = "pages_ordinal")
+    private List<ReportPage> reportPages = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
     private User reportUser;
-
-    public void addTemplate(Template template) {
-        this.reportTemplate = template;
-        template.getReports().add(this);
-    }
 }

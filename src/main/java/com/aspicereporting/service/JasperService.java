@@ -1,6 +1,7 @@
 package com.aspicereporting.service;
 
 import com.aspicereporting.entity.Report;
+import com.aspicereporting.entity.ReportPage;
 import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.enums.Orientation;
 import com.aspicereporting.entity.items.*;
@@ -44,27 +45,29 @@ public class JasperService {
 
     public ByteArrayOutputStream generateReport(Report report, User user) {
         //Validate report items
-        for(ReportItem reportItem : report.getReportItems()) {
-            itemValidationService.validateItemWithValid(reportItem, false, user);
+        for (ReportPage reportPage : report.getReportPages()) {
+            for (ReportItem reportItem : reportPage.getReportItems()) {
+                itemValidationService.validateItemWithValid(reportItem, false, user);
+            }
         }
 
-        //Get JasperDesign
-        JasperDesign jasperDesign = getJasperDesign(report);
-        //Compile JasperDesign
-        JasperReport jasperReport = compileReport(jasperDesign);
-
-        //TODO REMOVE
+        List<JasperPrint> jasperPrints = new ArrayList<>();
+        for (ReportPage reportPage : report.getReportPages()) {
+            //Get JasperDesign
+            JasperDesign jasperDesign = getJasperDesign(reportPage);
+            //Compile JasperDesign
+            JasperReport jasperReport = compileReport(jasperDesign);
+            //TODO REMOVE
 //        try {
 //            JasperCompileManager.writeReportToXmlFile(jasperDesign, "test.jrxml");
 //        } catch (JRException e) {
 //            e.printStackTrace();
 //        }
-
-        //Fill report
-        JasperPrint jasperPrint = fillReport(jasperReport, this.parameters);
-
+            //Fill report
+            jasperPrints.add(fillReport(jasperReport, this.parameters));
+        }
         //Export
-        return exportToPdf(jasperPrint, report.getReportUser().getUsername());
+        return exportToPdf(jasperPrints, report.getReportUser().getUsername());
     }
 
     public JasperReport compileReport(JasperDesign jasperDesign) {
@@ -87,8 +90,8 @@ public class JasperService {
         return jasperPrint;
     }
 
-    private JasperDesign getJasperDesign(Report report) {
-        JasperDesign jasperDesign = initializeJasperDesign(report);
+    private JasperDesign getJasperDesign(ReportPage reportPage) {
+        JasperDesign jasperDesign = initializeJasperDesign(reportPage);
 
         //Create band for report items - same height as report
         JRDesignBand band = new JRDesignBand();
@@ -96,13 +99,13 @@ public class JasperService {
         band.setSplitType(SplitTypeEnum.STRETCH);
 
         //Sort based on Y - will be filling report from top to down
-        Collections.sort(report.getReportItems());
+        Collections.sort(reportPage.getReportItems());
 
         //Counters for item settings - will be used to name each parameter
         Integer textCounter = 0;
         Integer tableCounter = 0;
         Integer graphCounter = 0;
-        for (ReportItem reportItem : report.getReportItems()) {
+        for (ReportItem reportItem : reportPage.getReportItems()) {
             //Validate - report item is in bounds
             if ((reportItem.getX() + reportItem.getWidth()) > jasperDesign.getPageWidth() || (reportItem.getY() + reportItem.getHeight()) > jasperDesign.getPageHeight()) {
                 throw new JasperReportException("Report item is out of page bounds.");
@@ -171,14 +174,13 @@ public class JasperService {
         return jasperDesign;
     }
 
-    private JasperDesign initializeJasperDesign(Report report) {
+    private JasperDesign initializeJasperDesign(ReportPage reportPage) {
         JasperDesign jasperDesign = new JasperDesign();
-        jasperDesign.setName(report.getReportName());
-        if(report.getOrientation().equals(Orientation.VERTICAL)) {
+        jasperDesign.setName(reportPage.getReport().getReportName());
+        if (reportPage.getOrientation().equals(Orientation.VERTICAL)) {
             jasperDesign.setPageWidth(794);
             jasperDesign.setPageHeight(1123);
-        }
-        else {
+        } else {
             jasperDesign.setPageWidth(1123);
             jasperDesign.setPageHeight(794);
         }
@@ -190,10 +192,10 @@ public class JasperService {
         return jasperDesign;
     }
 
-    private ByteArrayOutputStream exportToPdf(JasperPrint jasperPrint, String author) {
+    private ByteArrayOutputStream exportToPdf(List<JasperPrint> jasperPrint, String author) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         JRPdfExporter exporter = new JRPdfExporter();
-        exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
+        exporter.setExporterInput(SimpleExporterInput.getInstance(jasperPrint));
         exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(outputStream));
         SimplePdfExporterConfiguration configuration = new SimplePdfExporterConfiguration();
         configuration.setMetadataAuthor(author);

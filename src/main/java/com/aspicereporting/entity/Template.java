@@ -54,7 +54,7 @@ public class Template {
     @OneToMany(mappedBy = "template", cascade = {CascadeType.ALL}, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<ReportItem> templateItems = new ArrayList<>();
 
-    @OneToMany(mappedBy = "reportTemplate", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "pageTemplate", fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<Report> reports = new ArrayList<>();
+    private List<ReportPage> reportPages = new ArrayList<>();
 }

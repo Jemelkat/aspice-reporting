@@ -93,7 +93,8 @@ public class TemplateService {
             itemValidationService.validateItem(templateItem, true, user);
 
             templateItem.setTemplate(oldTemplate);
-            templateItem.setReport(null);
+            templateItem.setReportPage(null);
+            templateItem.setDashboard(null);
             newTemplateItems.add(templateItem);
         }
         oldTemplate.getTemplateItems().clear();
@@ -115,8 +116,8 @@ public class TemplateService {
         }
 
         //Remove foreign key in reports
-        for (Report r : template.getReports()) {
-            r.setReportTemplate(null);
+        for (ReportPage r : template.getReportPages()) {
+            r.setPageTemplate(null);
         }
 
         templateRepository.delete(template);

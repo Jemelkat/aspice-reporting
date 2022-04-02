@@ -3,8 +3,10 @@ package com.aspicereporting.entity.items;
 import com.aspicereporting.entity.Dashboard;
 import com.aspicereporting.entity.Report;
 import com.aspicereporting.entity.Template;
+import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.enums.ItemType;
 import com.aspicereporting.entity.views.View;
+import com.aspicereporting.exception.InvalidDataException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -77,5 +79,20 @@ public abstract class ReportItem implements Comparable {
         else if (this.y < i.y)
             return -1;
         return 0;
+    }
+
+    public User findItemOwner() {
+        User owner;
+        if (this.getReport() != null) {
+            owner = this.getReport().getReportUser();
+        } else if (this.getTemplate() != null) {
+            owner = this.getTemplate().getTemplateUser();
+
+        } else if (this.getDashboard() != null) {
+            owner = this.getDashboard().getDashboardUser();
+        } else {
+            throw new InvalidDataException("Simple table references this source and is not used anywhere");
+        }
+        return owner;
     }
 }

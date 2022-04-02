@@ -1,5 +1,6 @@
 package com.aspicereporting.entity;
 
+import com.aspicereporting.entity.items.*;
 import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -8,8 +9,11 @@ import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @JsonView(View.Simple.class)
 @Getter
@@ -54,18 +58,19 @@ public class User {
 
     @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
-    private Set<Source> sources = new HashSet<>();;
+    private Set<Source> sources = new HashSet<>();
+    ;
 
     @JsonIgnore
-    @OneToMany(mappedBy="reportUser", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "reportUser", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<Report> reports = new HashSet<>();
 
     @JsonIgnore
-    @OneToMany(mappedBy="templateUser", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "templateUser", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<Template> templates = new HashSet<>();
 
     @JsonIgnore
-    @OneToOne(mappedBy="dashboardUser", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "dashboardUser", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private Dashboard dashboard;
 
     public User(String username, String email, String password) {
@@ -86,9 +91,65 @@ public class User {
         userGroup.getUsers().add(this);
     }
 
-    public void removeUserGroup(UserGroup userGroup){
+    public void removeUserGroup(UserGroup userGroup) {
         this.userGroups.remove(userGroup);
         userGroup.getUsers().remove(this);
+        //Remove my shared sources with this group
+        List<Long> newGroups = userGroups.stream().map(group -> group.getId()).collect(Collectors.toList());
+        for (Source source : sources) {
+            source.removeGroup(userGroup);
+            source.removeFromItemsOnUnshare(this, source.getSourceGroups().stream().map(group -> group.getId()).collect(Collectors.toList()));
+        }
+        //Remove used shared sources in items from this group
+        for (Report report : reports) {
+            for (ReportItem reportItem : report.getReportItems()) {
+                switch (reportItem.getType()) {
+                    case SIMPLE_TABLE:
+                        ((SimpleTable) reportItem).userGroupRemove(this, newGroups);
+                        break;
+                    case CAPABILITY_TABLE:
+                        ((CapabilityTable) reportItem).userGroupRemove(this, newGroups);
+                        break;
+                    case LEVEL_PIE_GRAPH:
+                        ((LevelPieGraph) reportItem).userGroupRemove(this, newGroups);
+                        break;
+                    case LEVEL_BAR_GRAPH:
+                        ((LevelBarGraph) reportItem).userGroupRemove(this, newGroups);
+                        break;
+                }
+            }
+        }
+        for (Template template : templates) {
+            for (ReportItem templateItem : template.getTemplateItems()) {
+                switch (templateItem.getType()) {
+                    case SIMPLE_TABLE:
+                        ((SimpleTable) templateItem).userGroupRemove(this, newGroups);
+                        break;
+                    case CAPABILITY_TABLE:
+                        ((CapabilityTable) templateItem).userGroupRemove(this, newGroups);
+                        break;
+                    case LEVEL_PIE_GRAPH:
+                        ((LevelPieGraph) templateItem).userGroupRemove(this, newGroups);
+                        break;
+                    case LEVEL_BAR_GRAPH:
+                        ((LevelBarGraph) templateItem).userGroupRemove(this, newGroups);
+                        break;
+                }
+            }
+        }
+        if (dashboard != null) {
+            for (ReportItem dashboardItem : dashboard.getDashboardItems()) {
+                switch (dashboardItem.getType()) {
+                    case LEVEL_PIE_GRAPH:
+                        ((LevelPieGraph) dashboardItem).userGroupRemove(this, newGroups);
+                        break;
+                    case LEVEL_BAR_GRAPH:
+                        ((LevelBarGraph) dashboardItem).userGroupRemove(this, newGroups);
+                        break;
+                }
+            }
+        }
+
     }
 
     @JsonIgnore

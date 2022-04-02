@@ -1,6 +1,8 @@
 package com.aspicereporting.entity.items;
 
 import com.aspicereporting.entity.Source;
+import com.aspicereporting.entity.SourceColumn;
+import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.enums.Orientation;
 import com.aspicereporting.entity.enums.ScoreFunction;
 import com.aspicereporting.entity.views.View;
@@ -76,5 +78,55 @@ public class LevelBarGraph extends ReportItem {
 
     public void validate() {
 
+    }
+
+    public void userGroupRemove(User user, List<Long> newGroups) {
+        for (Source source : new ArrayList<>(this.getSources())) {
+            if (!user.getId().equals(source.getUser().getId())) {
+                if (!source.getSourceGroups().stream().anyMatch(group -> newGroups.contains(group.getId()))) {
+                    this.getSources().removeIf(s -> s.getId().equals(source.getId()));
+                    boolean assessor = false;
+                    boolean process = false;
+                    boolean attribute = false;
+                    boolean criterion = false;
+                    boolean score = false;
+                    for (Source remainingSources : this.getSources()) {
+                        for (SourceColumn sc : remainingSources.getSourceColumns()) {
+                            if (sc.getColumnName().equals(this.getAssessorColumnName())) {
+                                assessor = true;
+                            }
+                            if (sc.getColumnName().equals(this.getProcessColumnName())) {
+                                process = true;
+                            }
+                            if (sc.getColumnName().equals(this.getAttributeColumnName())) {
+                                attribute = true;
+                            }
+                            if (sc.getColumnName().equals(this.getCriterionColumnName())) {
+                                criterion = true;
+                            }
+                            if (sc.getColumnName().equals(this.getScoreColumnName())) {
+                                score = true;
+                            }
+                        }
+                    }
+                    if (!assessor) {
+                        this.setAssessorColumnName(null);
+                        this.getAssessorFilter().clear();
+                    }
+                    if (!process) {
+                        this.setProcessColumnName(null);
+                    }
+                    if (!criterion) {
+                        this.setCriterionColumnName(null);
+                    }
+                    if (!attribute) {
+                        this.setAttributeColumnName(null);
+                    }
+                    if (!score) {
+                        this.setScoreColumnName(null);
+                    }
+                }
+            }
+        }
     }
 }

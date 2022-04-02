@@ -53,12 +53,15 @@ public class UserGroupService {
         //Delete only if group exists
         userGroup.ifPresentOrElse((group) -> {
             //Handle many to many relations
-            for (User u : new HashSet<>(group.getUsers())) {
-                u.removeUserGroup(group);
+            for (User user : new HashSet<>(group.getUsers())) {
+                //Remove user group from user and from all reports/dashboards/templates
+                user.removeUserGroup(group);
+                //Remove sharing of sources to this deleted group
+                for (Source s : new HashSet<>(user.getSources())) {
+                    s.removeGroup(group);
+                }
             }
-            for (Source s : new HashSet<>(group.getSources())) {
-                s.removeGroup(group);
-            }
+
             //Delete group
             userGroupRepository.delete(group);
         }, () -> {

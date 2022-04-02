@@ -1,6 +1,7 @@
 package com.aspicereporting.entity.items;
 import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.SourceColumn;
+import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.enums.ScoreFunction;
 import com.aspicereporting.entity.views.View;
 import com.aspicereporting.exception.InvalidDataException;
@@ -77,7 +78,7 @@ public class CapabilityTable extends ReportItem {
         if (this.assessorColumn.getId() == null) {
             throw new InvalidDataException("Capability table has no assessor column defined.");
         }
-        if (this.getProcessColumn() == null) {
+        if (this.getProcessColumn().getId() == null) {
             throw new InvalidDataException("Capability table has no process column defined.");
         }
         if (this.levelColumn.getId() == null) {
@@ -88,6 +89,23 @@ public class CapabilityTable extends ReportItem {
         }
         if (this.scoreColumn.getId() == null) {
             throw new InvalidDataException("Capability table has no score column defined.");
+        }
+    }
+
+    public void userGroupRemove(User user, List<Long> newGroups) {
+        if (this.getSource() != null) {
+            if (!user.getId().equals(this.getSource().getUser().getId())) {
+                if (!this.getSource().getSourceGroups().stream().anyMatch(group -> newGroups.contains(group.getId()))) {
+                    this.setSource(null);
+                    this.setAssessorColumn(null);
+                    this.getAssessorFilter().clear();
+                    this.setProcessColumn(null);
+                    this.getProcessFilter().clear();
+                    this.setCriterionColumn(null);
+                    this.setLevelColumn(null);
+                    this.setScoreColumn(null);
+                }
+            }
         }
     }
 }

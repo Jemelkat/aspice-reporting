@@ -58,7 +58,7 @@ public class SourceController {
                     SourceTableDTO sDTO = modelMapper.map(s, SourceTableDTO.class);
                     if (!s.getSourceGroups().isEmpty()) {
                         sDTO.setShared(Boolean.TRUE);
-                        sDTO.setSharedBy(s.getUser().getId() == loggedUser.getId() ? "You" : s.getUser().getUsername());
+                        sDTO.setSharedBy(s.getUser().getId().equals(loggedUser.getId())? "You" : s.getUser().getUsername());
                     }
                     return sDTO;
                 })

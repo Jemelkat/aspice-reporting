@@ -3,6 +3,7 @@ package com.aspicereporting.entity;
 import com.aspicereporting.entity.items.*;
 import com.aspicereporting.entity.items.SimpleTable;
 import com.aspicereporting.entity.views.View;
+import com.aspicereporting.exception.InvalidDataException;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -63,7 +64,7 @@ public class Source {
     private List<LevelPieGraph> levelPieGraphs = new ArrayList<>();
 
     @JsonIgnore
-    @ManyToMany(mappedBy = "sources", fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "sources", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     private Set<LevelBarGraph> levelBarGraphs = new HashSet<>();
 
     @JsonIgnore
@@ -82,17 +83,20 @@ public class Source {
         for (CapabilityTable table : capabilityTables) {
             table.setSource(null);
             table.setAssessorColumn(null);
+            table.getAssessorFilter().clear();
             table.setProcessColumn(null);
+            table.getProcessFilter().clear();
             table.setCriterionColumn(null);
             table.setLevelColumn(null);
             table.setScoreColumn(null);
         }
         for (LevelBarGraph graph : levelBarGraphs) {
-            graph.getSources().removeIf(source -> source.getId() == this.id);
+            graph.getSources().removeIf(source -> source.getId().equals(this.id));
         }
         for (LevelPieGraph graph : levelPieGraphs) {
             graph.setSource(null);
             graph.setAssessorColumn(null);
+            graph.getAssessorFilter().clear();
             graph.setProcessColumn(null);
             graph.setCriterionColumn(null);
             graph.setAttributeColumn(null);
@@ -112,6 +116,97 @@ public class Source {
     public void removeGroup(UserGroup group) {
         this.sourceGroups.remove(group);
         group.getSources().remove(this);
+    }
+
+    public void removeFromItemsOnUnshare(User owner, List<Long> newGroupsIds) {
+        for (SimpleTable simpleTable : simpleSimpleTables) {
+            User user = simpleTable.findItemOwner();
+            if (!owner.getId().equals(user.getId())) {
+                if (!user.getUserGroups().stream().anyMatch(group -> newGroupsIds.contains(group.getId()))) {
+                    simpleTable.setSource(null);
+                    for (TableColumn tc : simpleTable.getTableColumns()) {
+                        tc.setSourceColumn(null);
+                    }
+                }
+            }
+        }
+        for (CapabilityTable capabilityTable : capabilityTables) {
+            User user = capabilityTable.findItemOwner();
+            if (!owner.getId().equals(user.getId())) {
+                if (!user.getUserGroups().stream().anyMatch(group -> newGroupsIds.contains(group.getId()))) {
+                    capabilityTable.setSource(null);
+                    capabilityTable.setAssessorColumn(null);
+                    capabilityTable.getAssessorFilter().clear();
+                    capabilityTable.setProcessColumn(null);
+                    capabilityTable.getProcessFilter().clear();
+                    capabilityTable.setCriterionColumn(null);
+                    capabilityTable.setLevelColumn(null);
+                    capabilityTable.setScoreColumn(null);
+                }
+            }
+        }
+        for (LevelPieGraph graph : levelPieGraphs) {
+            User user = graph.findItemOwner();
+            if (!owner.getId().equals(user.getId())) {
+                if (!user.getUserGroups().stream().anyMatch(group -> newGroupsIds.contains(group.getId()))) {
+                    graph.setSource(null);
+                    graph.setAssessorColumn(null);
+                    graph.getAssessorFilter().clear();
+                    graph.setProcessColumn(null);
+                    graph.setCriterionColumn(null);
+                    graph.setAttributeColumn(null);
+                    graph.setScoreColumn(null);
+                }
+            }
+        }
+        for (LevelBarGraph graph : levelBarGraphs) {
+            User user = graph.findItemOwner();
+            if (!owner.getId().equals(user.getId())) {
+                if (!user.getUserGroups().stream().anyMatch(group -> newGroupsIds.contains(group.getId()))) {
+                    graph.getSources().removeIf(source -> source.getId().equals(this.id));
+                    boolean assessor = false;
+                    boolean process = false;
+                    boolean attribute = false;
+                    boolean criterion = false;
+                    boolean score = false;
+                    for (Source remainingSources : graph.getSources()) {
+                        for (SourceColumn sc : remainingSources.getSourceColumns()) {
+                            if(sc.getColumnName().equals(graph.getAssessorColumnName())) {
+                                assessor = true;
+                            }
+                            if(sc.getColumnName().equals(graph.getProcessColumnName())) {
+                                process = true;
+                            }
+                            if(sc.getColumnName().equals(graph.getAttributeColumnName())) {
+                                attribute = true;
+                            }
+                            if(sc.getColumnName().equals(graph.getCriterionColumnName())) {
+                                criterion = true;
+                            }
+                            if(sc.getColumnName().equals(graph.getScoreColumnName())) {
+                                score = true;
+                            }
+                        }
+                    }
+                    if(!assessor) {
+                        graph.setAssessorColumnName(null);
+                        graph.getAssessorFilter().clear();
+                    }
+                    if(!process) {
+                        graph.setProcessColumnName(null);
+                    }
+                    if(!criterion) {
+                        graph.setCriterionColumnName(null);
+                    }
+                    if(!attribute) {
+                        graph.setAttributeColumnName(null);
+                    }
+                    if(!score) {
+                        graph.setScoreColumnName(null);
+                    }
+                }
+            }
+        }
     }
 
     public void addSourceColumns(List<SourceColumn> columns) {
@@ -135,7 +230,6 @@ public class Source {
         this.levelPieGraphs.add(levelPieGraph);
         levelPieGraph.setSource(this);
     }
-
 
 
 }

@@ -1,14 +1,15 @@
 package com.aspicereporting.entity;
 
 import com.aspicereporting.entity.views.View;
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 @JsonView(View.Simple.class)
 @Setter

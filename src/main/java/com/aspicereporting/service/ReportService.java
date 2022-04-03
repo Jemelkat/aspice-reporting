@@ -1,19 +1,27 @@
 package com.aspicereporting.service;
 
-import com.aspicereporting.entity.*;
-import com.aspicereporting.entity.items.*;
+import com.aspicereporting.entity.Report;
+import com.aspicereporting.entity.ReportPage;
+import com.aspicereporting.entity.Template;
+import com.aspicereporting.entity.User;
+import com.aspicereporting.entity.items.ReportItem;
+import com.aspicereporting.entity.items.TextItem;
 import com.aspicereporting.exception.ConstraintException;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.exception.InvalidDataException;
-import com.aspicereporting.repository.*;
+import com.aspicereporting.repository.ReportRepository;
+import com.aspicereporting.repository.TemplateRepository;
+import com.aspicereporting.repository.UserGroupRepository;
 import net.sf.jasperreports.engine.JRException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 @Service

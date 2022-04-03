@@ -1,7 +1,6 @@
 package com.aspicereporting.entity;
 
 import com.aspicereporting.entity.items.ReportItem;
-import com.aspicereporting.entity.items.TextItem;
 import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;

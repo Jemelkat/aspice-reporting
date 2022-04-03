@@ -1,15 +1,12 @@
 package com.aspicereporting.entity.items;
 
 import com.aspicereporting.entity.TextStyle;
-import com.aspicereporting.entity.items.ReportItem;
 import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Getter;
 import lombok.Setter;
-import org.w3c.dom.Text;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 
 @Getter
 @Setter

@@ -2,7 +2,10 @@ package com.aspicereporting.controller;
 
 import com.aspicereporting.dto.MessageResponseDTO;
 import com.aspicereporting.dto.SourceTableDTO;
-import com.aspicereporting.entity.*;
+import com.aspicereporting.entity.Source;
+import com.aspicereporting.entity.SourceColumn;
+import com.aspicereporting.entity.User;
+import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.entity.views.View;
 import com.aspicereporting.service.SourceService;
 import com.aspicereporting.utils.NaturalOrderComparator;

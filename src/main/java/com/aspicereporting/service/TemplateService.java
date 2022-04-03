@@ -1,7 +1,10 @@
 package com.aspicereporting.service;
 
-import com.aspicereporting.entity.*;
-import com.aspicereporting.entity.items.*;
+import com.aspicereporting.entity.ReportPage;
+import com.aspicereporting.entity.Template;
+import com.aspicereporting.entity.User;
+import com.aspicereporting.entity.items.ReportItem;
+import com.aspicereporting.entity.items.TextItem;
 import com.aspicereporting.exception.ConstraintException;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.exception.InvalidDataException;
@@ -13,7 +16,10 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TemplateService {

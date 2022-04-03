@@ -1,6 +1,9 @@
 package com.aspicereporting.entity.items;
 
-import com.aspicereporting.entity.*;
+import com.aspicereporting.entity.Dashboard;
+import com.aspicereporting.entity.ReportPage;
+import com.aspicereporting.entity.Template;
+import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.enums.ItemType;
 import com.aspicereporting.entity.views.View;
 import com.aspicereporting.exception.InvalidDataException;

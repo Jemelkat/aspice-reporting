@@ -1,6 +1,8 @@
 package com.aspicereporting.service;
 
-import com.aspicereporting.entity.*;
+import com.aspicereporting.entity.Source;
+import com.aspicereporting.entity.User;
+import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.repository.UserGroupRepository;
 import com.aspicereporting.repository.UserRepository;

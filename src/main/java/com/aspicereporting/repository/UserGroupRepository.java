@@ -1,7 +1,7 @@
 package com.aspicereporting.repository;
 
-import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.entity.User;
+import com.aspicereporting.entity.UserGroup;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,9 +1,7 @@
 package com.aspicereporting.entity;
 
 import com.aspicereporting.entity.items.*;
-import com.aspicereporting.entity.items.SimpleTable;
 import com.aspicereporting.entity.views.View;
-import com.aspicereporting.exception.InvalidDataException;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;

@@ -5,11 +5,13 @@ import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.sun.istack.NotNull;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -102,20 +104,22 @@ public class User {
         }
         //Remove used shared sources in items from this group
         for (Report report : reports) {
-            for (ReportItem reportItem : report.getReportItems()) {
-                switch (reportItem.getType()) {
-                    case SIMPLE_TABLE:
-                        ((SimpleTable) reportItem).userGroupRemove(this, newGroups);
-                        break;
-                    case CAPABILITY_TABLE:
-                        ((CapabilityTable) reportItem).userGroupRemove(this, newGroups);
-                        break;
-                    case LEVEL_PIE_GRAPH:
-                        ((LevelPieGraph) reportItem).userGroupRemove(this, newGroups);
-                        break;
-                    case LEVEL_BAR_GRAPH:
-                        ((LevelBarGraph) reportItem).userGroupRemove(this, newGroups);
-                        break;
+            for (ReportPage reportPage : report.getReportPages()) {
+                for (ReportItem reportItem : reportPage.getReportItems()) {
+                    switch (reportItem.getType()) {
+                        case SIMPLE_TABLE:
+                            ((SimpleTable) reportItem).userGroupRemove(this, newGroups);
+                            break;
+                        case CAPABILITY_TABLE:
+                            ((CapabilityTable) reportItem).userGroupRemove(this, newGroups);
+                            break;
+                        case LEVEL_PIE_GRAPH:
+                            ((LevelPieGraph) reportItem).userGroupRemove(this, newGroups);
+                            break;
+                        case LEVEL_BAR_GRAPH:
+                            ((LevelBarGraph) reportItem).userGroupRemove(this, newGroups);
+                            break;
+                    }
                 }
             }
         }

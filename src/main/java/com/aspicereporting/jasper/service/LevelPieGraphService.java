@@ -1,9 +1,7 @@
 package com.aspicereporting.jasper.service;
 
 import com.aspicereporting.entity.enums.ScoreFunction;
-import com.aspicereporting.entity.items.LevelBarGraph;
 import com.aspicereporting.entity.items.LevelPieGraph;
-import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.exception.JasperReportException;
 import com.aspicereporting.repository.SourceRepository;
 import com.aspicereporting.utils.NaturalOrderComparator;
@@ -33,8 +31,8 @@ import org.springframework.stereotype.Service;
 
 import java.awt.*;
 import java.text.NumberFormat;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service

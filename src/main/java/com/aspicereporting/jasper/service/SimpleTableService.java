@@ -1,8 +1,8 @@
 package com.aspicereporting.jasper.service;
 
 import com.aspicereporting.entity.SourceColumn;
-import com.aspicereporting.entity.items.TableColumn;
 import com.aspicereporting.entity.items.SimpleTable;
+import com.aspicereporting.entity.items.TableColumn;
 import com.aspicereporting.jasper.model.SimpleTableModel;
 import net.sf.jasperreports.components.table.StandardColumn;
 import net.sf.jasperreports.components.table.StandardTable;
@@ -14,7 +14,6 @@ import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 

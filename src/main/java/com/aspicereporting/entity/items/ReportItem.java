@@ -1,7 +1,7 @@
 package com.aspicereporting.entity.items;
 
 import com.aspicereporting.entity.Dashboard;
-import com.aspicereporting.entity.Report;
+import com.aspicereporting.entity.ReportPage;
 import com.aspicereporting.entity.Template;
 import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.enums.ItemType;
@@ -57,9 +57,9 @@ public abstract class ReportItem implements Comparable {
     private int width;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "report_id", referencedColumnName = "report_id")
+    @JoinColumn(name = "report_page_id", referencedColumnName = "report_page_id")
     @JsonIgnore
-    private Report report;
+    private ReportPage reportPage;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "template_id", referencedColumnName = "template_id")
@@ -83,8 +83,8 @@ public abstract class ReportItem implements Comparable {
 
     public User findItemOwner() {
         User owner;
-        if (this.getReport() != null) {
-            owner = this.getReport().getReportUser();
+        if (this.getReportPage().getReport() != null) {
+            owner = this.getReportPage().getReport().getReportUser();
         } else if (this.getTemplate() != null) {
             owner = this.getTemplate().getTemplateUser();
 

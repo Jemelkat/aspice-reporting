@@ -1,7 +1,6 @@
 package com.aspicereporting.security.services;
 
 import com.aspicereporting.entity.User;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.Hibernate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

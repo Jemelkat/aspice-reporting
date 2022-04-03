@@ -2,8 +2,8 @@ package com.aspicereporting.service;
 
 import com.aspicereporting.entity.Role;
 import com.aspicereporting.entity.Source;
-import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.entity.User;
+import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.repository.RoleRepository;
 import com.aspicereporting.repository.UserGroupRepository;
@@ -12,7 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.aspicereporting.entity.Role.ERole.ROLE_USER;

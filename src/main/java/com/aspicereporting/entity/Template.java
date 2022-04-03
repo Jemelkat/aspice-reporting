@@ -3,14 +3,18 @@ package com.aspicereporting.entity;
 import com.aspicereporting.entity.enums.Orientation;
 import com.aspicereporting.entity.items.ReportItem;
 import com.aspicereporting.entity.views.View;
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 @JsonView(View.Simple.class)
 @Getter
@@ -54,7 +58,7 @@ public class Template {
     @OneToMany(mappedBy = "template", cascade = {CascadeType.ALL}, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<ReportItem> templateItems = new ArrayList<>();
 
-    @OneToMany(mappedBy = "reportTemplate", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "pageTemplate", fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<Report> reports = new ArrayList<>();
+    private List<ReportPage> reportPages = new ArrayList<>();
 }

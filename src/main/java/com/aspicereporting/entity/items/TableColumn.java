@@ -1,10 +1,7 @@
 package com.aspicereporting.entity.items;
 
-import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.views.View;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,8 +9,6 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
 
 @Setter
 @Getter

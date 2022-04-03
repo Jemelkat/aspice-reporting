@@ -1,8 +1,8 @@
 package com.aspicereporting.repository;
 
-import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.User;
+import com.aspicereporting.entity.UserGroup;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;

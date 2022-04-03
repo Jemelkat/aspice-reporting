@@ -1,7 +1,10 @@
 package com.aspicereporting.service;
 
-import com.aspicereporting.entity.*;
-import com.aspicereporting.entity.items.*;
+import com.aspicereporting.entity.ReportPage;
+import com.aspicereporting.entity.Template;
+import com.aspicereporting.entity.User;
+import com.aspicereporting.entity.items.ReportItem;
+import com.aspicereporting.entity.items.TextItem;
 import com.aspicereporting.exception.ConstraintException;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.exception.InvalidDataException;
@@ -13,7 +16,10 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TemplateService {
@@ -93,7 +99,8 @@ public class TemplateService {
             itemValidationService.validateItem(templateItem, true, user);
 
             templateItem.setTemplate(oldTemplate);
-            templateItem.setReport(null);
+            templateItem.setReportPage(null);
+            templateItem.setDashboard(null);
             newTemplateItems.add(templateItem);
         }
         oldTemplate.getTemplateItems().clear();
@@ -115,8 +122,8 @@ public class TemplateService {
         }
 
         //Remove foreign key in reports
-        for (Report r : template.getReports()) {
-            r.setReportTemplate(null);
+        for (ReportPage r : template.getReportPages()) {
+            r.setPageTemplate(null);
         }
 
         templateRepository.delete(template);

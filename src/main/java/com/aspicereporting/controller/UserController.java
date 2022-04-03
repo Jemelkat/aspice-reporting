@@ -1,8 +1,8 @@
 package com.aspicereporting.controller;
 
 import com.aspicereporting.dto.MessageResponseDTO;
-import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.entity.User;
+import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.entity.views.View;
 import com.aspicereporting.service.UserService;
 import com.fasterxml.jackson.annotation.JsonView;

@@ -1,0 +1,59 @@
+version: '3.7'
+
+# Define services
+services:
+  # App backend service
+  app-server:
+    container_name: backend-spring
+    # Configuration for building the docker image for the backend service
+    build:
+      context: aspice-reporting # Use an image built from the specified dockerfile in the `polling-app-server` directory.
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080" # Forward the exposed port 8080 on the container to port 8080 on the host machine
+    restart: always
+    depends_on: 
+      - db # This service depends on mysql. Start that first.  
+    environment: # Pass environment variables to the service
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/aspice
+    networks: # Networks to join (Services on the same network can communicate with each other using their name)
+      - backend
+      - frontend
+
+  # Frontend Service 
+  app-client:
+    container_name: frontend-react
+    build:
+      context: aspice-reporting-react # Use an image built from the specified dockerfile in the `polling-app-client` directory.
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80" # Map the exposed port 80 on the container to port 9090 on the host machine
+    restart: always
+    depends_on:
+      - app-server
+    networks:
+      - frontend  
+
+  # Database Service (Mysql)
+  db:
+    container_name: pogtgres-db
+    image: postgres:latest
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: aspice
+      POSTGRES_PASSWORD: admin
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - backend  
+# Volumes
+volumes:
+  pgdata:
+
+# Networks to be created to facilitate communication between containers
+networks:
+  backend:
+  frontend: 

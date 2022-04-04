@@ -1,5 +1,5 @@
 #### Stage 1: Build the application
-FROM openjdk:17-oracle as build
+FROM adoptopenjdk/openjdk16 as build
 
 # Set the current working directory inside the image
 WORKDIR /app
@@ -24,7 +24,7 @@ RUN ./mvnw package -D skipTests
 RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
 
 #### Stage 2: A minimal docker image with command to run the app 
-FROM adoptopenjdk/openjdk11:jre-11.0.9_11.1-alpine
+FROM adoptopenjdk/openjdk16:jre-16.0.1_9-alpine
 
 ARG DEPENDENCY=/app/target/dependency
 
@@ -33,4 +33,4 @@ COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
 COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
 COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
 
-ENTRYPOINT ["java","-cp","app:app/lib/*","com.example.polls.PollsApplication"]
+ENTRYPOINT ["java","-cp","app:app/lib/*","com.aspicereporting.AspiceReportingApplication"]

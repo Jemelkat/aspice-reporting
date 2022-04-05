@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -37,9 +38,12 @@ public class ReportService {
     @Autowired
     ItemValidationService itemValidationService;
 
-    public void generateReport(Long reportId, User user) throws JRException {
+    public ByteArrayOutputStream generateReportById(Long reportId, User user) throws JRException {
         Report report = reportRepository.findByIdAndReportUser(reportId, user);
-        jasperService.generateReport(report, user);
+        if(report == null) {
+            throw new EntityNotFoundException("Report id=" + reportId + " not found or inaccessible.");
+        }
+        return jasperService.generateReport(report, user);
     }
 
     //Get all owned or shared sources

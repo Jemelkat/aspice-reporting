@@ -22,9 +22,9 @@ public class ItemValidationService {
     @Autowired
     SourceRepository sourceRepository;
 
-    public void validateItemsWithValid(List<ReportItem> items, boolean allowUndefinedData, User user) {
-        for(ReportItem item : items) {
-            validateItemWithValid(item,allowUndefinedData,user);
+    public void validateItemsWithValid(List<@Valid ReportItem> items, boolean allowUndefinedData, User user) {
+        for(ReportItem reportItem : items) {
+            validateItem(reportItem, allowUndefinedData, user);
         }
     }
 

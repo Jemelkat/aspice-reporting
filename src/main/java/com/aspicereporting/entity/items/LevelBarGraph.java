@@ -35,6 +35,16 @@ public class LevelBarGraph extends ReportItem {
     @Column(length = 20, name = "orientation",nullable = false)
     @Enumerated(EnumType.STRING)
     private Orientation orientation;
+
+
+    @NotEmpty(message = "Level bar graph needs sources.")
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "bar_graph_sources",
+            joinColumns = @JoinColumn(name = "report_item_id"),
+            inverseJoinColumns = @JoinColumn(name = "source_id"))
+    @OrderColumn(name="graph_source_order")
+    private List<Source> sources = new ArrayList<>();
+
     @NotEmpty(message = "Level bar graph needs assessor column defined.")
     private String assessorColumnName;
     @Type(type = "list-array")
@@ -68,14 +78,6 @@ public class LevelBarGraph extends ReportItem {
     @Column(length = 20, name = "aggregate_sources",nullable = false)
     @Enumerated(EnumType.STRING)
     private ScoreFunction aggregateSourcesFunction;
-
-    @NotEmpty(message = "Level bar graph needs sources.")
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "bar_graph_sources",
-            joinColumns = @JoinColumn(name = "report_item_id"),
-            inverseJoinColumns = @JoinColumn(name = "source_id"))
-    @OrderColumn(name="graph_source_order")
-    private List<Source> sources = new ArrayList<>();
 
     public void validate() {
 

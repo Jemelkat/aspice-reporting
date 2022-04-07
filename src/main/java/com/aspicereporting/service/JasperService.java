@@ -47,9 +47,7 @@ public class JasperService {
     public ByteArrayOutputStream generateReport(Report report, User user) {
         //Validate report items
         for (ReportPage reportPage : report.getReportPages()) {
-            for (ReportItem reportItem : reportPage.getReportItems()) {
-                itemValidationService.validateItemWithValid(reportItem, false, user);
-            }
+            itemValidationService.validateItemsWithValid(reportPage.getReportItems(), false, user);
         }
 
         List<JasperPrint> jasperPrints = new ArrayList<>();

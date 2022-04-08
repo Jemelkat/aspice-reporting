@@ -88,7 +88,7 @@ public class UserGroupService {
         for (User u : users) {
             u.addUserGroup(group);
         }
-
+        group.setId(null);
         userGroupRepository.save(group);
     }
 }

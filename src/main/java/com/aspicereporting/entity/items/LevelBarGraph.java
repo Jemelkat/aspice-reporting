@@ -31,6 +31,8 @@ import java.util.List;
         typeClass = ListArrayType.class
 )
 public class LevelBarGraph extends ReportItem {
+    private String title;
+
     @NotNull(message = "Level bar graph needs orientation defined.")
     @Column(length = 20, name = "orientation",nullable = false)
     @Enumerated(EnumType.STRING)

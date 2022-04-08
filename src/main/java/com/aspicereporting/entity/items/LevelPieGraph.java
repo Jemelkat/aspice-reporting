@@ -24,6 +24,8 @@ import java.util.List;
 @DiscriminatorValue("LEVEL_PIE_GRAPH")
 @JsonView(View.Simple.class)
 public class LevelPieGraph extends ReportItem{
+    private String title;
+
     @NotNull(message = "Level pie graph needs source defined")
     @ManyToOne
     private Source source;

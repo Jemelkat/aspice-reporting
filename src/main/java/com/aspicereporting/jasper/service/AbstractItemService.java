@@ -14,9 +14,9 @@ public abstract class AbstractItemService {
     );
     protected static LinkedHashMap<Double, String> valueToScoreMap = new LinkedHashMap<>() {{
         put(0D, "N");
-        put(0.33D, "P");
-        put(0.66D, "L");
-        put(1D, "F");
+        put(0.15D, "P");
+        put(0.50D, "L");
+        put(0.85D, "F");
     }};
     protected static Map<Integer, ArrayList<String>> processAttributesMap = Map.ofEntries(
             new AbstractMap.SimpleEntry<>(1, new ArrayList<>(Arrays.asList("PA1.1"))),
@@ -45,7 +45,7 @@ public abstract class AbstractItemService {
     protected String getScoreForValue(Double value) {
         Double key = 0D;
         for (Double valueKey : valueToScoreMap.keySet()) {
-            if (value >= valueKey) {
+            if (value > valueKey) {
                 key = valueKey;
             } else {
                 break;

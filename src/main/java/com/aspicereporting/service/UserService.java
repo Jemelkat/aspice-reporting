@@ -6,7 +6,6 @@ import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.UserGroup;
 import com.aspicereporting.exception.ConstraintException;
 import com.aspicereporting.exception.EntityNotFoundException;
-import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.repository.RoleRepository;
 import com.aspicereporting.repository.UserGroupRepository;
 import com.aspicereporting.repository.UserRepository;
@@ -15,7 +14,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;

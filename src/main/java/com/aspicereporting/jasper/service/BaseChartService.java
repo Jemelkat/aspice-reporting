@@ -2,6 +2,7 @@ package com.aspicereporting.jasper.service;
 
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.StandardChartTheme;
+import org.jfree.chart.plot.PiePlot;
 import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.chart.renderer.category.StandardBarPainter;
 import org.jfree.ui.RectangleInsets;
@@ -11,11 +12,25 @@ import java.awt.*;
 public abstract class BaseChartService extends AbstractItemService {
     protected static final String CHART = "chart";
 
+    private void applyTitleStyle(StandardChartTheme theme) {
+        String fontName = "Lucida Sans";
+        theme.setTitlePaint( Color.BLACK );
+        theme.setExtraLargeFont( new Font(fontName,Font.PLAIN, 12) ); //title
+        theme.setLargeFont( new Font(fontName,Font.BOLD, 10)); //axis-title
+        theme.setRegularFont( new Font(fontName,Font.PLAIN, 8));
+    }
+
+    protected void applyPieGraphTheme(JFreeChart chart) {
+        StandardChartTheme theme = (StandardChartTheme)org.jfree.chart.StandardChartTheme.createJFreeTheme();
+        applyTitleStyle(theme);
+        theme.apply(chart);
+    }
+
     protected void applyBarGraphTheme(JFreeChart chart) {
         String fontName = "Lucida Sans";
         StandardChartTheme theme = (StandardChartTheme)org.jfree.chart.StandardChartTheme.createJFreeTheme();
 
-        theme.setTitlePaint( Color.decode( "#4572a7" ) );
+        theme.setTitlePaint( Color.BLACK );
         theme.setExtraLargeFont( new Font(fontName,Font.PLAIN, 12) ); //title
         theme.setLargeFont( new Font(fontName,Font.BOLD, 10)); //axis-title
         theme.setRegularFont( new Font(fontName,Font.PLAIN, 8));

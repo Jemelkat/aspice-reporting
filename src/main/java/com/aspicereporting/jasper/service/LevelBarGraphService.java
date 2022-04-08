@@ -35,7 +35,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -58,7 +60,7 @@ public class LevelBarGraphService extends BaseChartService {
         }
 
 
-        final JFreeChart chart = ChartFactory.createBarChart("",                                   // chart title
+        final JFreeChart chart = ChartFactory.createBarChart(levelBarGraph.getTitle(),                                   // chart title
                 "Process",                  // domain axis label
                 "Level",                     // range axis label
                 dataset,                            // data
@@ -68,7 +70,7 @@ public class LevelBarGraphService extends BaseChartService {
                 false                        // urls
         );
         this.applyBarGraphTheme(chart);
-
+        chart.getTitle().setPaint(Color.BLACK);
         //Rotate x axis names to save space
         CategoryPlot plot = (CategoryPlot) chart.getPlot();
         ValueAxis rangeAxis = plot.getRangeAxis();

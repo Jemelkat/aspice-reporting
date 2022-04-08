@@ -65,12 +65,14 @@ public class LevelPieGraphService extends BaseChartService {
         }
 
         final JFreeChart chart = ChartFactory.createPieChart(
-                null,
+                levelPieGraph.getTitle(),
                 dataset,
                 true,
                 true,
                 false
         );
+
+        applyPieGraphTheme(chart);
 
         PiePlot plot = (PiePlot) chart.getPlot();
         plot.setBackgroundPaint(Color.white);

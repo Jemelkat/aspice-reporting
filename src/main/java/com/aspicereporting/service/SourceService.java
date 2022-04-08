@@ -120,14 +120,22 @@ public class SourceService {
     public Set<String> getColumnsForSources(Set<Long> sources, User user) {
         List<Source> sourcesList = sourceRepository.findByIdInAndUserOrSourceGroupsIn(sources, user, user.getUserGroups());
 
-        Set<String> columns = new HashSet<>();
+        Set<String> finalColumns = new HashSet<>();
+        boolean firstSource = true;
         for(Source source : sourcesList) {
+            Set<String> columns = new HashSet<>();
             for(SourceColumn column : source.getSourceColumns()) {
                 columns.add(column.getColumnName());
             }
+            if(firstSource) {
+                finalColumns = columns;
+                firstSource = false;
+            }else {
+                finalColumns.retainAll(columns);
+            }
         }
 
-        return columns;
+        return finalColumns;
     }
 
     public List<String> getDistinctValuesForColumn(Long sourceId, Long columnId, User user) {

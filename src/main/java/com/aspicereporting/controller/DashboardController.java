@@ -28,7 +28,7 @@ public class DashboardController {
 
     @JsonView(View.Canvas.class)
     @GetMapping("")
-    public Dashboard getById(Authentication authentication) {
+    public Dashboard getByUser(Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
         return dashboardService.getDashboardByUser(loggedUser);
     }

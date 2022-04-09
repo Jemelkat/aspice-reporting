@@ -4,11 +4,13 @@ import com.aspicereporting.entity.Role;
 import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.UserGroup;
+import com.aspicereporting.exception.ConstraintException;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.repository.RoleRepository;
 import com.aspicereporting.repository.UserGroupRepository;
 import com.aspicereporting.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,13 +73,17 @@ public class UserService {
         List<Role.ERole> roleNames = user.getRoles().stream().map(role -> role.getName()).collect(Collectors.toList());
         Set<Role> roles = roleRepository.findAllByNameIn(roleNames);
         Optional<Role> userRole = roleRepository.findByName(ROLE_USER);
-        if(userRole.isEmpty()) {
+        if (userRole.isEmpty()) {
             throw new EntityNotFoundException("Default user role USER_ROLE not found.");
         }
         roles.add(userRole.get());
         currentUser.setRoles(roles);
 
-        userRepository.save(currentUser);
+        try {
+            userRepository.save(currentUser);
+        } catch (DataIntegrityViolationException e) {
+            throw new ConstraintException("There is already user with this username or email.", e.getMostSpecificCause());
+        }
     }
 
     public List<User> getAllUsers() {
@@ -87,7 +93,7 @@ public class UserService {
     @Transactional
     public void deleteUser(Long userId) {
         userRepository.findById(userId).ifPresentOrElse((obj) -> {
-            for(Source source : obj.getSources()) {
+            for (Source source : obj.getSources()) {
                 source.prepareForDelete();
             }
             userRepository.delete(obj);

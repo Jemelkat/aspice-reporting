@@ -35,6 +35,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
 
+import java.awt.*;
+import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -58,7 +60,7 @@ public class LevelBarGraphService extends BaseChartService {
         }
 
 
-        final JFreeChart chart = ChartFactory.createBarChart("",                                   // chart title
+        final JFreeChart chart = ChartFactory.createBarChart(levelBarGraph.getTitle(),                                   // chart title
                 "Process",                  // domain axis label
                 "Level",                     // range axis label
                 dataset,                            // data
@@ -68,7 +70,7 @@ public class LevelBarGraphService extends BaseChartService {
                 false                        // urls
         );
         this.applyBarGraphTheme(chart);
-
+        chart.getTitle().setPaint(Color.BLACK);
         //Rotate x axis names to save space
         CategoryPlot plot = (CategoryPlot) chart.getPlot();
         ValueAxis rangeAxis = plot.getRangeAxis();
@@ -177,7 +179,7 @@ public class LevelBarGraphService extends BaseChartService {
      * Returns data in map format for easier lookup
      * {(process,attribute): [{criterion1:[{assessor1: score,assessor2: score}]},{criterion2: [{assessor1: score,assessor2: score}]},...}
      */
-    private MultiKeyMap prepareDataMap(LevelBarGraph levelBarGraph, SourceColumn scoreColumn, SourceColumn processColumn, SourceColumn attributeColumn, SourceColumn criterionColumn, SourceColumn assessorColumn, List<String> processFilter, List<String> assessorsSet) {
+    private MultiKeyMap prepareDataMap(LevelBarGraph levelBarGraph, SourceColumn scoreColumn, SourceColumn processColumn, SourceColumn attributeColumn, SourceColumn criterionColumn, SourceColumn assessorColumn, List<String> processFilter, List<String> assessorFilter) {
         MultiKeyMap valuesMap = new MultiKeyMap();
         for (int i = 0; i < scoreColumn.getSourceData().size(); i++) {
             String process = processColumn.getSourceData().get(i).getValue();
@@ -193,7 +195,7 @@ public class LevelBarGraphService extends BaseChartService {
                 }
             }
             if (!levelBarGraph.getAssessorFilter().isEmpty()) {
-                if (!assessor.contains(assessor)) {
+                if (!assessorFilter.contains(assessor)) {
                     continue;
                 }
             }

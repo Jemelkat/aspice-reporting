@@ -3,12 +3,16 @@ package com.aspicereporting.service;
 import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.UserGroup;
+import com.aspicereporting.exception.ConstraintException;
 import com.aspicereporting.exception.EntityNotFoundException;
+import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.repository.UserGroupRepository;
 import com.aspicereporting.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
+import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -46,7 +50,13 @@ public class UserGroupService {
             u.addUserGroup(currentGroup);
         }
 
-        userGroupRepository.save(currentGroup);
+        try {
+            userGroupRepository.save(currentGroup);
+        } catch (DataIntegrityViolationException e) {
+            if (e.getMostSpecificCause().getClass().getName().equals("org.postgresql.util.PSQLException") && ((SQLException) e.getMostSpecificCause()).getSQLState().equals("23505"))
+                throw new ConstraintException("There is already group with this name.", e.getMostSpecificCause());
+            throw new InvalidDataException("Error updating group", e);
+        }
     }
 
     public void deleteUserGroup(Long userGroupId) {
@@ -88,7 +98,13 @@ public class UserGroupService {
         for (User u : users) {
             u.addUserGroup(group);
         }
-
-        userGroupRepository.save(group);
+        group.setId(null);
+        try {
+            userGroupRepository.save(group);
+        } catch (DataIntegrityViolationException e) {
+            if (e.getMostSpecificCause().getClass().getName().equals("org.postgresql.util.PSQLException") && ((SQLException) e.getMostSpecificCause()).getSQLState().equals("23505"))
+                throw new ConstraintException("There is already group with this name.", e.getMostSpecificCause());
+            throw new InvalidDataException("Error saving group", e);
+        }
     }
 }

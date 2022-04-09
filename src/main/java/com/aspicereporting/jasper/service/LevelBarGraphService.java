@@ -45,6 +45,7 @@ import java.util.stream.Collectors;
 public class LevelBarGraphService extends BaseChartService {
     @Autowired
     SourceRepository sourceRepository;
+
     /**
      * Creates JRDesignImage (level bar graph) which can be used in JasperDesign
      */
@@ -296,6 +297,7 @@ public class LevelBarGraphService extends BaseChartService {
         LinkedHashMap<String, Map<String, Integer>> processLevelMap = new LinkedHashMap<>();
         for (String process : processFilter) {
             resetVariables();
+            boolean hasRecord = false;
             for (int i = 1; i <= 5; i++) {
                 if (!previousLevelAchieved) {
                     break;
@@ -307,7 +309,7 @@ public class LevelBarGraphService extends BaseChartService {
                     if (!valuesMap.containsKey(multikey)) {
                         break;
                     }
-
+                    hasRecord = true;
                     //Get all evaluated criterions for this process attribute
                     Map<String, Map<String, String>> criterionAssessorMap = (Map<String, Map<String, String>>) valuesMap.get(multikey);
                     //Get all criterion scores for (process, attribute) key and apply score function on them
@@ -328,11 +330,12 @@ public class LevelBarGraphService extends BaseChartService {
                 }
                 evaulateLevelCheckToLevel();
             }
-
-            if (processLevelMap.containsKey(process)) {
-                processLevelMap.get(process).put(levelBarGraph.getAggregateScoresFunction().name() + " scores achieved", levelAchieved);
-            } else {
-                processLevelMap.put(process, new HashMap<>(Map.of(levelBarGraph.getAggregateScoresFunction().name() + " scores achieved", levelAchieved)));
+            if (hasRecord) {
+                if (processLevelMap.containsKey(process)) {
+                    processLevelMap.get(process).put(levelBarGraph.getAggregateScoresFunction().name() + " scores achieved", levelAchieved);
+                } else {
+                    processLevelMap.put(process, new HashMap<>(Map.of(levelBarGraph.getAggregateScoresFunction().name() + " scores achieved", levelAchieved)));
+                }
             }
         }
         return processLevelMap;

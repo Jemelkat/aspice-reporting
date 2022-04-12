@@ -1,6 +1,5 @@
 package com.aspicereporting.entity.items;
 
-import com.aspicereporting.entity.TextStyle;
 import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Getter;

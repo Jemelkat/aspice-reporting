@@ -33,12 +33,6 @@ public class Source {
     @Temporal(TemporalType.TIMESTAMP)
     private Date sourceCreated;
 
-    @JsonView(View.Table.class)
-    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
-    @Column(name = "source_last_updated")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date sourceLastUpdated;
-
     @JsonView(View.Detailed.class)
     @OneToMany(mappedBy = "source", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderColumn(name = "column_ordinal")

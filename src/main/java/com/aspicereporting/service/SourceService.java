@@ -4,20 +4,19 @@ import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.UserGroup;
-import com.aspicereporting.exception.EntityNotFoundException;
-import com.aspicereporting.exception.InvalidDataException;
-import com.aspicereporting.exception.SourceFileException;
-import com.aspicereporting.exception.UnauthorizedAccessException;
+import com.aspicereporting.exception.*;
 import com.aspicereporting.repository.SourceRepository;
 import com.aspicereporting.repository.UserGroupRepository;
 import com.opencsv.exceptions.CsvValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -49,7 +48,13 @@ public class SourceService {
         source.setUser(user);
         source.setSourceCreated(new Date());
 
-        sourceRepository.save(source);
+        try {
+            sourceRepository.save(source);
+        } catch (DataIntegrityViolationException e) {
+            if (e.getMostSpecificCause().getClass().getName().equals("org.postgresql.util.PSQLException") && ((SQLException) e.getMostSpecificCause()).getSQLState().equals("23505"))
+                throw new ConstraintException("There is already source with this name.", e.getMostSpecificCause());
+            throw new InvalidDataException("Error saving group", e);
+        }
     }
 
     @Transactional

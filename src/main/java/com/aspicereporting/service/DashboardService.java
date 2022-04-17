@@ -64,6 +64,8 @@ public class DashboardService {
             itemValidationService.validateItem(reportItem, true, user);
             //Bidirectional relationship
             reportItem.setDashboard(savedDashboard);
+            reportItem.setReportPage(null);
+            reportItem.setTemplate(null);
             newDashboardItems.add(reportItem);
         }
         savedDashboard.getDashboardItems().clear();

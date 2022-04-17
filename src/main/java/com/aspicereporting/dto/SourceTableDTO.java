@@ -17,8 +17,6 @@ public class SourceTableDTO {
     private String sourceName;
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private Date sourceCreated;
-    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
-    private Date sourceLastUpdated;
 
     private Boolean shared = Boolean.FALSE;
     private String sharedBy;

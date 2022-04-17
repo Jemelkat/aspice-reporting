@@ -83,7 +83,7 @@ public abstract class ReportItem implements Comparable {
 
     public User findItemOwner() {
         User owner;
-        if (this.getReportPage().getReport() != null) {
+        if (this.getReportPage() != null) {
             owner = this.getReportPage().getReport().getReportUser();
         } else if (this.getTemplate() != null) {
             owner = this.getTemplate().getTemplateUser();

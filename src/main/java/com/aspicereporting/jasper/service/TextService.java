@@ -1,6 +1,6 @@
 package com.aspicereporting.jasper.service;
 
-import com.aspicereporting.entity.TextStyle;
+import com.aspicereporting.entity.items.TextStyle;
 import com.aspicereporting.entity.items.TextItem;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.design.JRDesignStaticText;

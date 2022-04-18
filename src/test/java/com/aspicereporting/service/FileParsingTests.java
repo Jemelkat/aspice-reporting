@@ -54,7 +54,7 @@ public class FileParsingTests {
         multipartFile = new MockMultipartFile("file", file.getName(),
                 String.valueOf(MediaType.MULTIPART_FORM_DATA), stream);
         SourceFileException exception = Assertions.assertThrows(SourceFileException.class, () -> fileParsingService.parseFile(multipartFile));
-        Assertions.assertEquals("Source file has no data or headers defined.ej", exception.getMessage());
+        Assertions.assertEquals("Source file has no data or headers defined.", exception.getMessage());
     }
 
     @Test

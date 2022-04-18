@@ -65,6 +65,7 @@ public class FileParsingService {
         }
         while ((fileRow = csvReader.readNext()) != null) {
             for (int i = 0; i < sourceColumns.size(); i++) {
+                //TODO add condition to check empty lines
                 SourceData data = new SourceData();
                 data.setValue(fileRow[i]);
                 sourceColumns.get(i).addSourceData(data);

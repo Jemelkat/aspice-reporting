@@ -1,4 +1,5 @@
 package com.aspicereporting.entity.items;
+
 import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.User;
@@ -11,6 +12,8 @@ import lombok.Setter;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,10 +24,17 @@ import java.util.List;
 @DiscriminatorValue("CAPABILITY_TABLE")
 @JsonView(View.Simple.class)
 public class CapabilityTable extends ReportItem {
-    private int fontSize = 10;
+    @Min(value = 1, message = "Capability table font size must be bigger than 0.")
+    private Integer fontSize = 10;
+    @Min(value = 1, message = "Capability table process width must be bigger than 0.")
     private int processWidth = 100;
+    @Min(value = 1, message = "Capability table criterion width must be bigger than 0.")
     private int criterionWidth = 25;
+    @Min(value = 1, message = "Capability table level limit must be bigger than 0.")
+    @Max(value = 5, message = "Capability table level limit max is 5.")
     private int levelLimit = 5;
+    @Min(value = 1, message = "Capability table specific level must be bigger than 0.")
+    @Max(value = 5, message = "Capability table specific level max is 5.")
     private Integer specificLevel;
 
     @NotNull(message = "Capability table needs source defined")
@@ -44,7 +54,7 @@ public class CapabilityTable extends ReportItem {
 
     @NotNull(message = "Capability table needs process column defined")
     @ManyToOne
-    @JoinColumn(name="process_column_id")
+    @JoinColumn(name = "process_column_id")
     private SourceColumn processColumn;
     @Type(type = "list-array")
     @Column(
@@ -54,20 +64,20 @@ public class CapabilityTable extends ReportItem {
     private List<String> processFilter = new ArrayList<>();
     @NotNull(message = "Capability table needs level column defined")
     @ManyToOne
-    @JoinColumn(name="level_column_id")
+    @JoinColumn(name = "level_column_id")
     private SourceColumn levelColumn;
 
     @NotNull(message = "Capability table needs criterion column defined")
     @ManyToOne
-    @JoinColumn(name="criterion_column_id")
+    @JoinColumn(name = "criterion_column_id")
     private SourceColumn criterionColumn;
 
     @NotNull(message = "Capability table needs score column defined")
     @ManyToOne
-    @JoinColumn(name="score_column_id")
+    @JoinColumn(name = "score_column_id")
     private SourceColumn scoreColumn;
     @NotNull(message = "Capability table needs score aggregate function defined.")
-    @Column(length = 20, name = "aggregate_scores",nullable = false)
+    @Column(length = 20, name = "aggregate_scores", nullable = false)
     @Enumerated(EnumType.STRING)
     private ScoreFunction aggregateScoresFunction = ScoreFunction.MAX;
 

@@ -65,7 +65,7 @@ public class LevelPieGraph extends ReportItem{
     @NotNull(message = "Level pie graph needs score aggregate function defined.")
     @Column(length = 20, name = "aggregate_scores",nullable = false)
     @Enumerated(EnumType.STRING)
-    private ScoreFunction aggregateScoresFunction;
+    private ScoreFunction aggregateScoresFunction = ScoreFunction.MAX;
     @NotNull(message = "Level pie graph aggregate levels cannot be null. Please use true/false.")
     @Column(name = "aggregate_levels")
     private boolean aggregateLevels = false;

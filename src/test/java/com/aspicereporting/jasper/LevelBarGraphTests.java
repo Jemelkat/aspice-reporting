@@ -10,6 +10,9 @@ import com.aspicereporting.jasper.service.LevelBarGraphService;
 import com.aspicereporting.repository.SourceRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.design.JRDesignImage;
+import net.sf.jasperreports.engine.design.JasperDesign;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -19,9 +22,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 
 @ExtendWith(MockitoExtension.class)
 public class LevelBarGraphTests {
@@ -338,5 +339,17 @@ public class LevelBarGraphTests {
             Assertions.assertEquals(1, dataMap.get("SYS.5").values().iterator().next());
             Assertions.assertEquals(0, dataMap.get("SYS.4").values().iterator().next());
         }
+    }
+
+    @DisplayName("Create bar graph element test")
+    @Test
+    public void createElementTest() throws JRException {
+        JasperDesign jasperDesign = new JasperDesign();
+        Map<String, Object> parameters =  new HashMap<>();
+        JRDesignImage jrDesignImage = levelBarGraphService.createElement(jasperDesign,levelBarGraph,0, parameters);
+
+        Assertions.assertNotNull(jrDesignImage);
+        Assertions.assertEquals(1, parameters.keySet().size());
+        Assertions.assertTrue(jasperDesign.getParametersMap().containsKey("chart0"));
     }
 }

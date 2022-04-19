@@ -61,7 +61,7 @@ public class LevelBarGraphService extends BaseChartService {
         }
 
 
-        final JFreeChart chart = ChartFactory.createBarChart(levelBarGraph.getTitle(),                                   // chart title
+        final JFreeChart chart = ChartFactory.createBarChart(levelBarGraph.getTitle() != null ? levelBarGraph.getTitle() : "",                                   // chart title
                 "Process",                  // domain axis label
                 "Level",                     // range axis label
                 dataset,                            // data

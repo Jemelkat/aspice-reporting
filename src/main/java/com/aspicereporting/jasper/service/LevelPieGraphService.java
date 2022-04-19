@@ -65,7 +65,7 @@ public class LevelPieGraphService extends BaseChartService {
         }
 
         final JFreeChart chart = ChartFactory.createPieChart(
-                levelPieGraph.getTitle(),
+                levelPieGraph.getTitle() != null ? levelPieGraph.getTitle() : "",
                 dataset,
                 true,
                 true,

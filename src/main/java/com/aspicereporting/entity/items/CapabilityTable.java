@@ -21,10 +21,10 @@ import java.util.List;
 @DiscriminatorValue("CAPABILITY_TABLE")
 @JsonView(View.Simple.class)
 public class CapabilityTable extends ReportItem {
-    private int fontSize;
-    private int processWidth;
-    private int criterionWidth;
-    private int levelLimit;
+    private int fontSize = 10;
+    private int processWidth = 100;
+    private int criterionWidth = 25;
+    private int levelLimit = 5;
     private Integer specificLevel;
 
     @NotNull(message = "Capability table needs source defined")
@@ -69,7 +69,7 @@ public class CapabilityTable extends ReportItem {
     @NotNull(message = "Capability table needs score aggregate function defined.")
     @Column(length = 20, name = "aggregate_scores",nullable = false)
     @Enumerated(EnumType.STRING)
-    private ScoreFunction aggregateScoresFunction;
+    private ScoreFunction aggregateScoresFunction = ScoreFunction.MAX;
 
     public void validate() {
         if (this.source.getId() == null) {

@@ -23,7 +23,7 @@ public class TextStyle {
     private Long id;
     @NotNull(message = "Font size must be defined.")
     @Column(name = "font_size")
-    private Integer fontSize;
+    private Integer fontSize = 11;
     @Column(name = "bold")
     private boolean bold = false;
     @Column(name = "italic")
@@ -32,7 +32,7 @@ public class TextStyle {
     private boolean underline = false;
     @Pattern(regexp = "^#(?:[0-9a-fA-F]{3}){1,2}$", message = "Font color needs to be in hex format.")
     @Column(name = "color")
-    private String color;
+    private String color = "#000000";
 
     @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)

@@ -127,10 +127,8 @@ public class LevelPieGraphService extends BaseChartService {
      */
     public LinkedHashMap<String, Integer> getData(LevelPieGraph levelPieGraph) {
         //Get all unique processes and levels
-        List<String> processFilter = sourceRepository.findDistinctColumnValuesForColumn(levelPieGraph.getProcessColumn().getId());
         List<String> assessorFilter = sourceRepository.findDistinctColumnValuesForColumn(levelPieGraph.getAssessorColumn().getId());
         //Remove empty assessors "" and processes ""
-        processFilter = processFilter.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
         assessorFilter = assessorFilter.stream().filter(name -> !name.equals("")).collect(Collectors.toList());
 
         //Apply assessor filter
@@ -138,18 +136,19 @@ public class LevelPieGraphService extends BaseChartService {
             assessorFilter = assessorFilter.stream().filter(assessor -> levelPieGraph.getAssessorFilter().contains(assessor)).collect(Collectors.toList());
         }
 
+
+        Set<String> processSet = new HashSet<>();
+
+        MultiKeyMap valuesMap = prepareDataMap(levelPieGraph, processSet, assessorFilter);
+        List<String> processList = new ArrayList<>(processSet);
         //Sort alphabetically
-        Collections.sort(processFilter, new NaturalOrderComparator());
-
-
-        MultiKeyMap valuesMap = prepareDataMap(levelPieGraph, processFilter, assessorFilter);
-
+        Collections.sort(processList, new NaturalOrderComparator());
 
         LinkedHashMap<String, Integer> processLevelMap;
         if (levelPieGraph.isAggregateLevels()) {
-            processLevelMap = getLevelsByLevel(levelPieGraph, valuesMap, processFilter, assessorFilter);
+            processLevelMap = getLevelsByLevel(levelPieGraph, valuesMap, processList, assessorFilter);
         } else {
-            processLevelMap = getLevelsByScore(levelPieGraph, valuesMap, processFilter);
+            processLevelMap = getLevelsByScore(levelPieGraph, valuesMap, processList);
         }
 
         //Initialize counts for each level
@@ -191,7 +190,7 @@ public class LevelPieGraphService extends BaseChartService {
      * Returns data in map format for easier lookup
      * {(process,attribute): [{criterion1:[{assessor1: score,assessor2: score}]},{criterion2: [{assessor1: score,assessor2: score}]},...}
      */
-    private MultiKeyMap prepareDataMap(LevelPieGraph levelPieGraph, List<String> processFilter, List<String> assessorFilter) {
+    private MultiKeyMap prepareDataMap(LevelPieGraph levelPieGraph, Set<String> processSet, List<String> assessorFilter) {
         //MultiKey map to store value for each process, level combination - {(process, attribute) : (criterion: [value])}
         MultiKeyMap valuesMap = new MultiKeyMap();
         for (int i = 0; i < levelPieGraph.getScoreColumn().getSourceData().size(); i++) {
@@ -201,16 +200,18 @@ public class LevelPieGraphService extends BaseChartService {
             String score = levelPieGraph.getScoreColumn().getSourceData().get(i).getValue();
             String assessor = levelPieGraph.getAssessorColumn().getSourceData().get(i).getValue();
 
-            //Filter by process
-            if (!processFilter.contains(process)) {
-                continue;
-            }
+
             //Filter by assessor
             if (!levelPieGraph.getAssessorFilter().isEmpty()) {
                 if (!assessorFilter.contains(assessor)) {
                     continue;
                 }
             }
+
+            if(process.equals("")) {
+                continue;
+            }
+            processSet.add(process);
 
             MultiKey key = new MultiKey(process, attribute);
             //If we already have record for this process attribute combination
@@ -319,7 +320,7 @@ public class LevelPieGraphService extends BaseChartService {
                         try {
                             scoresList = convertScoresToDoubles(stringScoreList);
                         } catch (JasperReportException e) {
-                            throw new JasperReportException("Level bar graph score column contains unknown value: ", e);
+                            throw new JasperReportException("Level pie graph score column contains unknown value: ", e);
                         }
 
                         //Get attribute score achieved as (sum of scores/count of scores)

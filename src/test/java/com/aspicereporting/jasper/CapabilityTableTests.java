@@ -9,6 +9,10 @@ import com.aspicereporting.exception.JasperReportException;
 import com.aspicereporting.jasper.model.SimpleTableModel;
 import com.aspicereporting.jasper.service.CapabilityTableService;
 import com.aspicereporting.repository.SourceRepository;
+import net.sf.jasperreports.components.table.StandardTable;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.design.JRDesignComponentElement;
+import net.sf.jasperreports.engine.design.JasperDesign;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -19,13 +23,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.validation.Validation;
-import javax.validation.Validator;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -317,6 +316,21 @@ public class CapabilityTableTests {
             Assertions.assertEquals(criterions.get(col), dataTable.getColumnName(col));
         }
     }
+
+    @DisplayName("Create capability table element test")
+    @Test
+    public void createElementTest() throws JRException {
+        JasperDesign jasperDesign = new JasperDesign();
+        Map<String, Object> parameters =  new HashMap<>();
+        JRDesignComponentElement element = capabilityTableService.createElement(jasperDesign,capabilityTable,0, parameters);
+
+        Assertions.assertEquals("tableDataset0", ((StandardTable)element.getComponent()).getDatasetRun().getDatasetName());
+        Assertions.assertEquals(3, ((StandardTable)element.getComponent()).getColumns().size());
+        Assertions.assertEquals(6, jasperDesign.getDatasetMap().get("tableDataset0").getFields().length);
+        Assertions.assertEquals(1, parameters.size());
+        Assertions.assertTrue(parameters.keySet().contains("tableData0"));
+    }
+
     public static Stream<Arguments> maxLevelsInputs() {
         return Stream.of(
                 arguments(1, 4, Arrays.asList("Process Name", "BP1", "BP2", "BP3")),

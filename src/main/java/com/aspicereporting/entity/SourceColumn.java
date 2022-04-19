@@ -40,6 +40,11 @@ public class SourceColumn {
         this.columnName = columnName;
     }
 
+    public SourceColumn(Long id, String columnName) {
+        this.id = id;
+        this.columnName = columnName;
+    }
+
     public void addSourceData(SourceData sourceData) {
         sourceData.setSourceColumn(this);
         this.sourceData.add(sourceData);

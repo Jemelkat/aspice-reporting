@@ -72,14 +72,14 @@ public class LevelBarGraph extends ReportItem {
     @NotNull(message = "Level bar graph scores aggregate function cannot be null.")
     @Column(length = 20, name = "aggregate_scores",nullable = false)
     @Enumerated(EnumType.STRING)
-    private ScoreFunction aggregateScoresFunction;
+    private ScoreFunction aggregateScoresFunction = ScoreFunction.NONE;
     @NotNull(message = "Level bar graph aggregate levels cannot be null. Please use true/false.")
     @Column(name = "aggregate_levels")
     private boolean aggregateLevels = false;
     @NotNull(message = "Level bar graph sources aggregate function cannot be null.")
     @Column(length = 20, name = "aggregate_sources",nullable = false)
     @Enumerated(EnumType.STRING)
-    private ScoreFunction aggregateSourcesFunction;
+    private ScoreFunction aggregateSourcesFunction = ScoreFunction.NONE;
 
     public void validate() {
 

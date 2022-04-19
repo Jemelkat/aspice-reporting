@@ -36,7 +36,7 @@ public class LevelBarGraph extends ReportItem {
     @NotNull(message = "Level bar graph needs orientation defined.")
     @Column(length = 20, name = "orientation",nullable = false)
     @Enumerated(EnumType.STRING)
-    private Orientation orientation;
+    private Orientation orientation = Orientation.HORIZONTAL;
 
 
     @NotEmpty(message = "Level bar graph needs sources.")

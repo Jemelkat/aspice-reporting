@@ -30,14 +30,13 @@ public class LevelBarGraphTests {
     private SourceRepository sourceRepository;
 
     @InjectMocks
-    private static LevelBarGraphService levelBarGraphService;
+    private LevelBarGraphService levelBarGraphService;
 
     private static Source source;
     private LevelBarGraph levelBarGraph;
 
     @BeforeAll
     public static void init() {
-        levelBarGraphService = new LevelBarGraphService();
         source = new Source();
 
         SourceColumn assessor = new SourceColumn(0L, "Assessor");
@@ -171,7 +170,7 @@ public class LevelBarGraphTests {
     }
 
     @Test
-    @DisplayName("Process and assesor filter.")
+    @DisplayName("Process and assessor filter.")
     public void processAndAssessorFilterTest() {
         levelBarGraph.setProcessFilter(Arrays.asList("SYS.5"));
         levelBarGraph.setAssessorFilter(Arrays.asList("Jakub"));

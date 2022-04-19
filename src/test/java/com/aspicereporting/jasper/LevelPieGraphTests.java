@@ -7,11 +7,8 @@ import com.aspicereporting.entity.enums.ScoreFunction;
 import com.aspicereporting.entity.items.LevelBarGraph;
 import com.aspicereporting.entity.items.LevelPieGraph;
 import com.aspicereporting.exception.JasperReportException;
-import com.aspicereporting.jasper.service.LevelBarGraphService;
 import com.aspicereporting.jasper.service.LevelPieGraphService;
 import com.aspicereporting.repository.SourceRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -32,14 +29,13 @@ public class LevelPieGraphTests {
     private SourceRepository sourceRepository;
 
     @InjectMocks
-    private static LevelPieGraphService levelPieGraphService;
+    private LevelPieGraphService levelPieGraphService;
 
     private static Source source;
     private LevelPieGraph levelPieGraph;
 
     @BeforeAll
     public static void init() {
-        levelPieGraphService = new LevelPieGraphService();
         source = new Source();
 
         SourceColumn assessor = new SourceColumn(0L, "Assessor");

@@ -9,6 +9,9 @@ import com.aspicereporting.entity.items.LevelPieGraph;
 import com.aspicereporting.exception.JasperReportException;
 import com.aspicereporting.jasper.service.LevelPieGraphService;
 import com.aspicereporting.repository.SourceRepository;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.design.JRDesignImage;
+import net.sf.jasperreports.engine.design.JasperDesign;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -18,9 +21,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 
 @ExtendWith(MockitoExtension.class)
 public class LevelPieGraphTests {
@@ -233,5 +234,17 @@ public class LevelPieGraphTests {
             Assertions.assertEquals(1, dataMap.get("Level 2"));
             Assertions.assertEquals(1, dataMap.get("Level 1"));
         }
+    }
+
+    @DisplayName("Create pie graph element test")
+    @Test
+    public void createElementTest() throws JRException {
+        JasperDesign jasperDesign = new JasperDesign();
+        Map<String, Object> parameters =  new HashMap<>();
+        JRDesignImage jrDesignImage = levelPieGraphService.createElement(jasperDesign,levelPieGraph,0, parameters);
+
+        Assertions.assertNotNull(jrDesignImage);
+        Assertions.assertEquals(1, parameters.keySet().size());
+        Assertions.assertTrue(jasperDesign.getParametersMap().containsKey("chart0"));
     }
 }

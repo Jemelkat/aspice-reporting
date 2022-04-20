@@ -184,6 +184,7 @@ public class ItemValidationService {
                 levelBarGraph.setAssessorColumnName(null);
                 levelBarGraph.setProcessColumnName(null);
                 levelBarGraph.setAttributeColumnName(null);
+                levelBarGraph.setCriterionColumnName(null);
                 levelBarGraph.setScoreColumnName(null);
             } else {
                 throw new InvalidDataException("Level bar graph needs sources defined.");

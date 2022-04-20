@@ -4,7 +4,6 @@ import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.SourceData;
 import com.aspicereporting.entity.enums.ScoreFunction;
-import com.aspicereporting.entity.items.LevelBarGraph;
 import com.aspicereporting.entity.items.LevelPieGraph;
 import com.aspicereporting.exception.JasperReportException;
 import com.aspicereporting.jasper.service.LevelPieGraphService;

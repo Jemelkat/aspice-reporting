@@ -6,7 +6,6 @@ import com.aspicereporting.entity.enums.ItemType;
 import com.aspicereporting.entity.items.CapabilityTable;
 import com.aspicereporting.entity.items.LevelBarGraph;
 import com.aspicereporting.entity.items.LevelPieGraph;
-import com.aspicereporting.entity.items.ReportItem;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.jasper.service.LevelBarGraphService;
@@ -18,7 +17,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
@@ -26,8 +24,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class DashboardTests {

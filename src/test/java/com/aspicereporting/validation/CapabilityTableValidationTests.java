@@ -5,7 +5,6 @@ import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.enums.ItemType;
 import com.aspicereporting.entity.items.CapabilityTable;
-import com.aspicereporting.entity.items.LevelPieGraph;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.repository.SourceRepository;

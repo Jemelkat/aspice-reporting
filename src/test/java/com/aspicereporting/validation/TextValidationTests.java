@@ -1,16 +1,11 @@
 package com.aspicereporting.validation;
 
-import com.aspicereporting.entity.Source;
-import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.enums.ItemType;
-import com.aspicereporting.entity.items.SimpleTable;
-import com.aspicereporting.entity.items.TableColumn;
 import com.aspicereporting.entity.items.TextItem;
 import com.aspicereporting.entity.items.TextStyle;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -18,7 +13,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import javax.validation.Validation;
 import javax.validation.Validator;
-import java.util.Arrays;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.params.provider.Arguments.arguments;

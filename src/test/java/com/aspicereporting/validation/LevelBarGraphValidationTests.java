@@ -2,17 +2,14 @@ package com.aspicereporting.validation;
 
 import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.SourceColumn;
-import com.aspicereporting.entity.SourceData;
 import com.aspicereporting.entity.User;
 import com.aspicereporting.entity.enums.ItemType;
 import com.aspicereporting.entity.items.LevelBarGraph;
-import com.aspicereporting.entity.items.LevelPieGraph;
 import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.repository.SourceRepository;
 import com.aspicereporting.service.ItemValidationService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.bytebuddy.description.method.ParameterDescription;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;

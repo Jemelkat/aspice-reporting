@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
@@ -22,8 +23,9 @@ public class TextStyle {
     @Column(name = "style_id")
     private Long id;
     @NotNull(message = "Font size must be defined.")
+    @Min(value = 1, message = "Font size must be bigger than 0.")
     @Column(name = "font_size")
-    private Integer fontSize;
+    private Integer fontSize = 11;
     @Column(name = "bold")
     private boolean bold = false;
     @Column(name = "italic")
@@ -32,15 +34,11 @@ public class TextStyle {
     private boolean underline = false;
     @Pattern(regexp = "^#(?:[0-9a-fA-F]{3}){1,2}$", message = "Font color needs to be in hex format.")
     @Column(name = "color")
-    private String color;
+    private String color = "#000000";
 
     @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)
     private TextItem textItem;
-
-    public boolean isFilled() {
-        return (fontSize != null && !fontSize.equals(11)) || bold || italic || underline || (color != null && !color.isEmpty() && !color.equals("#000000"));
-    }
 
     public boolean isSame(TextStyle otherStyle) {
         return fontSize.equals(otherStyle.fontSize) &&

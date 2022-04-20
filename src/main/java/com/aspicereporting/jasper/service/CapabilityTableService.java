@@ -39,7 +39,6 @@ public class CapabilityTableService extends BaseTableService {
 
     private List<String> columnArray = new ArrayList<>();
     private static int tablesCounter = 0;
-    private boolean levelMeasured = true;
 
     /**
      * Creates JRDesign element which can be added to JasperDesign
@@ -171,7 +170,7 @@ public class CapabilityTableService extends BaseTableService {
     /**
      * Gets all result data based on item settings
      */
-    private SimpleTableModel getData(CapabilityTable capabilityTable, Map<String, LinkedHashSet<String>> levelAttributesMap) {
+    public SimpleTableModel getData(CapabilityTable capabilityTable, Map<String, LinkedHashSet<String>> levelAttributesMap) {
 
         //Get all unique processes, levels and assessors
         List<String> assessorFilter = sourceRepository.findDistinctColumnValuesForColumn(capabilityTable.getAssessorColumn().getId());
@@ -198,7 +197,7 @@ public class CapabilityTableService extends BaseTableService {
         valuesMap = aggregateScores(capabilityTable, valuesMap);
 
         //Create table model for jasper from data
-        return getData(valuesMap, levelAttributesMap, allProcessSet);
+        return prepareDataModel(valuesMap, levelAttributesMap, allProcessSet);
     }
 
     /**
@@ -250,7 +249,7 @@ public class CapabilityTableService extends BaseTableService {
         //Return only specific or max N levels
         if (capabilityTable.getSpecificLevel() != null) {
             if (capabilityTable.getSpecificLevel() > allLevelsList.size()) {
-                levelMeasured = false;
+                valuesMap.clear();
             } else {
                 String specificLevel = allLevelsList.get(capabilityTable.getSpecificLevel() - 1);
                 for (var key : new HashSet<>(valuesMap.keySet())) {
@@ -281,7 +280,6 @@ public class CapabilityTableService extends BaseTableService {
             } else {
                 levelCriterionsMap.put(level, new LinkedHashSet<>());
                 levelCriterionsMap.get(level).add((String) multiKey.getKey(2));
-
             }
         }
 
@@ -291,7 +289,7 @@ public class CapabilityTableService extends BaseTableService {
     /**
      * Method creates SimpleTableModel with scores for each process and performance criterion based on data in valuesMap
      */
-    private SimpleTableModel getData(MultiKeyMap valuesMap, Map<String, LinkedHashSet<String>> levelCriterionsMap, Set<String> allProcessSet) {
+    private SimpleTableModel prepareDataModel(MultiKeyMap valuesMap, Map<String, LinkedHashSet<String>> levelCriterionsMap, Set<String> allProcessSet) {
         List<String> sortedCriterions = new ArrayList(levelCriterionsMap.keySet());
         Collections.sort(sortedCriterions, new NaturalOrderComparator());
         //Sort criterion scores for each level - criterions need to be sorted in result table

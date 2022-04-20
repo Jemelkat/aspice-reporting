@@ -7,6 +7,7 @@ import com.aspicereporting.exception.SourceFileException;
 import com.aspicereporting.utils.CsvFileUtils;
 import com.opencsv.*;
 import com.opencsv.exceptions.CsvValidationException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,14 +22,36 @@ import java.util.List;
 
 @Service
 public class FileParsingService {
-    public Source parseCSVFile(MultipartFile file) throws CsvValidationException, IOException {
+    public Source parseFile(MultipartFile file) {
+        if (file == null) {
+            throw new SourceFileException("Cannot read null file.");
+        }
+
+        String fileName = file.getOriginalFilename();
+        Source source;
+        try {
+            if (fileName.toLowerCase().endsWith(".csv")) {
+                source = parseCSVFile(file);
+            } else if (fileName.toLowerCase().endsWith(".xlsx") || fileName.toLowerCase().endsWith(".xls")) {
+                source = parseExcelFile(file);
+            } else {
+                throw new IOException();
+            }
+        } catch (CsvValidationException | IOException e) {
+            throw new SourceFileException("Cannot read uploaded file.", e);
+        }
+        return source;
+    }
+
+
+    private Source parseCSVFile(MultipartFile file) throws CsvValidationException, IOException {
         CSVParser parser = new CSVParserBuilder().withSeparator(CsvFileUtils.detectDelimiter(file.getInputStream())).build();
         CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(file.getInputStream())).withCSVParser(parser).build();
         assert csvReader != null;
         String[] fileRow = csvReader.readNext();
 
-        if (fileRow == null) {
-            throw new SourceFileException("Source file has no data.");
+        if (fileRow == null || fileRow.length == 0 || (fileRow.length == 1 && fileRow[0].equals("") && csvReader.peek() == null)) {
+            throw new SourceFileException("Source file has no data or headers defined.");
         }
 
         //Create new source with columns
@@ -42,6 +65,7 @@ public class FileParsingService {
         }
         while ((fileRow = csvReader.readNext()) != null) {
             for (int i = 0; i < sourceColumns.size(); i++) {
+                //TODO add condition to check empty lines
                 SourceData data = new SourceData();
                 data.setValue(fileRow[i]);
                 sourceColumns.get(i).addSourceData(data);
@@ -53,21 +77,23 @@ public class FileParsingService {
         return source;
     }
 
-    public Source parseExcelFile(MultipartFile file) throws IOException {
+    private Source parseExcelFile(MultipartFile file) throws IOException {
         Workbook workbook = WorkbookFactory.create(file.getInputStream());
         Sheet sheet = workbook.getSheetAt(0);
         Source source = new Source();
 
         Iterator<Row> fileIterator = sheet.iterator();
-        if(!fileIterator.hasNext()) {
-            throw new SourceFileException("Source file has no data.");
-        }
+
         //Create columns from first row - header rows
         List<SourceColumn> sourceColumns = new ArrayList<>();
         Row headerRow = fileIterator.next();
-        for(Cell cell : headerRow) {
+        if(isRowEmpty(headerRow)) {
+            throw new SourceFileException("Source file has no data or headers defined.");
+        }
+
+        for (int i = 0; i < headerRow.getLastCellNum(); i++) {
             SourceColumn sourceColumn = new SourceColumn();
-            sourceColumn.setColumnName(cell.getStringCellValue());
+            sourceColumn.setColumnName(headerRow.getCell(i, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).getStringCellValue());
             sourceColumn.setSource(source);
             sourceColumns.add(sourceColumn);
         }
@@ -75,7 +101,7 @@ public class FileParsingService {
         //Add data to each row
         while (fileIterator.hasNext()) {
             Row row = fileIterator.next();
-            for(int i=0; i<sourceColumns.size(); i++) {
+            for (int i = 0; i < sourceColumns.size(); i++) {
                 SourceData data = new SourceData();
                 String cellValue = "";
                 Cell cell = row.getCell(i, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
@@ -115,6 +141,10 @@ public class FileParsingService {
 
     public ByteArrayOutputStream parseSourceToCSV(Source source) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        if(source == null) {
+            return outputStream;
+        }
+
         try {
             CSVWriter csvWriter = new CSVWriter(new OutputStreamWriter(outputStream), ',',
                     CSVWriter.NO_QUOTE_CHARACTER,
@@ -158,5 +188,21 @@ public class FileParsingService {
             throw new SourceFileException("Error creating CSV from source", e);
         }
         return outputStream;
+    }
+
+    private boolean isRowEmpty(Row row) {
+        if (row == null) {
+            return true;
+        }
+        if (row.getLastCellNum() <= 0) {
+            return true;
+        }
+        for (int cellNum = row.getFirstCellNum(); cellNum < row.getLastCellNum(); cellNum++) {
+            Cell cell = row.getCell(cellNum);
+            if (cell != null && cell.getCellType() != CellType.BLANK && StringUtils.isNotBlank(cell.toString())) {
+                return false;
+            }
+        }
+        return true;
     }
 }

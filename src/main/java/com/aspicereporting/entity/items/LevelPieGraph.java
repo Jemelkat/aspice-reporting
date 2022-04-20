@@ -65,28 +65,28 @@ public class LevelPieGraph extends ReportItem{
     @NotNull(message = "Level pie graph needs score aggregate function defined.")
     @Column(length = 20, name = "aggregate_scores",nullable = false)
     @Enumerated(EnumType.STRING)
-    private ScoreFunction aggregateScoresFunction;
+    private ScoreFunction aggregateScoresFunction = ScoreFunction.MAX;
     @NotNull(message = "Level pie graph aggregate levels cannot be null. Please use true/false.")
     @Column(name = "aggregate_levels")
     private boolean aggregateLevels = false;
 
     public void validate() {
-        if (this.source.getId() == null) {
+        if (this.source == null || this.source.getId() == null) {
             throw new InvalidDataException("Level pie graph has no source defined.");
         }
-        if (this.assessorColumn.getId() == null) {
+        if (this.assessorColumn == null || this.assessorColumn.getId() == null) {
             throw new InvalidDataException("Level pie graph has no assessor column defined.");
         }
-        if (this.processColumn.getId() == null) {
+        if (this.processColumn == null || this.processColumn.getId() == null) {
             throw new InvalidDataException("Level pie graph has no process defined.");
         }
-        if (this.criterionColumn.getId() == null) {
+        if (this.criterionColumn == null || this.criterionColumn.getId() == null) {
             throw new InvalidDataException("Level pie graph has no performance criterion column defined.");
         }
-        if (this.attributeColumn.getId() == null) {
+        if (this.attributeColumn == null ||this.attributeColumn.getId() == null) {
             throw new InvalidDataException("Level pie graph has no capability level column defined.");
         }
-        if (this.scoreColumn.getId() == null) {
+        if (this.scoreColumn == null || this.scoreColumn.getId() == null) {
             throw new InvalidDataException("Level pie graph has no score column defined.");
         }
     }

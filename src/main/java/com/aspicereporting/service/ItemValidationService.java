@@ -13,6 +13,7 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -28,8 +29,8 @@ public class ItemValidationService {
         }
     }
 
-    public void validateItemWithValid(@Valid ReportItem reportItem, boolean allowUndefinedData, User user) {
-        validateItem(reportItem, allowUndefinedData, user);
+    public void validateItemWithValid(@Valid ReportItem reportItem, User user) {
+        validateItem(reportItem, false, user);
     }
 
     public void validateItem(ReportItem reportItem, boolean allowUndefinedData, User user) {
@@ -68,6 +69,7 @@ public class ItemValidationService {
                 //Clear all other columns if source is not defined
                 for (var column : simpleTable.getTableColumns()) {
                     column.setSourceColumn(null);
+                    column.setId(null);
                 }
             } else {
                 throw new InvalidDataException("Simple table id = " + simpleTable.getId() + " needs source defined.");
@@ -82,13 +84,9 @@ public class ItemValidationService {
             simpleTable.getTableColumns().forEach(tableColumn -> {
                 if (tableColumn.getSourceColumn() != null) {
                     //Validate if column exists in source
-                    Optional<SourceColumn> columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(tableColumn.getSourceColumn().getId())).findFirst();
+                    Optional<SourceColumn> columnExists = source.getSourceColumns().stream().filter((c) -> Objects.equals(c.getId(),tableColumn.getSourceColumn().getId())).findFirst();
                     if (columnExists.isEmpty()) {
                         throw new EntityNotFoundException("Invalid source column: " + tableColumn.getSourceColumn().getColumnName() + " for this simple table source");
-                    }
-                } else {
-                    if (!allowUndefinedData) {
-                        throw new InvalidDataException("Simple table id = "+ simpleTable.getId() + " needs column selected for all table columns.");
                     }
                 }
                 tableColumn.setId(null);
@@ -110,10 +108,12 @@ public class ItemValidationService {
         if (sourceId == null) {
             if (allowUndefinedData) {
                 //Clear all other columns if source is not defined
+                capabilityTable.setAssessorColumn(null);
                 capabilityTable.setProcessColumn(null);
                 capabilityTable.setCriterionColumn(null);
                 capabilityTable.setLevelColumn(null);
                 capabilityTable.setScoreColumn(null);
+                capabilityTable.getAssessorFilter().clear();
             } else {
                 throw new InvalidDataException("Capability table needs source defined.");
             }
@@ -125,48 +125,39 @@ public class ItemValidationService {
             }
             Optional<SourceColumn> columnExists = Optional.empty();
 
+            //ASSESSOR VALIDATE
+            if (capabilityTable.getAssessorColumn() != null) {
+                columnExists = source.getSourceColumns().stream().filter((c) -> Objects.equals(c.getId() ,capabilityTable.getAssessorColumn().getId())).findFirst();
+                if (columnExists.isEmpty()) {
+                    throw new EntityNotFoundException("Invalid source column id=" + capabilityTable.getAssessorColumn().getId() + " for source id=" + sourceId);
+                }
+            }
             //PROCESS VALIDATE
             if (capabilityTable.getProcessColumn() != null) {
-                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capabilityTable.getProcessColumn().getId())).findFirst();
+                columnExists = source.getSourceColumns().stream().filter((c) -> Objects.equals(c.getId() ,capabilityTable.getProcessColumn().getId())).findFirst();
                 if (columnExists.isEmpty()) {
                     throw new EntityNotFoundException("Invalid source column id=" + capabilityTable.getProcessColumn().getId() + " for source id=" + sourceId);
-                }
-            } else {
-                if (!allowUndefinedData) {
-                    throw new InvalidDataException("Capability table needs process column defined.");
                 }
             }
             //LEVEL VALIDATE
             if (capabilityTable.getLevelColumn() != null) {
-                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capabilityTable.getLevelColumn().getId())).findFirst();
+                columnExists = source.getSourceColumns().stream().filter((c) -> Objects.equals(c.getId(),capabilityTable.getLevelColumn().getId())).findFirst();
                 if (columnExists.isEmpty()) {
                     throw new EntityNotFoundException("Invalid source column id=" + capabilityTable.getLevelColumn().getId() + " for source id=" + sourceId);
-                }
-            } else {
-                if (!allowUndefinedData) {
-                    throw new InvalidDataException("Capability table needs level column defined.");
                 }
             }
             //CRITERION VALIDATE
             if (capabilityTable.getCriterionColumn() != null) {
-                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capabilityTable.getCriterionColumn().getId())).findFirst();
+                columnExists = source.getSourceColumns().stream().filter((c) -> Objects.equals(c.getId(),capabilityTable.getCriterionColumn().getId())).findFirst();
                 if (columnExists.isEmpty()) {
                     throw new EntityNotFoundException("Invalid source column id=" + capabilityTable.getCriterionColumn().getId() + " for source id=" + sourceId);
-                }
-            } else {
-                if (!allowUndefinedData) {
-                    throw new InvalidDataException("Capability table needs criterion column defined.");
                 }
             }
             //SCORE VALIDATE
             if (capabilityTable.getScoreColumn() != null) {
-                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capabilityTable.getScoreColumn().getId())).findFirst();
+                columnExists = source.getSourceColumns().stream().filter((c) -> Objects.equals(c.getId(),capabilityTable.getScoreColumn().getId())).findFirst();
                 if (columnExists.isEmpty()) {
                     throw new EntityNotFoundException("Invalid source column id=" + capabilityTable.getScoreColumn().getId() + " for source id=" + sourceId);
-                }
-            } else {
-                if (!allowUndefinedData) {
-                    throw new InvalidDataException("Capability table needs score column defined.");
                 }
             }
             source.addCapabilityTable(capabilityTable);
@@ -184,7 +175,9 @@ public class ItemValidationService {
                 levelBarGraph.setAssessorColumnName(null);
                 levelBarGraph.setProcessColumnName(null);
                 levelBarGraph.setAttributeColumnName(null);
+                levelBarGraph.setCriterionColumnName(null);
                 levelBarGraph.setScoreColumnName(null);
+                levelBarGraph.getAssessorFilter().clear();
             } else {
                 throw new InvalidDataException("Level bar graph needs sources defined.");
             }
@@ -215,10 +208,12 @@ public class ItemValidationService {
         if (sourceId == null) {
             if (allowUndefinedData) {
                 //Clear all other columns if source is not defined
+                levelPieGraph.setAssessorColumn(null);
                 levelPieGraph.setProcessColumn(null);
                 levelPieGraph.setAttributeColumn(null);
                 levelPieGraph.setCriterionColumn(null);
                 levelPieGraph.setScoreColumn(null);
+                levelPieGraph.getAssessorFilter().clear();
             } else {
                 throw new InvalidDataException("Level pie graph needs source defined.");
             }
@@ -229,48 +224,39 @@ public class ItemValidationService {
                 throw new EntityNotFoundException("Source id= " + sourceId + " does not exist");
             }
             Optional<SourceColumn> columnExists = Optional.empty();
+            //ASSESSOR VALIDATE
+            if (levelPieGraph.getAssessorColumn() != null) {
+                columnExists = source.getSourceColumns().stream().filter((c) -> Objects.equals(c.getId(),levelPieGraph.getAssessorColumn().getId())).findFirst();
+                if (columnExists.isEmpty()) {
+                    throw new EntityNotFoundException("Invalid source column id=" + levelPieGraph.getAssessorColumn().getId() + " for source id=" + sourceId);
+                }
+            }
             //PROCESS VALIDATE
             if (levelPieGraph.getProcessColumn() != null) {
-                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(levelPieGraph.getProcessColumn().getId())).findFirst();
+                columnExists = source.getSourceColumns().stream().filter((c) -> Objects.equals(c.getId(),levelPieGraph.getProcessColumn().getId())).findFirst();
                 if (columnExists.isEmpty()) {
                     throw new EntityNotFoundException("Invalid source column id=" + levelPieGraph.getProcessColumn().getId() + " for source id=" + sourceId);
                 }
-            } else {
-                if (!allowUndefinedData) {
-                    throw new InvalidDataException("Level pie graph needs process column defined.");
-                }
             }
-            //LEVEL VALIDATE
+            //CRITERION VALIDATE
             if (levelPieGraph.getCriterionColumn() != null) {
-                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(levelPieGraph.getCriterionColumn().getId())).findFirst();
+                columnExists = source.getSourceColumns().stream().filter((c) -> Objects.equals(c.getId(),levelPieGraph.getCriterionColumn().getId())).findFirst();
                 if (columnExists.isEmpty()) {
                     throw new EntityNotFoundException("Invalid source column id=" + levelPieGraph.getCriterionColumn().getId() + " for source id=" + sourceId);
-                }
-            } else {
-                if (!allowUndefinedData) {
-                    throw new InvalidDataException("Level pie graph needs level column defined.");
                 }
             }
             //ATTRIBUTE VALIDATE
             if (levelPieGraph.getAttributeColumn() != null) {
-                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(levelPieGraph.getAttributeColumn().getId())).findFirst();
+                columnExists = source.getSourceColumns().stream().filter((c) -> Objects.equals(c.getId(),levelPieGraph.getAttributeColumn().getId())).findFirst();
                 if (columnExists.isEmpty()) {
                     throw new EntityNotFoundException("Invalid source column id=" + levelPieGraph.getAttributeColumn().getId() + " for source id=" + sourceId);
-                }
-            } else {
-                if (!allowUndefinedData) {
-                    throw new InvalidDataException("Level pie graph needs attribute column defined.");
                 }
             }
             //SCORE VALIDATE
             if (levelPieGraph.getScoreColumn() != null) {
-                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(levelPieGraph.getScoreColumn().getId())).findFirst();
+                columnExists = source.getSourceColumns().stream().filter((c) -> Objects.equals(c.getId(),levelPieGraph.getScoreColumn().getId())).findFirst();
                 if (columnExists.isEmpty()) {
                     throw new EntityNotFoundException("Invalid source column id=" + levelPieGraph.getScoreColumn().getId() + " for source id=" + sourceId);
-                }
-            } else {
-                if (!allowUndefinedData) {
-                    throw new InvalidDataException("Level pie graph needs score column defined.");
                 }
             }
             source.addLevelPieGraph(levelPieGraph);

@@ -46,10 +46,4 @@ public class ReportPage {
     @JoinColumn(name = "report_id", referencedColumnName = "report_id")
     @JsonIgnore
     private Report report;
-
-
-    public void addReportItem(ReportItem item) {
-        this.reportItems.add(item);
-        item.setReportPage(this);
-    }
 }

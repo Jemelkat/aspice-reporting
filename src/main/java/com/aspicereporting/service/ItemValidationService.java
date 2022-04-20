@@ -111,10 +111,12 @@ public class ItemValidationService {
         if (sourceId == null) {
             if (allowUndefinedData) {
                 //Clear all other columns if source is not defined
+                capabilityTable.setAssessorColumn(null);
                 capabilityTable.setProcessColumn(null);
                 capabilityTable.setCriterionColumn(null);
                 capabilityTable.setLevelColumn(null);
                 capabilityTable.setScoreColumn(null);
+                capabilityTable.getAssessorFilter().clear();
             } else {
                 throw new InvalidDataException("Capability table needs source defined.");
             }
@@ -126,15 +128,18 @@ public class ItemValidationService {
             }
             Optional<SourceColumn> columnExists = Optional.empty();
 
+            //ASSESSOR VALIDATE
+            if (capabilityTable.getAssessorColumn() != null) {
+                columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capabilityTable.getAssessorColumn().getId())).findFirst();
+                if (columnExists.isEmpty()) {
+                    throw new EntityNotFoundException("Invalid source column id=" + capabilityTable.getAssessorColumn().getId() + " for source id=" + sourceId);
+                }
+            }
             //PROCESS VALIDATE
             if (capabilityTable.getProcessColumn() != null) {
                 columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capabilityTable.getProcessColumn().getId())).findFirst();
                 if (columnExists.isEmpty()) {
                     throw new EntityNotFoundException("Invalid source column id=" + capabilityTable.getProcessColumn().getId() + " for source id=" + sourceId);
-                }
-            } else {
-                if (!allowUndefinedData) {
-                    throw new InvalidDataException("Capability table needs process column defined.");
                 }
             }
             //LEVEL VALIDATE
@@ -143,10 +148,6 @@ public class ItemValidationService {
                 if (columnExists.isEmpty()) {
                     throw new EntityNotFoundException("Invalid source column id=" + capabilityTable.getLevelColumn().getId() + " for source id=" + sourceId);
                 }
-            } else {
-                if (!allowUndefinedData) {
-                    throw new InvalidDataException("Capability table needs level column defined.");
-                }
             }
             //CRITERION VALIDATE
             if (capabilityTable.getCriterionColumn() != null) {
@@ -154,20 +155,12 @@ public class ItemValidationService {
                 if (columnExists.isEmpty()) {
                     throw new EntityNotFoundException("Invalid source column id=" + capabilityTable.getCriterionColumn().getId() + " for source id=" + sourceId);
                 }
-            } else {
-                if (!allowUndefinedData) {
-                    throw new InvalidDataException("Capability table needs criterion column defined.");
-                }
             }
             //SCORE VALIDATE
             if (capabilityTable.getScoreColumn() != null) {
                 columnExists = source.getSourceColumns().stream().filter((c) -> c.getId().equals(capabilityTable.getScoreColumn().getId())).findFirst();
                 if (columnExists.isEmpty()) {
                     throw new EntityNotFoundException("Invalid source column id=" + capabilityTable.getScoreColumn().getId() + " for source id=" + sourceId);
-                }
-            } else {
-                if (!allowUndefinedData) {
-                    throw new InvalidDataException("Capability table needs score column defined.");
                 }
             }
             source.addCapabilityTable(capabilityTable);

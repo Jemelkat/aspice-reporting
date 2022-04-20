@@ -41,39 +41,38 @@ public class TemplateService {
     }
 
     public Template getTemplateById(Long id, User user) {
-        Template test = templateRepository.findByTemplateUserAndId(user, id);
-        return test;
+        return templateRepository.findByTemplateUserAndId(user, id);
     }
 
-    public Template saveOrEditTemplate(Template updatedTemplate, User user) {
-        Template oldTemplate;
+    public Template saveOrEditTemplate(Template template, User user) {
+        Template newTemplate;
         Date changeDate = new Date();
         //Update
-        if (updatedTemplate.getId() != null) {
-            oldTemplate = getTemplateById(updatedTemplate.getId(), user);
-            if (oldTemplate == null) {
-                throw new EntityNotFoundException("Template " + updatedTemplate.getTemplateName() + " id=" + updatedTemplate.getId() + " was not found and cannot be saved.");
+        if (template.getId() != null) {
+            newTemplate = getTemplateById(template.getId(), user);
+            if (newTemplate == null) {
+                throw new EntityNotFoundException("Template " + template.getTemplateName() + " id=" + template.getId() + " was not found and cannot be saved.");
             }
-            oldTemplate.setTemplateLastUpdated(changeDate);
+            newTemplate.setTemplateLastUpdated(changeDate);
         }
         //Create
         else {
-            oldTemplate = updatedTemplate;
-            oldTemplate.setId(null);
-            oldTemplate.setTemplateCreated(changeDate);
-            oldTemplate.setTemplateUser(user);
+            newTemplate = template;
+            newTemplate.setId(null);
+            newTemplate.setTemplateCreated(changeDate);
+            newTemplate.setTemplateUser(user);
         }
 
         //Update name and orientation
-        oldTemplate.setTemplateName(updatedTemplate.getTemplateName());
-        oldTemplate.setOrientation(updatedTemplate.getOrientation());
+        newTemplate.setTemplateName(template.getTemplateName());
+        newTemplate.setOrientation(template.getOrientation());
 
         //Configure item IDs - if they exist use same ID - hibernate will MERGE
         List<ReportItem> newTemplateItems = new ArrayList<>();
-        for (ReportItem templateItem : updatedTemplate.getTemplateItems()) {
+        for (ReportItem templateItem : template.getTemplateItems()) {
             Optional<ReportItem> existingItem = Optional.empty();
-            if (oldTemplate.getId() != null) {
-                existingItem = oldTemplate.getTemplateItems().stream()
+            if (newTemplate.getId() != null) {
+                existingItem = newTemplate.getTemplateItems().stream()
                         .filter(i -> i.getId().equals(templateItem.getId()))
                         .findAny();
             }
@@ -98,15 +97,15 @@ public class TemplateService {
             //Validate template item if all related sources etc. can be accessed by this user
             itemValidationService.validateItem(templateItem, true, user);
 
-            templateItem.setTemplate(oldTemplate);
+            templateItem.setTemplate(newTemplate);
             templateItem.setReportPage(null);
             templateItem.setDashboard(null);
             newTemplateItems.add(templateItem);
         }
-        oldTemplate.getTemplateItems().clear();
-        oldTemplate.getTemplateItems().addAll(newTemplateItems);
+        newTemplate.getTemplateItems().clear();
+        newTemplate.getTemplateItems().addAll(newTemplateItems);
         try {
-            return templateRepository.save(oldTemplate);
+            return templateRepository.save(newTemplate);
         } catch (
                 DataIntegrityViolationException e) {
             if (e.getMostSpecificCause().getClass().getName().equals("org.postgresql.util.PSQLException") && ((SQLException) e.getMostSpecificCause()).getSQLState().equals("23505"))

@@ -29,29 +29,29 @@ public class DashboardService {
     @Autowired
     LevelPieGraphService levelPieGraphService;
 
-    public Dashboard saveDashboard(Dashboard updatedDashboard, User user) {
-        Dashboard savedDashboard = dashboardRepository.findByDashboardUser(user);
+    public Dashboard saveDashboard(Dashboard dashboard, User user) {
+        Dashboard newDashboard = dashboardRepository.findByDashboardUser(user);
         //CREATE NEW
-        if (savedDashboard == null) {
-            savedDashboard = updatedDashboard;
-            savedDashboard.setId(null);
-            savedDashboard.setDashboardUser(user);
-            for (ReportItem reportItem : savedDashboard.getDashboardItems()) {
+        if (newDashboard == null) {
+            newDashboard = dashboard;
+            newDashboard.setId(null);
+            newDashboard.setDashboardUser(user);
+            for (ReportItem reportItem : newDashboard.getDashboardItems()) {
                 reportItem.setId(null);
             }
         }
 
         //Check if dashboard has only valid items
-        if (!containsValidItems(savedDashboard)) {
+        if (!containsValidItems(newDashboard)) {
             throw new InvalidDataException("Dashboard accepts only bar or pie graph.");
         }
 
         List<ReportItem> newDashboardItems = new ArrayList<>();
-        for (ReportItem reportItem : updatedDashboard.getDashboardItems()) {
+        for (ReportItem reportItem : dashboard.getDashboardItems()) {
             //Configure item IDs - if they exist use same ID - hibernate will MERGE
             if (reportItem.getId() != null) {
                 Optional<ReportItem> existingItem = Optional.empty();
-                existingItem = savedDashboard.getDashboardItems().stream()
+                existingItem = newDashboard.getDashboardItems().stream()
                         .filter(i -> i.getId().equals(reportItem.getId()))
                         .findAny();
                 //If item with this ID does not exist - we will create new record in DB
@@ -63,15 +63,15 @@ public class DashboardService {
             //Validate report item if all related sources etc. can be accessed by this user
             itemValidationService.validateItem(reportItem, true, user);
             //Bidirectional relationship
-            reportItem.setDashboard(savedDashboard);
+            reportItem.setDashboard(newDashboard);
             reportItem.setReportPage(null);
             reportItem.setTemplate(null);
             newDashboardItems.add(reportItem);
         }
-        savedDashboard.getDashboardItems().clear();
-        savedDashboard.getDashboardItems().addAll(newDashboardItems);
+        newDashboard.getDashboardItems().clear();
+        newDashboard.getDashboardItems().addAll(newDashboardItems);
 
-        return dashboardRepository.save(savedDashboard);
+        return dashboardRepository.save(newDashboard);
     }
 
     public Dashboard getDashboardByUser(User user) {

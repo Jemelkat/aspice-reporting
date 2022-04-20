@@ -82,7 +82,7 @@ public class LevelPieGraphValidationTests {
         when(sourceRepository.findByIdAndUserOrSourceGroupsIn(any(Long.class), any(User.class), any(Set.class)))
                 .thenReturn(source);
 
-        Assertions.assertDoesNotThrow(() -> itemValidationService.validateItem(levelPieGraph, true, new User()));
+        Assertions.assertDoesNotThrow(() -> itemValidationService.validateItem(levelPieGraph, allowUndefined, new User()));
     }
 
     @DisplayName("Non existing source test.")

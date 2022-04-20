@@ -187,6 +187,7 @@ public class ItemValidationService {
                 levelBarGraph.setAttributeColumnName(null);
                 levelBarGraph.setCriterionColumnName(null);
                 levelBarGraph.setScoreColumnName(null);
+                levelBarGraph.getAssessorFilter().clear();
             } else {
                 throw new InvalidDataException("Level bar graph needs sources defined.");
             }

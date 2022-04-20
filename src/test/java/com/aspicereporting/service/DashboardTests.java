@@ -101,7 +101,7 @@ public class DashboardTests {
         dataMap.put("Process 2", data);
 
         when(dashboardRepository.findByDashboardUser(any(User.class))).thenReturn(dashboard);
-        doNothing().when(itemValidationService).validateItemWithValid(any(), anyBoolean(), any());
+        doNothing().when(itemValidationService).validateItemWithValid(any(), any());
         when(levelBarGraphService.getData(any())).thenReturn(dataMap);
 
         List<Map<String, String>> result =  dashboardService.getDashboardItemData(1L, new User());
@@ -125,7 +125,7 @@ public class DashboardTests {
         dataMap.put("Level 2", 2);
 
         when(dashboardRepository.findByDashboardUser(any(User.class))).thenReturn(dashboard);
-        doNothing().when(itemValidationService).validateItemWithValid(any(), anyBoolean(), any());
+        doNothing().when(itemValidationService).validateItemWithValid(any(), any());
         when(levelPieGraphService.getData(any())).thenReturn(dataMap);
 
         List<Map<String, String>> result =  dashboardService.getDashboardItemData(1L, new User());

@@ -99,7 +99,7 @@ public class DashboardService {
 
         ReportItem reportItem = existingItem.get();
         //Validate report item if all related sources etc. can be accessed by this user - required for generation
-        itemValidationService.validateItemWithValid(reportItem, false, user);
+        itemValidationService.validateItemWithValid(reportItem,  user);
 
 
         List<Map<String, String>> result = new ArrayList<>();

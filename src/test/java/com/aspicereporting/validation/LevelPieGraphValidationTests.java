@@ -193,6 +193,8 @@ public class LevelPieGraphValidationTests {
         levelPieGraphAssessor.setAssessorColumn(null);
         LevelPieGraph levelPieGraphProcess = objectMapper.readValue(objectMapper.writeValueAsString(levelPieGraph), LevelPieGraph.class);
         levelPieGraphProcess.setProcessColumn(null);
+        LevelPieGraph levelPieGraphAttribute = objectMapper.readValue(objectMapper.writeValueAsString(levelPieGraph), LevelPieGraph.class);
+        levelPieGraphAttribute.setAttributeColumn(null);
         LevelPieGraph levelPieGraphCriterion = objectMapper.readValue(objectMapper.writeValueAsString(levelPieGraph), LevelPieGraph.class);
         levelPieGraphCriterion.setCriterionColumn(null);
         LevelPieGraph levelPieGraphScore = objectMapper.readValue(objectMapper.writeValueAsString(levelPieGraph), LevelPieGraph.class);
@@ -204,6 +206,7 @@ public class LevelPieGraphValidationTests {
                 arguments(levelPieGraphSource, 1, "Missing source."),
                 arguments(levelPieGraphAssessor, 1, "Missing assessor."),
                 arguments(levelPieGraphProcess, 1, "Missing process."),
+                arguments(levelPieGraphAttribute, 1, "Missing attribute."),
                 arguments(levelPieGraphCriterion, 1, "Missing criterion."),
                 arguments(levelPieGraphScore, 1, "Missing score."),
                 arguments(levelPieGraphFunction, 1, "Missing function.")

@@ -136,6 +136,8 @@ public class LevelBarGraphValidationTests {
         levelBarGraphAssessor.setAssessorColumnName(null);
         LevelBarGraph levelBarGraphProcess = objectMapper.readValue(objectMapper.writeValueAsString(levelBarGraph), LevelBarGraph.class);
         levelBarGraphProcess.setProcessColumnName(null);
+        LevelBarGraph levelBarGraphAttribute = objectMapper.readValue(objectMapper.writeValueAsString(levelBarGraph), LevelBarGraph.class);
+        levelBarGraphAttribute.setAttributeColumnName(null);
         LevelBarGraph levelBarGraphCriterion = objectMapper.readValue(objectMapper.writeValueAsString(levelBarGraph), LevelBarGraph.class);
         levelBarGraphCriterion.setCriterionColumnName(null);
         LevelBarGraph levelBarGraphScore = objectMapper.readValue(objectMapper.writeValueAsString(levelBarGraph), LevelBarGraph.class);
@@ -146,6 +148,7 @@ public class LevelBarGraphValidationTests {
                 arguments(levelBarGraph, 0, "Valid item."),
                 arguments(levelBarGraphSources, 1, "Missing source."),
                 arguments(levelBarGraphAssessor, 1, "Missing assessor."),
+                arguments(levelBarGraphAttribute, 1, "Missing attribute."),
                 arguments(levelBarGraphProcess, 1, "Missing process."),
                 arguments(levelBarGraphCriterion, 1, "Missing criterion."),
                 arguments(levelBarGraphScore, 1, "Missing score."),

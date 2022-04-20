@@ -30,6 +30,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.validation.Validation;
 import javax.validation.Validator;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -85,6 +86,21 @@ public class SimpleTableValidationTests {
         Assertions.assertDoesNotThrow(() -> itemValidationService.validateItem(simpleTable, allowUndefined, new User()));
     }
 
+    @DisplayName("Empty columns test.")
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    public void emptyColumnsTest(boolean allowUndefined) {
+        simpleTable.setTableColumns(new ArrayList<>());
+        if (allowUndefined) {
+            when(sourceRepository.findByIdAndUserOrSourceGroupsIn(any(Long.class), any(User.class), any(Set.class)))
+                    .thenReturn(source);
+            Assertions.assertDoesNotThrow(() -> itemValidationService.validateItem(simpleTable, allowUndefined, new User()));
+        } else {
+            Assertions.assertThrows(InvalidDataException.class, () -> itemValidationService.validateItem(simpleTable, allowUndefined, new User()));
+
+        }
+    }
+
     @DisplayName("Non existing source test.")
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
@@ -101,7 +117,7 @@ public class SimpleTableValidationTests {
         source.setId(null);
         if (allowUndefined) {
             Assertions.assertDoesNotThrow(() -> itemValidationService.validateItem(simpleTable, allowUndefined, new User()));
-            for(TableColumn tc : simpleTable.getTableColumns()) {
+            for (TableColumn tc : simpleTable.getTableColumns()) {
                 Assertions.assertEquals(null, tc.getSourceColumn());
             }
         } else {
@@ -116,8 +132,8 @@ public class SimpleTableValidationTests {
                 .thenReturn(source);
         simpleTable.getTableColumns().get(0).getSourceColumn().setId(null);
 
-        Assertions.assertThrows(EntityNotFoundException.class,() -> itemValidationService.validateItem(simpleTable, true, new User()));
-        Assertions.assertThrows(InvalidDataException.class,() -> itemValidationService.validateItem(simpleTable, false, new User()));
+        Assertions.assertThrows(EntityNotFoundException.class, () -> itemValidationService.validateItem(simpleTable, true, new User()));
+        Assertions.assertThrows(InvalidDataException.class, () -> itemValidationService.validateItem(simpleTable, false, new User()));
     }
 
     @DisplayName("Source does not contain column.")
@@ -127,8 +143,8 @@ public class SimpleTableValidationTests {
                 .thenReturn(source);
         simpleTable.getTableColumns().get(0).getSourceColumn().setId(6L);
 
-        Assertions.assertThrows(EntityNotFoundException.class,() -> itemValidationService.validateItem(simpleTable, true, new User()));
-        Assertions.assertThrows(EntityNotFoundException.class,() -> itemValidationService.validateItem(simpleTable, false, new User()));
+        Assertions.assertThrows(EntityNotFoundException.class, () -> itemValidationService.validateItem(simpleTable, true, new User()));
+        Assertions.assertThrows(EntityNotFoundException.class, () -> itemValidationService.validateItem(simpleTable, false, new User()));
     }
 
     @DisplayName("Validator tests.")

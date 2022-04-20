@@ -82,22 +82,22 @@ public class CapabilityTable extends ReportItem {
     private ScoreFunction aggregateScoresFunction = ScoreFunction.MAX;
 
     public void validate() {
-        if (this.source.getId() == null) {
+        if (this.source == null || this.source.getId() == null) {
             throw new InvalidDataException("Capability table has no source defined.");
         }
-        if (this.assessorColumn.getId() == null) {
+        if (this.assessorColumn == null || this.assessorColumn.getId() == null) {
             throw new InvalidDataException("Capability table has no assessor column defined.");
         }
-        if (this.getProcessColumn().getId() == null) {
+        if (this.processColumn == null || this.getProcessColumn().getId() == null) {
             throw new InvalidDataException("Capability table has no process column defined.");
         }
-        if (this.levelColumn.getId() == null) {
+        if (this.levelColumn == null || this.levelColumn.getId() == null) {
             throw new InvalidDataException("Capability table has no capability level column defined.");
         }
-        if (this.criterionColumn.getId() == null) {
+        if (this.criterionColumn == null || this.criterionColumn.getId() == null) {
             throw new InvalidDataException("Capability table has no criterion column defined.");
         }
-        if (this.scoreColumn.getId() == null) {
+        if (this.scoreColumn == null || this.scoreColumn.getId() == null) {
             throw new InvalidDataException("Capability table has no score column defined.");
         }
     }

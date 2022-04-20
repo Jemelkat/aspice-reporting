@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 @Setter
@@ -21,7 +22,8 @@ public class TableColumn {
     @Column(name = "table_column_id")
     private Long id;
 
-    private int width;
+    @Min(value = 1, message = "Capability table criterion width must be bigger than 0.")
+    private int width = 50;
 
     @NotNull(message = "Table requires all columns defined")
     @ManyToOne

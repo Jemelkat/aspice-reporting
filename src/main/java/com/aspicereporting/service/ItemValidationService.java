@@ -87,10 +87,6 @@ public class ItemValidationService {
                     if (columnExists.isEmpty()) {
                         throw new EntityNotFoundException("Invalid source column: " + tableColumn.getSourceColumn().getColumnName() + " for this simple table source");
                     }
-                } else {
-                    if (!allowUndefinedData) {
-                        throw new InvalidDataException("Simple table id = "+ simpleTable.getId() + " needs column selected for all table columns.");
-                    }
                 }
                 tableColumn.setId(null);
             });

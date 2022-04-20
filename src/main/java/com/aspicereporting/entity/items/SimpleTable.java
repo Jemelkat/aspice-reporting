@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
@@ -27,14 +28,15 @@ public class SimpleTable extends ReportItem {
     @OneToMany(cascade = {CascadeType.ALL}, orphanRemoval = true)
     @JoinColumn(name="simple_table_id", referencedColumnName = "report_item_id")
     @OrderColumn(name = "column_ordinal")
+    @Valid
     private List<TableColumn> tableColumns = new ArrayList<>();
 
     public void validate() {
-        if (this.source.getId() == null) {
+        if (this.source == null || this.source.getId() == null) {
             throw new InvalidDataException("Simple table has no source defined.");
         }
         for(TableColumn tableColumn : this.tableColumns) {
-            if(tableColumn.getId() == null) {
+            if(tableColumn.getSourceColumn() == null || tableColumn.getSourceColumn().getId() == null) {
                 throw new InvalidDataException("Simple table needs all columns defined.");
             }
         }

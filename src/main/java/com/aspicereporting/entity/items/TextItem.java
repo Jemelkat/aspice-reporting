@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import javax.validation.Valid;
 
 @Getter
 @Setter
@@ -19,5 +20,6 @@ public class TextItem extends ReportItem {
     @OneToOne(mappedBy = "textItem", cascade = CascadeType.ALL,
             fetch = FetchType.LAZY)
     @JoinColumn(name = "style_id", referencedColumnName = "report_item_id")
+    @Valid
     private TextStyle textStyle;
 }

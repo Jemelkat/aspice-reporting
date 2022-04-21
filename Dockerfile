@@ -1,19 +1,19 @@
 #### Stage 1: Build the application
 FROM adoptopenjdk/openjdk16:alpine as build
 
-# Set the current working directory inside the image
+# Working directory
 WORKDIR /app
 
 # Copy maven executable to the image
 COPY mvnw .
-COPY .mvn .mvn
+#Conversion of windows end of lines to unix
+RUN apk add dos2unix
+RUN dos2unix mvnw
 
-# Copy the pom.xml file
+COPY .mvn .mvn
 COPY pom.xml .
 
-# Build all the dependencies in preparation to go offline. 
-# This is a separate step so the dependencies will be cached unless 
-# the pom.xml file has changed.
+# Build all the dependencies
 RUN ./mvnw dependency:go-offline -B
 
 # Copy the project source
@@ -24,7 +24,7 @@ RUN ./mvnw package -D skipTests
 RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
 
 
-#### Stage 2: A minimal docker image with command to run the app 
+#### Stage 2: A minimal docker image
 FROM adoptopenjdk/openjdk16:jre-16.0.1_9-alpine
 
 ARG DEPENDENCY=/app/target/dependency
@@ -34,6 +34,7 @@ COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
 COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
 COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
 
+# Install required fonts
 RUN apk add --no-cache fontconfig
 RUN apk add --no-cache ttf-dejavu
 RUN ln -s /usr/lib/libfontconfig.so.1 /usr/lib/libfontconfig.so && \

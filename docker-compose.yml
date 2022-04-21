@@ -9,17 +9,17 @@ services:
     ports:
       - "8080:8080"
     restart: always
-    depends_on: 
-      - db 
+    depends_on:
+      - db
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/aspice
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/aspice-prod
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: admin
     networks:
       - backend
       - frontend
 
-  # Frontend Service 
+  # Frontend Service
   app-client:
     container_name: frontend-react
     build:
@@ -31,28 +31,28 @@ services:
     depends_on:
       - app-server
     networks:
-      - frontend  
+      - frontend
 
   # Database Service
   db:
-    container_name: pogtgres-db
+    container_name: postgres-db
     image: postgres:14.2
     restart: always
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: aspice
+      POSTGRES_DB: aspice-prod
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
       - pgdata:/var/lib/postgresql/data
     networks:
-      - backend  
+      - backend
 # Volumes
 volumes:
   pgdata:
 
 networks:
   backend:
-  frontend: 
+  frontend:

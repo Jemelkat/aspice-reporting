@@ -57,7 +57,6 @@ public class UserController {
     @GetMapping(value = "/groups")
     public List<UserGroup> getAllGroups(Authentication authentication) {
         User loggedUser = (User) authentication.getPrincipal();
-        List<UserGroup> test = userService.getGroupsForUser(loggedUser);
-        return test;
+        return userService.getGroupsForUser(loggedUser);
     }
 }

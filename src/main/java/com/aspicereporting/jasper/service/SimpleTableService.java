@@ -58,18 +58,18 @@ public class SimpleTableService extends BaseTableService {
 
 
         //Creates object with data
-        Object[][] test;
+        Object[][] dataObject;
         if (rows == 0) {
-            test = new Object[1][columns];
+            dataObject = new Object[1][columns];
             for (int i = 0; i < columns; i++) {
-                test[0][i] = "";
+                dataObject[0][i] = "";
             }
         } else {
-            test = new Object[rows][columns];
+            dataObject = new Object[rows][columns];
             for (int i = 0; i < simpleTableItem.getTableColumns().size(); i++) {
                 SourceColumn sc = simpleTableItem.getTableColumns().get(i).getSourceColumn();
                 for (int j = 0; j < sc.getSourceData().size(); j++) {
-                    test[j][i] = sc.getSourceData().get(j).getValue();
+                    dataObject[j][i] = sc.getSourceData().get(j).getValue();
                 }
             }
         }
@@ -81,7 +81,7 @@ public class SimpleTableService extends BaseTableService {
             columnNamesUpdated[i] = columnArray.get(i) + i;
         }
         tableModel.setColumnNames(columnNamesUpdated);
-        tableModel.setData(test);
+        tableModel.setData(dataObject);
         //Adds data bean to parameters
         parameters.put(TABLE_DATA + tableCount, new JRTableModelDataSource(tableModel));
 

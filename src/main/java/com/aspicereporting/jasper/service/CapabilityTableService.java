@@ -320,22 +320,22 @@ public class CapabilityTableService extends BaseTableService {
         //Create object with data for jasper table element
         int rows = allProcessList.size();
         int columns = columnArray.size();
-        Object[][] test = new Object[rows][columns];
+        Object[][] dataObject = new Object[rows][columns];
         int rowIndex = 0;
         for (String process : allProcessList) {
             int columnIndex = 0;
-            test[rowIndex][columnIndex] = process;
+            dataObject[rowIndex][columnIndex] = process;
             columnIndex++;
 
             if (levelCriterionsMap.isEmpty()) {
-                test[rowIndex][columnIndex] = "No measurements found";
+                dataObject[rowIndex][columnIndex] = "No measurements found";
             } else {
                 for (var level : levelCriterionsMap.keySet()) {
                     for (var criterion : levelCriterionsMap.get(level)) {
                         if (valuesMap.containsKey(new MultiKey(process, level, criterion))) {
-                            test[rowIndex][columnIndex] = ((List<String>) valuesMap.get(new MultiKey(process, level, criterion))).get(0);
+                            dataObject[rowIndex][columnIndex] = ((List<String>) valuesMap.get(new MultiKey(process, level, criterion))).get(0);
                         } else {
-                            test[rowIndex][columnIndex] = "";
+                            dataObject[rowIndex][columnIndex] = "";
                         }
                         columnIndex++;
                     }
@@ -349,7 +349,7 @@ public class CapabilityTableService extends BaseTableService {
         //Creates data bean
         SimpleTableModel tableModel = new SimpleTableModel(rows, columns);
         tableModel.setColumnNames(columnArray.toArray(new String[0]));
-        tableModel.setData(test);
+        tableModel.setData(dataObject);
         tablesCounter++;
         return tableModel;
     }

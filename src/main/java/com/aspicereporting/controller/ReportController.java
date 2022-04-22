@@ -73,13 +73,12 @@ public class ReportController {
     @GetMapping("/generate")
     public ResponseEntity<?> generate(@RequestParam Long reportId, Authentication authentication) throws JRException {
         User loggedUser = (User) authentication.getPrincipal();
-        Report report = reportService.getReportById(reportId, loggedUser);
         //Get report PDF as byte array stream
-        ByteArrayOutputStream out = jasperService.generateReport(report, loggedUser);
+        ByteArrayOutputStream out = reportService.generateReportById(reportId, loggedUser);
 
         ByteArrayResource resource = new ByteArrayResource(out.toByteArray());
         HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + report.getReportName() + ".pdf");
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + reportId + ".pdf");
         return ResponseEntity.ok()
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)

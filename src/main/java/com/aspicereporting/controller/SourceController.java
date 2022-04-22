@@ -2,10 +2,7 @@ package com.aspicereporting.controller;
 
 import com.aspicereporting.dto.MessageResponseDTO;
 import com.aspicereporting.dto.SourceTableDTO;
-import com.aspicereporting.entity.Source;
-import com.aspicereporting.entity.SourceColumn;
-import com.aspicereporting.entity.User;
-import com.aspicereporting.entity.UserGroup;
+import com.aspicereporting.entity.*;
 import com.aspicereporting.entity.views.View;
 import com.aspicereporting.service.SourceService;
 import com.aspicereporting.utils.NaturalOrderComparator;
@@ -154,4 +151,19 @@ public class SourceController {
         Collections.sort(values, new NaturalOrderComparator());
         return values;
     }
+
+    @JsonView(View.Simple.class)
+    @GetMapping("/{sourceId}/ranges")
+    public ScoreRange getScoreRangeForSource(@PathVariable("sourceId") Long sourceId, Authentication authentication) {
+        User loggedUser = (User) authentication.getPrincipal();
+        return sourceService.getRangesForSource(sourceId, loggedUser);
+    }
+
+    @PostMapping("/{sourceId}/ranges")
+    public  ResponseEntity<?> updateRangesForSource(@PathVariable("sourceId") Long sourceId, @RequestBody ScoreRange scoreRange, Authentication authentication) {
+        User loggedUser = (User) authentication.getPrincipal();
+        sourceService.updateRangesForSource(sourceId, scoreRange, loggedUser);
+        return ResponseEntity.ok(new MessageResponseDTO("Source id=" + sourceId + " score ranges updated."));
+    }
+
 }

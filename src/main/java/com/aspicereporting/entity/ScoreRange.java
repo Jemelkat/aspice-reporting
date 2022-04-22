@@ -32,7 +32,7 @@ public class ScoreRange {
 
     private Float p;
     private Float l;
-    @Column(length = 50, name = "mode", updatable = false)
+    @Column(length = 50, name = "mode")
     @Enumerated(EnumType.STRING)
     private EMode mode;
 
@@ -46,12 +46,14 @@ public class ScoreRange {
     }
 
     public void initialize() {
-        mode= EMode.EXTENDED;
+        mode= EMode.SIMPLE;
         n = 15F;
-        pMinus = 32.5F;
-        pPlus = 50F;
-        lMinus = 67.5F;
-        lPlus = 85F;
+        p = 50F;
+        l = 85F;
+        pMinus = null;
+        pPlus = null;
+        lMinus = null;
+        lPlus = null;
     }
 
     public void updateRanges(ScoreRange scoreRange) {

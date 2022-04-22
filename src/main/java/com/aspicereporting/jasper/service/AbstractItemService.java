@@ -140,13 +140,21 @@ public abstract class AbstractItemService {
     }
 
     protected void calculateLevelCheckValue(Double scoreAchieved, Integer evaulatingLevel) {
-        if (scoreAchieved > 0.85) {
+        Double fullyAchieved = new ArrayList<>(valueToScoreMap.keySet()).get(valueToScoreMap.size()-1);
+        Double largelyAchieved;
+        if(scoreToValueMap.containsKey("L")) {
+            largelyAchieved = new ArrayList<>(valueToScoreMap.keySet()).get(valueToScoreMap.size()-2);
+        } else {
+            largelyAchieved = new ArrayList<>(valueToScoreMap.keySet()).get(valueToScoreMap.size()-3);
+        }
+
+        if (scoreAchieved > fullyAchieved) {
             if (evaulatingLevel == 1) {
                 levelCheckValue += 2;
             } else {
                 levelCheckValue += 1;
             }
-        } else if (scoreAchieved > 0.5) {
+        } else if (scoreAchieved > largelyAchieved) {
             if (evaulatingLevel == 1) {
                 levelCheckValue += 1;
             } else {

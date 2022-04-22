@@ -122,6 +122,9 @@ public class LevelBarGraphService extends BaseChartService {
         //Contains process: level for each process in source
         LinkedHashMap<String, Map<String, Map<String, Integer>>> levelsAchievedMap = new LinkedHashMap<>();
         for (Source source : levelBarGraph.getSources()) {
+            //Initialize score ranges based on source definitions
+            initializeScoreRanges(source.getScoreRange());
+
             SourceColumn assessorColumn = getSourceColumnByName(source, levelBarGraph.getAssessorColumnName());
             SourceColumn processColumn = getSourceColumnByName(source, levelBarGraph.getProcessColumnName());
             SourceColumn criterionColumn = getSourceColumnByName(source, levelBarGraph.getCriterionColumnName());

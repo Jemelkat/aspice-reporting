@@ -126,6 +126,8 @@ public class LevelPieGraphService extends BaseChartService {
      * Gets all result data based on item settings
      */
     public LinkedHashMap<String, Integer> getData(LevelPieGraph levelPieGraph) {
+        //Initialize score ranges based on source definitions
+        initializeScoreRanges(levelPieGraph.getSource().getScoreRange());
         //Get all unique processes and levels
         List<String> assessorFilter = sourceRepository.findDistinctColumnValuesForColumn(levelPieGraph.getAssessorColumn().getId());
         //Remove empty assessors "" and processes ""

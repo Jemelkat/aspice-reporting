@@ -1,5 +1,6 @@
 package com.aspicereporting.entity;
 
+import com.aspicereporting.entity.enums.Mode;
 import com.aspicereporting.entity.items.TextItem;
 import com.aspicereporting.entity.views.View;
 import com.aspicereporting.exception.InvalidDataException;
@@ -24,32 +25,28 @@ public class ScoreRange {
     @Column(name = "range_id")
     private Long id;
 
-    private Float n;
-    private Float pMinus;
-    private Float pPlus;
-    private Float lMinus;
-    private Float lPlus;
+    private Double n;
+    private Double pMinus;
+    private Double pPlus;
+    private Double lMinus;
+    private Double lPlus;
 
-    private Float p;
-    private Float l;
+    private Double p;
+    private Double l;
     @Column(length = 50, name = "mode")
     @Enumerated(EnumType.STRING)
-    private EMode mode;
+    private Mode mode;
 
     @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "source_id", unique = true)
     private Source source;
 
-    private enum EMode {
-        SIMPLE, EXTENDED
-    }
-
     public void initialize() {
-        mode= EMode.SIMPLE;
-        n = 15F;
-        p = 50F;
-        l = 85F;
+        mode= Mode.SIMPLE;
+        n = 15D;
+        p = 50D;
+        l = 85D;
         pMinus = null;
         pPlus = null;
         lMinus = null;
@@ -57,13 +54,13 @@ public class ScoreRange {
     }
 
     public void updateRanges(ScoreRange scoreRange) {
-        if(scoreRange.mode.equals(EMode.SIMPLE)) {
+        if(scoreRange.mode.equals(Mode.SIMPLE)) {
             this.pMinus = null;
             this.pPlus = null;
             this.lMinus = null;
             this.lPlus = null;
 
-            this.mode= EMode.SIMPLE;
+            this.mode= Mode.SIMPLE;
             this.n = scoreRange.getN();
             this.p = scoreRange.getP();
             this.l = scoreRange.getL();
@@ -72,7 +69,7 @@ public class ScoreRange {
             this.p = null;
             this.l = null;
 
-            this.mode= EMode.EXTENDED;
+            this.mode= Mode.EXTENDED;
             this.n = scoreRange.getN();
             this.pMinus = scoreRange.getPMinus();
             this.pPlus = scoreRange.getPPlus();
@@ -85,7 +82,7 @@ public class ScoreRange {
         if(mode == null) {
             throw new InvalidDataException("Score ranges must be SIMPLE or EXTENDED. Provided: " + mode);
         }
-        if (mode.equals(EMode.SIMPLE)) {
+        if (mode.equals(Mode.SIMPLE)) {
             if (n == null) {
                 throw new InvalidDataException("N score range value not defined.");
             }
@@ -95,13 +92,13 @@ public class ScoreRange {
             if (l == null) {
                 throw new InvalidDataException("L score range value not defined.");
             }
-            if (n >= 100) {
+            if (n >= 100D) {
                 throw new InvalidDataException("N score range value bigger than 100.");
             }
-            if (p >= 100) {
+            if (p >= 100D) {
                 throw new InvalidDataException("P score range value bigger than 100.");
             }
-            if (l >= 100) {
+            if (l >= 100D) {
                 throw new InvalidDataException("L score range value bigger than 100.");
             }
             if (n > p) {
@@ -111,7 +108,7 @@ public class ScoreRange {
                 throw new InvalidDataException("L score range value (" + l + ") must be bigger than upper P value (" + p + ")");
             }
         }
-        else if (mode.equals(EMode.EXTENDED)) {
+        else if (mode.equals(Mode.EXTENDED)) {
             if (n == null) {
                 throw new InvalidDataException("N score range value not defined.");
             }
@@ -127,16 +124,16 @@ public class ScoreRange {
             if (lPlus == null) {
                 throw new InvalidDataException("L+ score range value not defined.");
             }
-            if (n >= 100) {
+            if (n >= 100D) {
                 throw new InvalidDataException("N score range value bigger than 100.");
             }
-            if (pMinus >= 100) {
+            if (pMinus >= 100D) {
                 throw new InvalidDataException("P- score range value bigger than 100.");
             }
-            if (pPlus >= 100) {
+            if (pPlus >= 100D) {
                 throw new InvalidDataException("P+ score range value bigger than 100.");
             }
-            if (lMinus >= 100) {
+            if (lMinus >= 100D) {
                 throw new InvalidDataException("L- score range value bigger than 100.");
             }
             if (n > pMinus) {

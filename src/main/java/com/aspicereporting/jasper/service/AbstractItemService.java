@@ -41,7 +41,7 @@ public abstract class AbstractItemService {
             valueToScoreMap.put(scoreRange.getP(), "L");
             valueToScoreMap.put(scoreRange.getL(), "F");
 
-            scoreToValueMap.clear();
+            scoreToValueMap = new HashMap<>();
             scoreToValueMap.put("N", 0D);
             scoreToValueMap.put("P", getMedian(scoreRange.getN(), scoreRange.getP()));
             scoreToValueMap.put("L", getMedian(scoreRange.getP(), scoreRange.getL()));
@@ -55,7 +55,7 @@ public abstract class AbstractItemService {
             valueToScoreMap.put(scoreRange.getLMinus(), "L+");
             valueToScoreMap.put(scoreRange.getLPlus(), "F");
 
-            scoreToValueMap.clear();
+            scoreToValueMap = new HashMap<>();
             scoreToValueMap.put("N", 0D);
             scoreToValueMap.put("P-", getMedian(scoreRange.getN(), scoreRange.getPMinus()));
             scoreToValueMap.put("P+", getMedian(scoreRange.getPMinus(), scoreRange.getPPlus()));

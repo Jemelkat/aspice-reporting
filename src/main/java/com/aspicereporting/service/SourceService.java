@@ -73,7 +73,8 @@ public class SourceService {
         if (!source.getUser().getId().equals(loggedUser.getId())) {
             throw new UnauthorizedAccessException("Only the owner of this source can change score ranges.");
         }
-        return source.getScoreRange();
+
+        return source.getScoreRange().createPercentagesObject();
     }
 
     public void updateRangesForSource(Long sourceId, ScoreRange scoreRange, User loggedUser) {

@@ -1,7 +1,6 @@
 package com.aspicereporting.entity;
 
 import com.aspicereporting.entity.enums.Mode;
-import com.aspicereporting.entity.items.TextItem;
 import com.aspicereporting.entity.views.View;
 import com.aspicereporting.exception.InvalidDataException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -44,16 +43,51 @@ public class ScoreRange {
 
     public void initialize() {
         mode= Mode.SIMPLE;
-        n = 15D;
-        p = 50D;
-        l = 85D;
+        n = 0.15D;
+        p = 0.50D;
+        l = 0.85D;
         pMinus = null;
         pPlus = null;
         lMinus = null;
         lPlus = null;
     }
 
+    private void normalize() {
+        if(mode.equals(Mode.SIMPLE)) {
+            this.n = n/100;
+            this.p = p/100;
+            this.l = l/100;
+        }
+        else {
+            this.n = n/100;
+            this.pMinus = pMinus/100;
+            this.pPlus = pPlus/100;
+            this.lMinus = lMinus/100;
+            this.lPlus = lPlus/100;
+        }
+    }
+
+    public ScoreRange createPercentagesObject() {
+        ScoreRange percentageRange = new ScoreRange();
+        if(this.mode.equals(Mode.SIMPLE)) {
+            percentageRange.setMode(Mode.SIMPLE);
+            percentageRange.setN(this.n*100D);
+            percentageRange.setP(this.p*100D);
+            percentageRange.setL(this.l*100D);
+        }
+        else {
+            percentageRange.setMode(Mode.EXTENDED);
+            percentageRange.setN(this.n*100D);
+            percentageRange.setPMinus(this.pMinus*100D);
+            percentageRange.setPPlus(this.pPlus*100D);
+            percentageRange.setLMinus(this.lMinus*100D);
+            percentageRange.setLPlus(this.lPlus*100D);
+        }
+        return percentageRange;
+    }
+
     public void updateRanges(ScoreRange scoreRange) {
+        scoreRange.normalize();
         if(scoreRange.mode.equals(Mode.SIMPLE)) {
             this.pMinus = null;
             this.pPlus = null;

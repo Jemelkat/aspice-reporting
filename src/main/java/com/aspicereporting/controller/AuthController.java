@@ -23,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.ConstraintViolation;
+import javax.validation.Valid;
 import javax.validation.Validator;
 import java.util.HashSet;
 import java.util.List;
@@ -53,7 +54,7 @@ public class AuthController {
     Validator validator;
 
     @PostMapping("/signin")
-    public ResponseEntity<?> authenticateUser(@RequestBody LoginDTO loginDTO) {
+    public ResponseEntity<?> authenticateUser(@RequestBody @Valid LoginDTO loginDTO) {
         Set<ConstraintViolation<LoginDTO>> result = validator.validate(loginDTO);
         if (!result.isEmpty()) {
             throw new ConstraintException(((ConstraintViolationImpl)result.toArray()[0]).getMessage());
@@ -78,7 +79,7 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@RequestBody SignupDTO signUpDTO) {
+    public ResponseEntity<?> registerUser(@RequestBody @Valid SignupDTO signUpDTO) {
         Set<ConstraintViolation<SignupDTO>> result = validator.validate(signUpDTO);
         if (!result.isEmpty()) {
             throw new ConstraintException(((ConstraintViolationImpl)result.toArray()[0]).getMessage());

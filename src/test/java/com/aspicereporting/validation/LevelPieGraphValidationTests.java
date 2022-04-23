@@ -1,5 +1,6 @@
 package com.aspicereporting.validation;
 
+import com.aspicereporting.entity.ScoreRange;
 import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.User;
@@ -59,6 +60,9 @@ public class LevelPieGraphValidationTests {
         source.addSourceColumns(sourceColumns);
         source.setSourceName("Source1");
         source.setId(1L);
+        ScoreRange scoreRange = new ScoreRange();
+        scoreRange.initialize();
+        source.setScoreRange(scoreRange);
 
         levelPieGraph = new LevelPieGraph();
         levelPieGraph.setType(ItemType.LEVEL_PIE_GRAPH);

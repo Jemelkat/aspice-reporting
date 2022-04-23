@@ -1,5 +1,6 @@
 package com.aspicereporting.validation;
 
+import com.aspicereporting.entity.ScoreRange;
 import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.User;
@@ -59,6 +60,9 @@ public class LevelBarGraphValidationTests {
         List<SourceColumn> sourceColumns = Arrays.asList(process, assessor, attribute, criterion, score);
         source.addSourceColumns(sourceColumns);
         source.setSourceName("Source1");
+        ScoreRange scoreRange = new ScoreRange();
+        scoreRange.initialize();
+        source.setScoreRange(scoreRange);
     }
 
     @BeforeEach
@@ -117,6 +121,7 @@ public class LevelBarGraphValidationTests {
     }
 
     public static Stream<Arguments> validatorInputs() throws JsonProcessingException {
+
         levelBarGraph = new LevelBarGraph();
         levelBarGraph.setSources(Arrays.asList(source));
         levelBarGraph.setType(ItemType.LEVEL_BAR_GRAPH);

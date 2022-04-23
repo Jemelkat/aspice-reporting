@@ -1,5 +1,6 @@
 package com.aspicereporting.validation;
 
+import com.aspicereporting.entity.ScoreRange;
 import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.User;
@@ -170,9 +171,13 @@ public class CapabilityTableValidationTests {
     }
 
     public static Stream<Arguments> validatorInputs() throws JsonProcessingException {
+        Source source = new Source();
+        ScoreRange scoreRange = new ScoreRange();
+        scoreRange.initialize();
+        source.setScoreRange(scoreRange);
         capabilityTable = new CapabilityTable();
         capabilityTable.setType(ItemType.CAPABILITY_TABLE);
-        capabilityTable.setSource(new Source());
+        capabilityTable.setSource(source);
         capabilityTable.setAssessorColumn(new SourceColumn(0L, "Assessor"));
         capabilityTable.setProcessColumn(new SourceColumn(1L, "Process"));
         capabilityTable.setLevelColumn(new SourceColumn(2L, "Level"));

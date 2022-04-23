@@ -1,5 +1,6 @@
 package com.aspicereporting.validation;
 
+import com.aspicereporting.entity.ScoreRange;
 import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.User;
@@ -152,9 +153,13 @@ public class SimpleTableValidationTests {
     }
 
     public static Stream<Arguments> validatorInputs() throws JsonProcessingException {
+        Source source = new Source();
+        ScoreRange scoreRange = new ScoreRange();
+        scoreRange.initialize();
+        source.setScoreRange(scoreRange);
         simpleTable = new SimpleTable();
         simpleTable.setType(ItemType.SIMPLE_TABLE);
-        simpleTable.setSource(new Source());
+        simpleTable.setSource(source);
         TableColumn tc1 = new TableColumn();
         tc1.setSourceColumn(new SourceColumn(0L, "Assessor"));
         TableColumn tc2 = new TableColumn();

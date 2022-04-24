@@ -56,12 +56,6 @@ public class JasperService {
             JasperDesign jasperDesign = getJasperDesign(reportPage);
             //Compile JasperDesign
             JasperReport jasperReport = compileReport(jasperDesign);
-            //TODO REMOVE
-//        try {
-//            JasperCompileManager.writeReportToXmlFile(jasperDesign, "test.jrxml");
-//        } catch (JRException e) {
-//            e.printStackTrace();
-//        }
             //Fill report
             jasperPrints.add(fillReport(jasperReport, this.parameters));
         }

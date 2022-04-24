@@ -316,6 +316,9 @@ public class LevelBarGraphTests {
                         new SourceData("P"),
                         new SourceData("P"))
         );
+        ScoreRange scoreRange = new ScoreRange();
+        scoreRange.initialize();
+        source2.setScoreRange(scoreRange);
         levelBarGraph.setSources(Arrays.asList(source, source2));
         levelBarGraph.setAggregateScoresFunction(ScoreFunction.MAX);
         levelBarGraph.setAggregateLevels(true);

@@ -50,17 +50,17 @@ public abstract class AbstractItemService {
             valueToScoreMap.clear();
             valueToScoreMap.put(0D, "N");
             valueToScoreMap.put(scoreRange.getN(), "P-");
-            valueToScoreMap.put(scoreRange.getPMinus(), "P+");
-            valueToScoreMap.put(scoreRange.getPPlus(), "L-");
-            valueToScoreMap.put(scoreRange.getLMinus(), "L+");
-            valueToScoreMap.put(scoreRange.getLPlus(), "F");
+            valueToScoreMap.put(scoreRange.getPminus(), "P+");
+            valueToScoreMap.put(scoreRange.getPplus(), "L-");
+            valueToScoreMap.put(scoreRange.getLminus(), "L+");
+            valueToScoreMap.put(scoreRange.getLplus(), "F");
 
             scoreToValueMap = new HashMap<>();
             scoreToValueMap.put("N", 0D);
-            scoreToValueMap.put("P-", getMedian(scoreRange.getN(), scoreRange.getPMinus()));
-            scoreToValueMap.put("P+", getMedian(scoreRange.getPMinus(), scoreRange.getPPlus()));
-            scoreToValueMap.put("L-", getMedian(scoreRange.getPPlus(), scoreRange.getLMinus()));
-            scoreToValueMap.put("L+", getMedian(scoreRange.getLMinus(), scoreRange.getLPlus()));
+            scoreToValueMap.put("P-", getMedian(scoreRange.getN(), scoreRange.getPminus()));
+            scoreToValueMap.put("P+", getMedian(scoreRange.getPminus(), scoreRange.getPplus()));
+            scoreToValueMap.put("L-", getMedian(scoreRange.getPplus(), scoreRange.getLminus()));
+            scoreToValueMap.put("L+", getMedian(scoreRange.getLminus(), scoreRange.getLplus()));
             scoreToValueMap.put("F", 1D);
         }
     }

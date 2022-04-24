@@ -35,7 +35,7 @@ public class FileParsingService {
             } else if (fileName.toLowerCase().endsWith(".xlsx") || fileName.toLowerCase().endsWith(".xls")) {
                 source = parseExcelFile(file);
             } else {
-                throw new IOException();
+                throw new SourceFileException("Unsupported file format.");
             }
         } catch (CsvValidationException | IOException e) {
             throw new SourceFileException("Cannot read uploaded file.", e);

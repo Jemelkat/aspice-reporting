@@ -62,6 +62,18 @@ public class FileParsingTests {
         Assertions.assertEquals("Cannot read null file.", exception.getMessage());
     }
 
+
+    @Test
+    public void parseUnsupportedFile() throws IOException {
+        InputStream stream;
+        MockMultipartFile multipartFile;
+        File file = new File("src/test/resources/files/unsupported.pdf");
+        stream = new FileInputStream(file);
+        multipartFile = new MockMultipartFile("file", file.getName(),
+                String.valueOf(MediaType.MULTIPART_FORM_DATA), stream);
+        Assertions.assertThrows(SourceFileException.class, () -> fileParsingService.parseFile(multipartFile));
+    }
+
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource("sourcesProvider")
     public void createCSV(String name, Source source, int size) {

@@ -86,6 +86,9 @@ public class FileParsingService {
 
         //Create columns from first row - header rows
         List<SourceColumn> sourceColumns = new ArrayList<>();
+        if(!fileIterator.hasNext()) {
+            throw new SourceFileException("Source file has no data");
+        }
         Row headerRow = fileIterator.next();
         if(isRowEmpty(headerRow)) {
             throw new SourceFileException("Source file has no data or headers defined.");

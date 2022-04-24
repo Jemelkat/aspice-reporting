@@ -1,5 +1,7 @@
 package com.aspicereporting.utils;
 
+import com.aspicereporting.exception.SourceFileException;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,6 +21,10 @@ public final class CsvFileUtils {
             //is.reset();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+
+        if(headerLine == null) {
+            throw new SourceFileException("Source file has no data or headers defined.");
         }
 
         for (var possibleDelimiter : possibleDelimiters)

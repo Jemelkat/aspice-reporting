@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import javax.validation.Valid;
 import java.util.*;
 
 @JsonView(View.Simple.class)
@@ -64,6 +65,14 @@ public class Source {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @OneToOne(mappedBy = "source", cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY, optional = false)
+    private ScoreRange scoreRange;
+
+    public void setScoreRange(ScoreRange scoreRange) {
+        scoreRange.setSource(this);
+        this.scoreRange = scoreRange;
+    }
 
     public void prepareForDelete() {
         for (SimpleTable simpleTable : simpleSimpleTables) {

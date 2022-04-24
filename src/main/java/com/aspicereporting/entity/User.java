@@ -4,13 +4,13 @@ import com.aspicereporting.entity.items.*;
 import com.aspicereporting.entity.views.View;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
-import com.sun.istack.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.List;
@@ -30,18 +30,15 @@ public class User {
     @Column(name = "user_id")
     private Long id;
 
-    @Size(max = 20)
-    @NotNull
+    @Column(length = 20)
     private String username;
 
-    @Size(max = 60)
-    @NotNull
     @JsonView(View.Detailed.class)
+    @Column(length = 60)
     private String email;
 
-    @Size(max = 120)
-    @NotNull
     @JsonIgnore
+    @Column(length = 120)
     private String password;
 
     @ManyToMany(fetch = FetchType.LAZY)

@@ -1,9 +1,6 @@
 package com.aspicereporting.service;
 
-import com.aspicereporting.entity.Source;
-import com.aspicereporting.entity.SourceColumn;
-import com.aspicereporting.entity.User;
-import com.aspicereporting.entity.UserGroup;
+import com.aspicereporting.entity.*;
 import com.aspicereporting.exception.ConstraintException;
 import com.aspicereporting.exception.EntityNotFoundException;
 import com.aspicereporting.exception.InvalidDataException;
@@ -37,7 +34,9 @@ public class SourceService {
         source.setSourceName(file.getOriginalFilename());
         source.setUser(user);
         source.setSourceCreated(new Date());
-
+        ScoreRange scoreRange = new ScoreRange();
+        scoreRange.initialize();
+        source.setScoreRange(scoreRange);
         try {
             sourceRepository.save(source);
         } catch (DataIntegrityViolationException e) {
@@ -54,7 +53,7 @@ public class SourceService {
             throw new EntityNotFoundException("Could not find source with id = " + sourceId);
         }
         if (!source.getUser().getId().equals(user.getId())) {
-            throw new UnauthorizedAccessException("Only the owner of this source can share it.");
+            throw new UnauthorizedAccessException("Only the owner of this source can delete it.");
         }
         //Source was found - delete it
         source.prepareForDelete();
@@ -64,6 +63,32 @@ public class SourceService {
     //Get all owned or shared sources
     public List<Source> getAllByUserOrShared(User user) {
         return sourceRepository.findDistinctByUserOrSourceGroupsIn(user, user.getUserGroups());
+    }
+
+    public ScoreRange getRangesForSource(Long sourceId, User loggedUser) {
+        Source source = sourceRepository.findFirstById(sourceId);
+        if (source == null) {
+            throw new EntityNotFoundException("Could not find source with id = " + sourceId);
+        }
+        if (!source.getUser().getId().equals(loggedUser.getId())) {
+            throw new UnauthorizedAccessException("Only the owner of this source can change score ranges.");
+        }
+
+        return source.getScoreRange().createPercentagesObject();
+    }
+
+    public void updateRangesForSource(Long sourceId, ScoreRange scoreRange, User loggedUser) {
+        Source source = sourceRepository.findFirstById(sourceId);
+        if (source == null) {
+            throw new EntityNotFoundException("Could not find source with id = " + sourceId);
+        }
+        if (!source.getUser().getId().equals(loggedUser.getId())) {
+            throw new UnauthorizedAccessException("Only the owner of this source can update score ranges.");
+        }
+
+        scoreRange.validate();
+        source.getScoreRange().updateRanges(scoreRange);
+        sourceRepository.save(source);
     }
 
     public Set<UserGroup> getGroupsForSource(Long sourceId, User loggedUser) {

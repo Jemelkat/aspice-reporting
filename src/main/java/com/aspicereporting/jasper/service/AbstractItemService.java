@@ -1,18 +1,21 @@
 package com.aspicereporting.jasper.service;
 
+import com.aspicereporting.entity.ScoreRange;
+import com.aspicereporting.entity.enums.Mode;
 import com.aspicereporting.entity.enums.ScoreFunction;
+import com.aspicereporting.exception.InvalidDataException;
 import com.aspicereporting.exception.JasperReportException;
 
 import java.util.*;
 
 public abstract class AbstractItemService {
-    protected static Map<String, Double> scoreToValueMap = Map.ofEntries(
+    protected Map<String, Double> scoreToValueMap = Map.ofEntries(
             new AbstractMap.SimpleEntry<>("N", 0D),
             new AbstractMap.SimpleEntry<>("P", 0.33D),
             new AbstractMap.SimpleEntry<>("L", 0.66D),
             new AbstractMap.SimpleEntry<>("F", 1D)
     );
-    protected static LinkedHashMap<Double, String> valueToScoreMap = new LinkedHashMap<>() {{
+    protected LinkedHashMap<Double, String> valueToScoreMap = new LinkedHashMap<>() {{
         put(0D, "N");
         put(0.15D, "P");
         put(0.50D, "L");
@@ -29,6 +32,45 @@ public abstract class AbstractItemService {
     protected Double levelCheckValue = 0D;
     protected Boolean previousLevelAchieved = true;
     protected Integer levelAchieved = 0;
+
+    protected void initializeScoreRanges(ScoreRange scoreRange) {
+        if(scoreRange.getMode().equals(Mode.SIMPLE)) {
+            valueToScoreMap.clear();
+            valueToScoreMap.put(0D, "N");
+            valueToScoreMap.put(scoreRange.getN(), "P");
+            valueToScoreMap.put(scoreRange.getP(), "L");
+            valueToScoreMap.put(scoreRange.getL(), "F");
+
+            scoreToValueMap = new HashMap<>();
+            scoreToValueMap.put("N", 0D);
+            scoreToValueMap.put("P", getMedian(scoreRange.getN(), scoreRange.getP()));
+            scoreToValueMap.put("L", getMedian(scoreRange.getP(), scoreRange.getL()));
+            scoreToValueMap.put("F", 1D);
+        }else {
+            valueToScoreMap.clear();
+            valueToScoreMap.put(0D, "N");
+            valueToScoreMap.put(scoreRange.getN(), "P-");
+            valueToScoreMap.put(scoreRange.getPMinus(), "P+");
+            valueToScoreMap.put(scoreRange.getPPlus(), "L-");
+            valueToScoreMap.put(scoreRange.getLMinus(), "L+");
+            valueToScoreMap.put(scoreRange.getLPlus(), "F");
+
+            scoreToValueMap = new HashMap<>();
+            scoreToValueMap.put("N", 0D);
+            scoreToValueMap.put("P-", getMedian(scoreRange.getN(), scoreRange.getPMinus()));
+            scoreToValueMap.put("P+", getMedian(scoreRange.getPMinus(), scoreRange.getPPlus()));
+            scoreToValueMap.put("L-", getMedian(scoreRange.getPPlus(), scoreRange.getLMinus()));
+            scoreToValueMap.put("L+", getMedian(scoreRange.getLMinus(), scoreRange.getLPlus()));
+            scoreToValueMap.put("F", 1D);
+        }
+    }
+
+    private Double getMedian(Double lower, Double upper) {
+        if(upper <= lower) {
+            throw new InvalidDataException("Source has bad range defined. Range is " + lower + " - " + upper);
+        }
+        return lower + ((upper-lower)/2);
+    }
 
     protected double getValueForScore(String score) {
         if (scoreToValueMap.containsKey(score)) {
@@ -98,13 +140,21 @@ public abstract class AbstractItemService {
     }
 
     protected void calculateLevelCheckValue(Double scoreAchieved, Integer evaulatingLevel) {
-        if (scoreAchieved > 0.85) {
+        Double fullyAchieved = new ArrayList<>(valueToScoreMap.keySet()).get(valueToScoreMap.size()-1);
+        Double largelyAchieved;
+        if(scoreToValueMap.containsKey("L")) {
+            largelyAchieved = new ArrayList<>(valueToScoreMap.keySet()).get(valueToScoreMap.size()-2);
+        } else {
+            largelyAchieved = new ArrayList<>(valueToScoreMap.keySet()).get(valueToScoreMap.size()-3);
+        }
+
+        if (scoreAchieved > fullyAchieved) {
             if (evaulatingLevel == 1) {
                 levelCheckValue += 2;
             } else {
                 levelCheckValue += 1;
             }
-        } else if (scoreAchieved > 0.5) {
+        } else if (scoreAchieved > largelyAchieved) {
             if (evaulatingLevel == 1) {
                 levelCheckValue += 1;
             } else {

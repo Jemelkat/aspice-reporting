@@ -1,5 +1,6 @@
 package com.aspicereporting.jasper;
 
+import com.aspicereporting.entity.ScoreRange;
 import com.aspicereporting.entity.Source;
 import com.aspicereporting.entity.SourceColumn;
 import com.aspicereporting.entity.SourceData;
@@ -120,6 +121,9 @@ public class LevelPieGraphTests {
         List<SourceColumn> sourceColumns = Arrays.asList(assessor, process, attribute, criterion, score);
         source.addSourceColumns(sourceColumns);
         source.setSourceName("Source1");
+        ScoreRange scoreRange = new ScoreRange();
+        scoreRange.initialize();
+        source.setScoreRange(scoreRange);
     }
 
     @BeforeEach

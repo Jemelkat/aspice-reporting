@@ -171,6 +171,8 @@ public class CapabilityTableService extends BaseTableService {
      * Gets all result data based on item settings
      */
     public SimpleTableModel getData(CapabilityTable capabilityTable, Map<String, LinkedHashSet<String>> levelAttributesMap) {
+        //Initialize score ranges based on source definitions
+        initializeScoreRanges(capabilityTable.getSource().getScoreRange());
 
         //Get all unique processes, levels and assessors
         List<String> assessorFilter = sourceRepository.findDistinctColumnValuesForColumn(capabilityTable.getAssessorColumn().getId());
@@ -365,7 +367,7 @@ public class CapabilityTableService extends BaseTableService {
             try {
                 newValue = applyScoreFunction(convertScoresToDoubles(scores), capabilityTable.getAggregateScoresFunction());
             } catch (JasperReportException e) {
-                throw new JasperReportException("Capability table id = " + capabilityTable.getId() + " score column contains unknown value: ", e);
+                throw new JasperReportException("Capability table id = " + capabilityTable.getId() + " score column contains unknown value in: " + scores.toString(), e);
             }
             valuesMap.put((MultiKey) key, new ArrayList<>(List.of(getScoreForValue(newValue))));
         }
@@ -445,6 +447,18 @@ public class CapabilityTableService extends BaseTableService {
         LCondStyle.setConditionExpression(Lexpression);
         LCondStyle.setBackcolor(new Color(255, 192, 0));
         jrDesignStyle.addConditionalStyle(LCondStyle);
+        JRDesignExpression Lexpression2 = new JRDesignExpression();
+        Lexpression2.setText("$F{" + expression + "}.equals(\"L-\")");
+        JRDesignConditionalStyle LCondStyle2 = new JRDesignConditionalStyle();
+        LCondStyle2.setConditionExpression(Lexpression2);
+        LCondStyle2.setBackcolor(new Color(255, 192, 0));
+        jrDesignStyle.addConditionalStyle(LCondStyle2);
+        JRDesignExpression Lexpression3 = new JRDesignExpression();
+        Lexpression3.setText("$F{" + expression + "}.equals(\"L+\")");
+        JRDesignConditionalStyle LCondStyle3 = new JRDesignConditionalStyle();
+        LCondStyle3.setConditionExpression(Lexpression3);
+        LCondStyle3.setBackcolor(new Color(255, 192, 0));
+        jrDesignStyle.addConditionalStyle(LCondStyle3);
         //P- orange
         JRDesignExpression Pexpression = new JRDesignExpression();
         Pexpression.setText("$F{" + expression + "}.equals(\"P\")");
@@ -452,6 +466,18 @@ public class CapabilityTableService extends BaseTableService {
         PCondStyle.setConditionExpression(Pexpression);
         PCondStyle.setBackcolor(new Color(146, 208, 80));
         jrDesignStyle.addConditionalStyle(PCondStyle);
+        JRDesignExpression Pexpression2 = new JRDesignExpression();
+        Pexpression2.setText("$F{" + expression + "}.equals(\"P-\")");
+        JRDesignConditionalStyle PCondStyle2 = new JRDesignConditionalStyle();
+        PCondStyle2.setConditionExpression(Pexpression2);
+        PCondStyle2.setBackcolor(new Color(146, 208, 80));
+        jrDesignStyle.addConditionalStyle(PCondStyle2);
+        JRDesignExpression Pexpression3 = new JRDesignExpression();
+        Pexpression3.setText("$F{" + expression + "}.equals(\"P+\")");
+        JRDesignConditionalStyle PCondStyle3 = new JRDesignConditionalStyle();
+        PCondStyle3.setConditionExpression(Pexpression3);
+        PCondStyle3.setBackcolor(new Color(146, 208, 80));
+        jrDesignStyle.addConditionalStyle(PCondStyle3);
         //N- red
         JRDesignExpression Nexpression = new JRDesignExpression();
         Nexpression.setText("$F{" + expression + "}.equals(\"N\")");

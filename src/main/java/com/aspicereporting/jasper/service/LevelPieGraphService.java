@@ -126,6 +126,8 @@ public class LevelPieGraphService extends BaseChartService {
      * Gets all result data based on item settings
      */
     public LinkedHashMap<String, Integer> getData(LevelPieGraph levelPieGraph) {
+        //Initialize score ranges based on source definitions
+        initializeScoreRanges(levelPieGraph.getSource().getScoreRange());
         //Get all unique processes and levels
         List<String> assessorFilter = sourceRepository.findDistinctColumnValuesForColumn(levelPieGraph.getAssessorColumn().getId());
         //Remove empty assessors "" and processes ""
@@ -266,7 +268,7 @@ public class LevelPieGraphService extends BaseChartService {
                         try {
                             scoresList.add(applyScoreFunction(convertScoresToDoubles(assessorScoreList), levelPieGraph.getAggregateScoresFunction()));
                         } catch (JasperReportException e) {
-                            throw new JasperReportException("Level pie graph id = " + levelPieGraph.getId() + " score column contains unknown value: ", e);
+                            throw new JasperReportException("Level pie graph id = " + levelPieGraph.getId() + " score column contains unknown value in: " +assessorScoreList, e);
                         }
                     }
                     //Get attribute score achieved as (sum of scores/count of scores)

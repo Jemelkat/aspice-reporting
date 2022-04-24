@@ -35,6 +35,6 @@ public final class CsvFileUtils {
             }
         }
 
-        return possibleDelimiters.get(0);
+        throw new SourceFileException("Could not detect file delimiter. Please use , or ;");
     }
 }

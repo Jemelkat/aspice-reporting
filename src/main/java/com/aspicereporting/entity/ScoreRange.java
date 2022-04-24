@@ -130,14 +130,14 @@ public class ScoreRange {
             if (l == null) {
                 throw new InvalidDataException("L score range value not defined.");
             }
-            if (n >= 100D) {
-                throw new InvalidDataException("N score range value bigger than 100.");
+            if (n > 99.99) {
+                throw new InvalidDataException("N score range value must be smaller than 100.");
             }
-            if (p >= 100D) {
-                throw new InvalidDataException("P score range value bigger than 100.");
+            if (p > 99.99) {
+                throw new InvalidDataException("P score range value must be smaller than 100.");
             }
-            if (l >= 100D) {
-                throw new InvalidDataException("L score range value bigger than 100.");
+            if (l > 99.99) {
+                throw new InvalidDataException("L score range value must be smaller than 100.");
             }
             if (n > p) {
                 throw new InvalidDataException("P score range value (" + p + ") must be bigger than upper N value (" + n + ")");
@@ -162,17 +162,20 @@ public class ScoreRange {
             if (lPlus == null) {
                 throw new InvalidDataException("L+ score range value not defined.");
             }
-            if (n >= 100D) {
-                throw new InvalidDataException("N score range value bigger than 100.");
+            if (n > 99.99) {
+                throw new InvalidDataException("N score range value must be smaller than 100.");
             }
-            if (pMinus >= 100D) {
-                throw new InvalidDataException("P- score range value bigger than 100.");
+            if (pMinus > 99.99) {
+                throw new InvalidDataException("P- score range value must be smaller than 100.");
             }
-            if (pPlus >= 100D) {
-                throw new InvalidDataException("P+ score range value bigger than 100.");
+            if (pPlus > 99.99) {
+                throw new InvalidDataException("P+ score range value must be smaller than 100.");
             }
-            if (lMinus >= 100D) {
-                throw new InvalidDataException("L- score range value bigger than 100.");
+            if (lMinus > 99.99) {
+                throw new InvalidDataException("L- score range value must be smaller than 100.");
+            }
+            if (lPlus > 99.99) {
+                throw new InvalidDataException("L+ score range value must be smaller than 100.");
             }
             if (n > pMinus) {
                 throw new InvalidDataException("P- score range value (" + pMinus + ") must be bigger than upper N value (" + n + ")");

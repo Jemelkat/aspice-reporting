@@ -65,6 +65,7 @@ public class Source {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @JsonIgnore
     @OneToOne(mappedBy = "source", cascade = CascadeType.ALL,
             fetch = FetchType.LAZY, optional = false)
     private ScoreRange scoreRange;

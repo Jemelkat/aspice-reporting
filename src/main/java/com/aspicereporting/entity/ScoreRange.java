@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @JsonView(View.Simple.class)
 @Getter
@@ -71,23 +73,24 @@ public class ScoreRange {
         ScoreRange percentageRange = new ScoreRange();
         if(this.mode.equals(Mode.SIMPLE)) {
             percentageRange.setMode(Mode.SIMPLE);
-            percentageRange.setN(this.n*100D);
-            percentageRange.setP(this.p*100D);
-            percentageRange.setL(this.l*100D);
+            percentageRange.setN(new BigDecimal(this.n*100).setScale(2, RoundingMode.HALF_UP).doubleValue());
+            percentageRange.setP(new BigDecimal(this.p*100).setScale(2, RoundingMode.HALF_UP).doubleValue());
+            percentageRange.setL(new BigDecimal(this.l*100).setScale(2, RoundingMode.HALF_UP).doubleValue());
         }
         else {
+            new BigDecimal(this.n*100).setScale(2, RoundingMode.HALF_UP).doubleValue();
+
             percentageRange.setMode(Mode.EXTENDED);
-            percentageRange.setN(this.n*100D);
-            percentageRange.setPMinus(this.pMinus*100D);
-            percentageRange.setPPlus(this.pPlus*100D);
-            percentageRange.setLMinus(this.lMinus*100D);
-            percentageRange.setLPlus(this.lPlus*100D);
+            percentageRange.setN(new BigDecimal(this.n*100).setScale(2, RoundingMode.HALF_UP).doubleValue());
+            percentageRange.setPMinus(new BigDecimal(this.pMinus*100).setScale(2, RoundingMode.HALF_UP).doubleValue());
+            percentageRange.setPPlus(new BigDecimal(this.pPlus*100).setScale(2, RoundingMode.HALF_UP).doubleValue());
+            percentageRange.setLMinus(new BigDecimal(this.lMinus*100).setScale(2, RoundingMode.HALF_UP).doubleValue());
+            percentageRange.setLPlus(new BigDecimal(this.lPlus*100).setScale(2, RoundingMode.HALF_UP).doubleValue());
         }
         return percentageRange;
     }
 
     public void updateRanges(ScoreRange scoreRange) {
-        scoreRange.normalize();
         if(scoreRange.mode.equals(Mode.SIMPLE)) {
             this.pMinus = null;
             this.pPlus = null;
@@ -95,21 +98,22 @@ public class ScoreRange {
             this.lPlus = null;
 
             this.mode= Mode.SIMPLE;
-            this.n = scoreRange.getN();
-            this.p = scoreRange.getP();
-            this.l = scoreRange.getL();
+            this.n = new BigDecimal(scoreRange.getN()).setScale(2, RoundingMode.HALF_UP).doubleValue();
+            this.p = new BigDecimal(scoreRange.getP()).setScale(2, RoundingMode.HALF_UP).doubleValue();
+            this.l = new BigDecimal(scoreRange.getL()).setScale(2, RoundingMode.HALF_UP).doubleValue();
         }
         else {
             this.p = null;
             this.l = null;
 
             this.mode= Mode.EXTENDED;
-            this.n = scoreRange.getN();
-            this.pMinus = scoreRange.getPMinus();
-            this.pPlus = scoreRange.getPPlus();
-            this.lMinus = scoreRange.getLMinus();
-            this.lPlus = scoreRange.getLPlus();
+            this.n = new BigDecimal(scoreRange.getN()).setScale(2, RoundingMode.HALF_UP).doubleValue();
+            this.pMinus = new BigDecimal(scoreRange.getPMinus()).setScale(2, RoundingMode.HALF_UP).doubleValue();
+            this.pPlus = new BigDecimal(scoreRange.getPPlus()).setScale(2, RoundingMode.HALF_UP).doubleValue();
+            this.lMinus = new BigDecimal(scoreRange.getLMinus()).setScale(2, RoundingMode.HALF_UP).doubleValue();
+            this.lPlus = new BigDecimal(scoreRange.getLPlus()).setScale(2, RoundingMode.HALF_UP).doubleValue();
         }
+        this.normalize();
     }
 
     public void validate() {

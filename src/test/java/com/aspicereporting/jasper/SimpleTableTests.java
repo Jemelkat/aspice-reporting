@@ -132,7 +132,6 @@ public class SimpleTableTests {
         JasperDesign jasperDesign = new JasperDesign();
         Map<String, Object> parameters = new HashMap<>();
         JRDesignComponentElement element = simpleTableService.createElement(jasperDesign, simpleTable, 0,parameters);
-        System.out.println(element);
 
        Assertions.assertEquals("tableDataset0", ((StandardTable)element.getComponent()).getDatasetRun().getDatasetName());
        Assertions.assertEquals(2, ((StandardTable)element.getComponent()).getColumns().size());

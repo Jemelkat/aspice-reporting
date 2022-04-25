@@ -35,7 +35,7 @@ public class FileParsingService {
             } else if (fileName.toLowerCase().endsWith(".xlsx") || fileName.toLowerCase().endsWith(".xls")) {
                 source = parseExcelFile(file);
             } else {
-                throw new IOException();
+                throw new SourceFileException("Unsupported file format.");
             }
         } catch (CsvValidationException | IOException e) {
             throw new SourceFileException("Cannot read uploaded file.", e);
@@ -65,7 +65,6 @@ public class FileParsingService {
         }
         while ((fileRow = csvReader.readNext()) != null) {
             for (int i = 0; i < sourceColumns.size(); i++) {
-                //TODO add condition to check empty lines
                 SourceData data = new SourceData();
                 data.setValue(fileRow[i]);
                 sourceColumns.get(i).addSourceData(data);
@@ -86,6 +85,9 @@ public class FileParsingService {
 
         //Create columns from first row - header rows
         List<SourceColumn> sourceColumns = new ArrayList<>();
+        if(!fileIterator.hasNext()) {
+            throw new SourceFileException("Source file has no data");
+        }
         Row headerRow = fileIterator.next();
         if(isRowEmpty(headerRow)) {
             throw new SourceFileException("Source file has no data or headers defined.");

@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
-import javax.validation.Valid;
 import java.util.*;
 
 @JsonView(View.Simple.class)
@@ -65,6 +64,7 @@ public class Source {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @JsonIgnore
     @OneToOne(mappedBy = "source", cascade = CascadeType.ALL,
             fetch = FetchType.LAZY, optional = false)
     private ScoreRange scoreRange;

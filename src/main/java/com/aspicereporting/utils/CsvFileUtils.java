@@ -1,5 +1,7 @@
 package com.aspicereporting.utils;
 
+import com.aspicereporting.exception.SourceFileException;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,6 +23,10 @@ public final class CsvFileUtils {
             e.printStackTrace();
         }
 
+        if(headerLine == null) {
+            throw new SourceFileException("Source file has no data or headers defined.");
+        }
+
         for (var possibleDelimiter : possibleDelimiters)
         {
             if (headerLine.contains(Character.toString(possibleDelimiter)))
@@ -29,6 +35,6 @@ public final class CsvFileUtils {
             }
         }
 
-        return possibleDelimiters.get(0);
+        throw new SourceFileException("Could not detect file delimiter. Please use , or ;");
     }
 }

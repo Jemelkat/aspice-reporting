@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @JsonView(View.Simple.class)
 @Getter
@@ -25,10 +27,10 @@ public class ScoreRange {
     private Long id;
 
     private Double n;
-    private Double pMinus;
-    private Double pPlus;
-    private Double lMinus;
-    private Double lPlus;
+    private Double pminus;
+    private Double pplus;
+    private Double lminus;
+    private Double lplus;
 
     private Double p;
     private Double l;
@@ -46,10 +48,10 @@ public class ScoreRange {
         n = 0.15D;
         p = 0.50D;
         l = 0.85D;
-        pMinus = null;
-        pPlus = null;
-        lMinus = null;
-        lPlus = null;
+        pminus = null;
+        pplus = null;
+        lminus = null;
+        lplus = null;
     }
 
     private void normalize() {
@@ -60,10 +62,10 @@ public class ScoreRange {
         }
         else {
             this.n = n/100;
-            this.pMinus = pMinus/100;
-            this.pPlus = pPlus/100;
-            this.lMinus = lMinus/100;
-            this.lPlus = lPlus/100;
+            this.pminus = pminus /100;
+            this.pplus = pplus /100;
+            this.lminus = lminus /100;
+            this.lplus = lplus /100;
         }
     }
 
@@ -71,45 +73,47 @@ public class ScoreRange {
         ScoreRange percentageRange = new ScoreRange();
         if(this.mode.equals(Mode.SIMPLE)) {
             percentageRange.setMode(Mode.SIMPLE);
-            percentageRange.setN(this.n*100D);
-            percentageRange.setP(this.p*100D);
-            percentageRange.setL(this.l*100D);
+            percentageRange.setN(new BigDecimal(this.n*100).setScale(2, RoundingMode.HALF_UP).doubleValue());
+            percentageRange.setP(new BigDecimal(this.p*100).setScale(2, RoundingMode.HALF_UP).doubleValue());
+            percentageRange.setL(new BigDecimal(this.l*100).setScale(2, RoundingMode.HALF_UP).doubleValue());
         }
         else {
+            new BigDecimal(this.n*100).setScale(2, RoundingMode.HALF_UP).doubleValue();
+
             percentageRange.setMode(Mode.EXTENDED);
-            percentageRange.setN(this.n*100D);
-            percentageRange.setPMinus(this.pMinus*100D);
-            percentageRange.setPPlus(this.pPlus*100D);
-            percentageRange.setLMinus(this.lMinus*100D);
-            percentageRange.setLPlus(this.lPlus*100D);
+            percentageRange.setN(new BigDecimal(this.n*100).setScale(2, RoundingMode.HALF_UP).doubleValue());
+            percentageRange.setPminus(new BigDecimal(this.pminus *100).setScale(2, RoundingMode.HALF_UP).doubleValue());
+            percentageRange.setPplus(new BigDecimal(this.pplus *100).setScale(2, RoundingMode.HALF_UP).doubleValue());
+            percentageRange.setLminus(new BigDecimal(this.lminus *100).setScale(2, RoundingMode.HALF_UP).doubleValue());
+            percentageRange.setLplus(new BigDecimal(this.lplus *100).setScale(2, RoundingMode.HALF_UP).doubleValue());
         }
         return percentageRange;
     }
 
     public void updateRanges(ScoreRange scoreRange) {
-        scoreRange.normalize();
         if(scoreRange.mode.equals(Mode.SIMPLE)) {
-            this.pMinus = null;
-            this.pPlus = null;
-            this.lMinus = null;
-            this.lPlus = null;
+            this.pminus = null;
+            this.pplus = null;
+            this.lminus = null;
+            this.lplus = null;
 
             this.mode= Mode.SIMPLE;
-            this.n = scoreRange.getN();
-            this.p = scoreRange.getP();
-            this.l = scoreRange.getL();
+            this.n = new BigDecimal(scoreRange.getN()).setScale(2, RoundingMode.HALF_UP).doubleValue();
+            this.p = new BigDecimal(scoreRange.getP()).setScale(2, RoundingMode.HALF_UP).doubleValue();
+            this.l = new BigDecimal(scoreRange.getL()).setScale(2, RoundingMode.HALF_UP).doubleValue();
         }
         else {
             this.p = null;
             this.l = null;
 
             this.mode= Mode.EXTENDED;
-            this.n = scoreRange.getN();
-            this.pMinus = scoreRange.getPMinus();
-            this.pPlus = scoreRange.getPPlus();
-            this.lMinus = scoreRange.getLMinus();
-            this.lPlus = scoreRange.getLPlus();
+            this.n = new BigDecimal(scoreRange.getN()).setScale(2, RoundingMode.HALF_UP).doubleValue();
+            this.pminus = new BigDecimal(scoreRange.getPminus()).setScale(2, RoundingMode.HALF_UP).doubleValue();
+            this.pplus = new BigDecimal(scoreRange.getPplus()).setScale(2, RoundingMode.HALF_UP).doubleValue();
+            this.lminus = new BigDecimal(scoreRange.getLminus()).setScale(2, RoundingMode.HALF_UP).doubleValue();
+            this.lplus = new BigDecimal(scoreRange.getLplus()).setScale(2, RoundingMode.HALF_UP).doubleValue();
         }
+        this.normalize();
     }
 
     public void validate() {
@@ -126,14 +130,14 @@ public class ScoreRange {
             if (l == null) {
                 throw new InvalidDataException("L score range value not defined.");
             }
-            if (n >= 100D) {
-                throw new InvalidDataException("N score range value bigger than 100.");
+            if (n > 99.99) {
+                throw new InvalidDataException("N score range value must be smaller than 100.");
             }
-            if (p >= 100D) {
-                throw new InvalidDataException("P score range value bigger than 100.");
+            if (p > 99.99) {
+                throw new InvalidDataException("P score range value must be smaller than 100.");
             }
-            if (l >= 100D) {
-                throw new InvalidDataException("L score range value bigger than 100.");
+            if (l > 99.99) {
+                throw new InvalidDataException("L score range value must be smaller than 100.");
             }
             if (n > p) {
                 throw new InvalidDataException("P score range value (" + p + ") must be bigger than upper N value (" + n + ")");
@@ -146,41 +150,44 @@ public class ScoreRange {
             if (n == null) {
                 throw new InvalidDataException("N score range value not defined.");
             }
-            if (pMinus == null) {
+            if (pminus == null) {
                 throw new InvalidDataException("P- score range value not defined.");
             }
-            if (pPlus == null) {
+            if (pplus == null) {
                 throw new InvalidDataException("P+ score range value not defined.");
             }
-            if (lMinus == null) {
+            if (lminus == null) {
                 throw new InvalidDataException("L- score range value not defined.");
             }
-            if (lPlus == null) {
+            if (lplus == null) {
                 throw new InvalidDataException("L+ score range value not defined.");
             }
-            if (n >= 100D) {
-                throw new InvalidDataException("N score range value bigger than 100.");
+            if (n > 99.99) {
+                throw new InvalidDataException("N score range value must be smaller than 100.");
             }
-            if (pMinus >= 100D) {
-                throw new InvalidDataException("P- score range value bigger than 100.");
+            if (pminus > 99.99) {
+                throw new InvalidDataException("P- score range value must be smaller than 100.");
             }
-            if (pPlus >= 100D) {
-                throw new InvalidDataException("P+ score range value bigger than 100.");
+            if (pplus > 99.99) {
+                throw new InvalidDataException("P+ score range value must be smaller than 100.");
             }
-            if (lMinus >= 100D) {
-                throw new InvalidDataException("L- score range value bigger than 100.");
+            if (lminus > 99.99) {
+                throw new InvalidDataException("L- score range value must be smaller than 100.");
             }
-            if (n > pMinus) {
-                throw new InvalidDataException("P- score range value (" + pMinus + ") must be bigger than upper N value (" + n + ")");
+            if (lplus > 99.99) {
+                throw new InvalidDataException("L+ score range value must be smaller than 100.");
             }
-            if (pMinus > pPlus) {
-                throw new InvalidDataException("P+ score range value (" + pPlus + ") must be bigger than upper P- value (" + pMinus + ")");
+            if (n > pminus) {
+                throw new InvalidDataException("P- score range value (" + pminus + ") must be bigger than upper N value (" + n + ")");
             }
-            if (pPlus > lMinus) {
-                throw new InvalidDataException("L- score range value (" + lMinus + ") must be bigger than upper P+ value (" + pPlus + ")");
+            if (pminus > pplus) {
+                throw new InvalidDataException("P+ score range value (" + pplus + ") must be bigger than upper P- value (" + pminus + ")");
             }
-            if (lMinus > lPlus) {
-                throw new InvalidDataException("L+ score range value (" + lPlus + ") must be bigger than upper L- value (" + lMinus + ")");
+            if (pplus > lminus) {
+                throw new InvalidDataException("L- score range value (" + lminus + ") must be bigger than upper P+ value (" + pplus + ")");
+            }
+            if (lminus > lplus) {
+                throw new InvalidDataException("L+ score range value (" + lplus + ") must be bigger than upper L- value (" + lminus + ")");
             }
         } else {
             throw new InvalidDataException("Score ranges must be SIMPLE or EXTENDED. Provided: " + mode);

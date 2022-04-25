@@ -18,13 +18,6 @@ import java.time.LocalDateTime;
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    //TODO: Remove
-//    @ExceptionHandler
-//    @ResponseStatus(HttpStatus.BAD_REQUEST)
-//    public void handle(Exception e) {
-//        logger.info("Returning HTTP 400 Bad Request", e);
-//    }
-
     @ExceptionHandler({InvalidDataException.class,ConstraintException.class, BadCredentialsException.class})
     public ResponseEntity handleBadRequests(Exception ex) {
         logException(ex);

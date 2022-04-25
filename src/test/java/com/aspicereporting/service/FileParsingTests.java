@@ -53,14 +53,25 @@ public class FileParsingTests {
         stream = new FileInputStream(file);
         multipartFile = new MockMultipartFile("file", file.getName(),
                 String.valueOf(MediaType.MULTIPART_FORM_DATA), stream);
-        SourceFileException exception = Assertions.assertThrows(SourceFileException.class, () -> fileParsingService.parseFile(multipartFile));
-        Assertions.assertEquals("Source file has no data or headers defined.", exception.getMessage());
+        Assertions.assertThrows(SourceFileException.class, () -> fileParsingService.parseFile(multipartFile));
     }
 
     @Test
     public void parseNullFile() {
         SourceFileException exception = Assertions.assertThrows(SourceFileException.class, () -> fileParsingService.parseFile(null));
         Assertions.assertEquals("Cannot read null file.", exception.getMessage());
+    }
+
+
+    @Test
+    public void parseUnsupportedFile() throws IOException {
+        InputStream stream;
+        MockMultipartFile multipartFile;
+        File file = new File("src/test/resources/files/unsupported.pdf");
+        stream = new FileInputStream(file);
+        multipartFile = new MockMultipartFile("file", file.getName(),
+                String.valueOf(MediaType.MULTIPART_FORM_DATA), stream);
+        Assertions.assertThrows(SourceFileException.class, () -> fileParsingService.parseFile(multipartFile));
     }
 
     @ParameterizedTest(name = "{index} - {0}")

@@ -91,7 +91,7 @@ public class ItemValidationService {
                 }
                 tableColumn.setId(null);
             });
-            source.addSimpleTable(simpleTable);
+            simpleTable.setSource(source);
         }
     }
 
@@ -160,7 +160,7 @@ public class ItemValidationService {
                     throw new EntityNotFoundException("Invalid source column id=" + capabilityTable.getScoreColumn().getId() + " for source id=" + sourceId);
                 }
             }
-            source.addCapabilityTable(capabilityTable);
+            capabilityTable.setSource(source);
         }
     }
 
@@ -188,9 +188,7 @@ public class ItemValidationService {
                 throw new InvalidDataException("Level bar graph has inaccessible source defined.");
             }
 
-            for (Source source : sources) {
-                source.getLevelBarGraphs().add(levelBarGraph);
-            }
+            levelBarGraph.setSources(sources);
         }
     }
 
@@ -259,7 +257,7 @@ public class ItemValidationService {
                     throw new EntityNotFoundException("Invalid source column id=" + levelPieGraph.getScoreColumn().getId() + " for source id=" + sourceId);
                 }
             }
-            source.addLevelPieGraph(levelPieGraph);
+            levelPieGraph.setSource(source);
         }
     }
 }

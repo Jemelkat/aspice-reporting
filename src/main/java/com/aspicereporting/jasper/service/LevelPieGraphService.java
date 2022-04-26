@@ -240,9 +240,9 @@ public class LevelPieGraphService extends BaseChartService {
      *
      * @return {process: level}
      */
-    private LinkedHashMap<String, Integer> getLevelsByScore(LevelPieGraph levelPieGraph, MultiKeyMap valuesMap, List<String> processFilter) {
+    private LinkedHashMap<String, Integer> getLevelsByScore(LevelPieGraph levelPieGraph, MultiKeyMap valuesMap, List<String> processList) {
         LinkedHashMap<String, Integer> processLevelMap = new LinkedHashMap<>();
-        for (String process : processFilter) {
+        for (String process : processList) {
             resetVariables();
             for (int i = 1; i <= 5; i++) {
                 if (!previousLevelAchieved) {
@@ -288,9 +288,9 @@ public class LevelPieGraphService extends BaseChartService {
      *
      * @return {process: level}
      */
-    private LinkedHashMap<String, Integer> getLevelsByLevel(LevelPieGraph levelPieGraph, MultiKeyMap valuesMap, List<String> processFilter, List<String> assessorFilter) {
+    private LinkedHashMap<String, Integer> getLevelsByLevel(LevelPieGraph levelPieGraph, MultiKeyMap valuesMap, List<String> processList, List<String> assessorFilter) {
         LinkedHashMap<String, Map<String, Integer>> processLevelMap = new LinkedHashMap<>();
-        for (var process : processFilter) {
+        for (var process : processList) {
             for (var assessor : assessorFilter) {
                 //Check if this assessor evaulated this process
                 boolean hasRecord = false;

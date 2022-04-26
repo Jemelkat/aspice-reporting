@@ -32,6 +32,7 @@ public abstract class AbstractItemService {
     protected Double levelCheckValue = 0D;
     protected Boolean previousLevelAchieved = true;
     protected Integer levelAchieved = 0;
+    protected Boolean allAttributesLargely = true;
 
     protected void initializeScoreRanges(ScoreRange scoreRange) {
         if(scoreRange.getMode().equals(Mode.SIMPLE)) {
@@ -160,6 +161,8 @@ public abstract class AbstractItemService {
             } else {
                 levelCheckValue += 0.5;
             }
+        } else {
+            allAttributesLargely = false;
         }
     }
 
@@ -169,8 +172,10 @@ public abstract class AbstractItemService {
             levelAchieved += 1;
         } else {
             //All attributes are at least largely achieved
-            if (levelCheckValue >= 1) {
-                levelAchieved += 1;
+            if (allAttributesLargely) {
+                if (levelCheckValue >= 1) {
+                    levelAchieved += 1;
+                }
             }
             //We need to have all attributes fully to continue
             previousLevelAchieved = false;
@@ -185,5 +190,6 @@ public abstract class AbstractItemService {
 
     protected void resetCheckVariable() {
         this.levelCheckValue = 0D;
+        this.allAttributesLargely = true;
     }
 }

@@ -253,6 +253,7 @@ public class LevelPieGraphService extends BaseChartService {
                     MultiKey multikey = new MultiKey(process, attribute);
                     //Process does not have this attribute defined we don't have to increase level
                     if (!valuesMap.containsKey(multikey)) {
+                        allAttributesLargely = false;
                         break;
                     }
 
@@ -305,6 +306,7 @@ public class LevelPieGraphService extends BaseChartService {
                         MultiKey multikey = new MultiKey(process, attribute);
                         //Process does not have this attribute defined we dont have to increase level
                         if (!valuesMap.containsKey(multikey)) {
+                            allAttributesLargely = false;
                             break;
                         }
 

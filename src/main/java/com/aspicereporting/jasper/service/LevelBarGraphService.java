@@ -402,10 +402,8 @@ public class LevelBarGraphService extends BaseChartService {
                     if (updatedMap.containsKey(process)) {
                         if (scoreFunction.equals(ScoreFunction.MIN) && level < updatedMap.get(process).get(scoreFunction.name() + " levels achieved in sources")) {
                             updatedMap.get(process).put(scoreFunction.name() + " levels achieved in sources", level);
-                        } else {
-                            if (level > updatedMap.get(process).get(scoreFunction.name() + " levels achieved in sources")) {
-                                updatedMap.get(process).put(scoreFunction.name() + " levels achieved in sources", level);
-                            }
+                        } else if (scoreFunction.equals(ScoreFunction.MAX) && level > updatedMap.get(process).get(scoreFunction.name() + " levels achieved in sources")) {
+                            updatedMap.get(process).put(scoreFunction.name() + " levels achieved in sources", level);
                         }
                     } else {
                         updatedMap.put(process, new LinkedHashMap<>(Map.of(scoreFunction.name() + " levels achieved in sources", applyMinMaxFunction(combinedLevels.get(process).get(assessor), scoreFunction))));

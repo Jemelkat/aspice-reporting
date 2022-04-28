@@ -187,8 +187,8 @@ public class ItemValidationService {
             if (sources.size() != levelBarGraph.getSources().size()) {
                 throw new InvalidDataException("Level bar graph has inaccessible source defined.");
             }
-
-            levelBarGraph.setSources(sources);
+            //We don't have to set sources - it will not keep the same order of IDs
+            //levelBarGraph.setSources(sources);
         }
     }
 
